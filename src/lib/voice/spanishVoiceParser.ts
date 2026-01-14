@@ -326,62 +326,116 @@ function normalizeIngredientName(name: string): string {
   return normalized;
 }
 
+// Helper to create a parsed item
+function createParsedItem(
+  rawText: string,
+  name: string,
+  quantity: number,
+  unit: string,
+  confidence: number = 0.9
+): ParsedIngredientInput {
+  const normalizedName = normalizeIngredientName(name);
+  const category = determineCategory(name);
+  return {
+    raw_text: rawText,
+    extracted_name: normalizedName,
+    normalized_name: normalizedName.toLowerCase(),
+    name: normalizedName,
+    quantity,
+    unit,
+    category,
+    confidence,
+    suggestions: []
+  };
+}
+
 // Main parser function
 export function parseSpanishVoiceInput(transcript: string): ParsedIngredientInput[] {
   const items: ParsedIngredientInput[] = [];
-  
+
   // Normalize transcript first
   let normalizedTranscript = transcript.toLowerCase().trim();
-  // Remove common filler words
-  normalizedTranscript = normalizedTranscript.replace(/\b(eh|ah|este|bueno|entonces)\b/g, '');
-  
-  // Special handling for specific patterns before splitting
-  // Handle "una docena de X" pattern
-  if (normalizedTranscript.includes('una docena de') || normalizedTranscript.includes('un docena de')) {
-    const dozenMatch = normalizedTranscript.match(/(una?)\s+docena\s+de\s+(.+)/);
-    if (dozenMatch) {
-      const ingredientName = dozenMatch[2].trim();
-      const normalizedName = normalizeIngredientName(ingredientName);
-      const category = determineCategory(ingredientName);
-      
-      items.push({
-        raw_text: normalizedTranscript,
-        extracted_name: normalizedName,
-        normalized_name: normalizedName.toLowerCase(),
-        name: normalizedName,
-        quantity: 12,
-        unit: 'pcs',
-        category: category,
-        confidence: 0.9,
-        suggestions: []
-      });
-      return items;
+  // Remove common filler words and speech artifacts
+  normalizedTranscript = normalizedTranscript.replace(/\b(eh|ah|este|bueno|entonces|mmm|eee|yyy|okey|okay|dale|listo|agregar|agrega|añadir|añade|necesito|quiero|poneme|pone|pon)\b/gi, '');
+  // Remove multiple spaces
+  normalizedTranscript = normalizedTranscript.replace(/\s+/g, ' ').trim();
+
+  if (!normalizedTranscript) return items;
+
+  // ============================================
+  // SPECIAL PATTERNS (handle before splitting)
+  // ============================================
+
+  // Pattern: "media docena de X"
+  const mediaDocenaMatch = normalizedTranscript.match(/media\s+docena\s+de\s+([^,y.]+)/i);
+  if (mediaDocenaMatch) {
+    items.push(createParsedItem(normalizedTranscript, mediaDocenaMatch[1].trim(), 6, 'pcs'));
+    // Remove matched part to continue parsing rest
+    normalizedTranscript = normalizedTranscript.replace(mediaDocenaMatch[0], '').trim();
+  }
+
+  // Pattern: "una/dos/tres docena(s) de X"
+  const docenaMatch = normalizedTranscript.match(/(una?|dos|tres|cuatro|cinco)\s+docenas?\s+de\s+([^,y.]+)/i);
+  if (docenaMatch) {
+    const multiplier = SPANISH_NUMBERS[docenaMatch[1]] || 1;
+    items.push(createParsedItem(normalizedTranscript, docenaMatch[2].trim(), multiplier * 12, 'pcs'));
+    normalizedTranscript = normalizedTranscript.replace(docenaMatch[0], '').trim();
+  }
+
+  // Pattern: "X kilo(s) y medio de Y" or "kilo y medio de Y"
+  const kiloMedioMatch = normalizedTranscript.match(/(?:(\d+|un|una|dos|tres)\s+)?kilos?\s+y\s+medio\s+de\s+([^,y.]+)/i);
+  if (kiloMedioMatch) {
+    const baseQty = kiloMedioMatch[1] ? (SPANISH_NUMBERS[kiloMedioMatch[1]] || parseFloat(kiloMedioMatch[1]) || 1) : 1;
+    items.push(createParsedItem(normalizedTranscript, kiloMedioMatch[2].trim(), baseQty + 0.5, 'kg'));
+    normalizedTranscript = normalizedTranscript.replace(kiloMedioMatch[0], '').trim();
+  }
+
+  // Pattern: "X litro(s) y medio de Y" or "litro y medio de Y"
+  const litroMedioMatch = normalizedTranscript.match(/(?:(\d+|un|una|dos|tres)\s+)?litros?\s+y\s+medio\s+de\s+([^,y.]+)/i);
+  if (litroMedioMatch) {
+    const baseQty = litroMedioMatch[1] ? (SPANISH_NUMBERS[litroMedioMatch[1]] || parseFloat(litroMedioMatch[1]) || 1) : 1;
+    items.push(createParsedItem(normalizedTranscript, litroMedioMatch[2].trim(), baseQty + 0.5, 'L'));
+    normalizedTranscript = normalizedTranscript.replace(litroMedioMatch[0], '').trim();
+  }
+
+  // Pattern: "medio kilo de X" / "media libra de X"
+  const medioKiloMatch = normalizedTranscript.match(/medi[oa]\s+(kilo|libra|litro)\s+de\s+([^,y.]+)/i);
+  if (medioKiloMatch) {
+    const unitMap: Record<string, string> = { 'kilo': 'kg', 'libra': 'lb', 'litro': 'L' };
+    items.push(createParsedItem(normalizedTranscript, medioKiloMatch[2].trim(), 0.5, unitMap[medioKiloMatch[1].toLowerCase()] || 'kg'));
+    normalizedTranscript = normalizedTranscript.replace(medioKiloMatch[0], '').trim();
+  }
+
+  // Pattern: "un cuarto de kilo de X" / "un cuarto kilo de X"
+  const cuartoKiloMatch = normalizedTranscript.match(/(?:un\s+)?cuarto\s+(?:de\s+)?kilo\s+de\s+([^,y.]+)/i);
+  if (cuartoKiloMatch) {
+    items.push(createParsedItem(normalizedTranscript, cuartoKiloMatch[1].trim(), 0.25, 'kg'));
+    normalizedTranscript = normalizedTranscript.replace(cuartoKiloMatch[0], '').trim();
+  }
+
+  // Pattern: "X gramos de Y" (common: 100g, 200g, 250g, 500g)
+  const gramosMatch = normalizedTranscript.match(/(\d+)\s*(?:gr?|gramos?)\s+de\s+([^,y.]+)/gi);
+  if (gramosMatch) {
+    for (const match of gramosMatch) {
+      const parts = match.match(/(\d+)\s*(?:gr?|gramos?)\s+de\s+(.+)/i);
+      if (parts) {
+        items.push(createParsedItem(match, parts[2].trim(), parseInt(parts[1]), 'g'));
+        normalizedTranscript = normalizedTranscript.replace(match, '').trim();
+      }
     }
   }
-  
-  // Handle "X kilo y medio de Y" pattern
-  const kiloMedioMatch = normalizedTranscript.match(/(un|una?)\s+kilo\s+y\s+medio\s+de\s+(.+)/);
-  if (kiloMedioMatch) {
-    const ingredientName = kiloMedioMatch[2].trim();
-    const normalizedName = normalizeIngredientName(ingredientName);
-    const category = determineCategory(ingredientName);
-    
-    items.push({
-      raw_text: normalizedTranscript,
-      extracted_name: normalizedName,
-      normalized_name: normalizedName.toLowerCase(),
-      name: normalizedName,
-      quantity: 1.5,
-      unit: 'kg',
-      category: category,
-      confidence: 0.9,
-      suggestions: []
-    });
+
+  // If we already found items from special patterns and transcript is empty, return
+  if (items.length > 0 && !normalizedTranscript.replace(/[,.\sy]/g, '').trim()) {
     return items;
   }
-  
-  // Split by common separators (y, coma, punto)
-  const segments = normalizedTranscript.split(/\s*(?:,|\sy\s|\.)\s*/);
+
+  // ============================================
+  // SPLIT AND PARSE REMAINING TEXT
+  // ============================================
+
+  // Split by common separators (comma, "y" between items, period, semicolon, "también", "después", "luego")
+  const segments = normalizedTranscript.split(/\s*(?:,|;|\.\s|\sy\s(?=\d)|también|después|luego|además)\s*/i);
   
   for (const segment of segments) {
     if (!segment.trim()) continue;

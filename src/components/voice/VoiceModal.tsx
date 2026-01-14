@@ -180,7 +180,7 @@ export function VoiceModal({
                       onClick={handleStartRecording}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      className="w-full h-full rounded-full bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 flex items-center justify-center cursor-pointer shadow-xl"
+                      className="w-full h-full rounded-full bg-black hover:bg-gray-800 flex items-center justify-center cursor-pointer shadow-xl"
                     >
                       <Mic className="w-12 h-12 text-white" />
                     </motion.button>
@@ -282,7 +282,7 @@ export function VoiceModal({
                   <div className="mt-6">
                     <button
                       onClick={() => setUseManualInput(!useManualInput)}
-                      className="text-sm text-purple-600 hover:text-purple-700 underline"
+                      className="text-sm text-slate-600 hover:text-slate-900 underline"
                     >
                       {useManualInput ? (isSupported ? 'Volver a intentar con voz' : 'Voz no soportada') : 'Escribir manualmente'}
                     </button>
@@ -300,7 +300,7 @@ export function VoiceModal({
                       value={manualInput}
                       onChange={(e) => setManualInput(e.target.value)}
                       placeholder="Escribí los productos que querés agregar, por ejemplo: '2 kilos de tomate y una docena de huevos'"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none"
                       rows={3}
                     />
                     <button
@@ -322,7 +322,7 @@ export function VoiceModal({
                         }
                       }}
                       disabled={!manualInput.trim()}
-                      className="mt-3 w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="mt-3 w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Procesar texto
                     </button>
@@ -333,9 +333,9 @@ export function VoiceModal({
           ) : (
             <>
               {/* Edit Screen */}
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+              <div className="p-6 border-b border-gray-100 bg-black text-white">
                 <h2 className="text-2xl font-bold">Confirmar productos</h2>
-                <p className="text-purple-100 text-sm mt-1">
+                <p className="text-gray-300 text-sm mt-1">
                   Revisá y editá los productos antes de agregarlos
                 </p>
               </div>
@@ -368,7 +368,7 @@ export function VoiceModal({
                             type="text"
                             value={item.name}
                             onChange={(e) => handleItemChange(index, 'name', e.target.value)}
-                            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             placeholder="Nombre del producto"
                           />
                           <button
@@ -387,7 +387,7 @@ export function VoiceModal({
                               type="number"
                               value={item.quantity}
                               onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                               placeholder="Cantidad"
                               step="0.1"
                               min="0"
@@ -398,7 +398,7 @@ export function VoiceModal({
                             <select
                               value={item.unit}
                               onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             >
                               <option value="pcs">Unidades</option>
                               <option value="kg">Kilogramos</option>
@@ -421,7 +421,7 @@ export function VoiceModal({
                             <select
                               value={item.category}
                               onChange={(e) => handleItemChange(index, 'category', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             >
                               <option value="frutas">🍎 Frutas y Verduras</option>
                               <option value="carnes">🥩 Carnes y Pescados</option>
@@ -439,7 +439,7 @@ export function VoiceModal({
                             <select
                               value={item.location}
                               onChange={(e) => handleItemChange(index, 'location', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             >
                               <option value="despensa">🏠 Despensa</option>
                               <option value="refrigerador">❄️ Heladera</option>
@@ -476,7 +476,7 @@ export function VoiceModal({
                   className={`px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     editableItems.length === 0
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                      : 'bg-black text-white hover:bg-gray-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                   }`}
                 >
                   <Check className="w-5 h-5" />

@@ -19,8 +19,17 @@ export const NutritionBadge: React.FC<NutritionBadgeProps> = ({
   variant = 'compact',
   className,
 }) => {
+  // Early return if nutrition data is not available
+  if (!nutrition) {
+    return (
+      <div className={cn('rounded-lg bg-gray-50 p-4 text-center text-gray-500', className)}>
+        <p className="text-sm">No hay información nutricional disponible</p>
+      </div>
+    );
+  }
+
   const perServing = servings > 1;
-  
+
   const calculatePerServing = (value: number) => {
     return perServing ? Math.round(value / servings) : value;
   };
@@ -129,7 +138,7 @@ export const NutritionBadge: React.FC<NutritionBadgeProps> = ({
           <span className="text-sm text-gray-500">Per serving</span>
         )}
       </div>
-      
+
       <div className="space-y-3">
         {/* Calories - prominently displayed */}
         <div className="border-b pb-3">
@@ -206,55 +215,55 @@ export const NutritionBadge: React.FC<NutritionBadgeProps> = ({
           nutrition.vitamin_c !== undefined ||
           nutrition.calcium !== undefined ||
           nutrition.iron !== undefined) && (
-          <div className="space-y-2 border-t pt-3">
-            <h4 className="text-sm font-medium text-gray-700">Other Nutrients</h4>
-            <div className="space-y-1">
-              {nutrition.cholesterol !== undefined && (
-                <NutrientRow
-                  label="Cholesterol"
-                  value={calculatePerServing(nutrition.cholesterol)}
-                  unit="mg"
-                />
-              )}
-              {nutrition.sodium !== undefined && (
-                <NutrientRow
-                  label="Sodium"
-                  value={calculatePerServing(nutrition.sodium)}
-                  unit="mg"
-                  color={getNutrientColor('sodium', calculatePerServing(nutrition.sodium))}
-                />
-              )}
-              {nutrition.vitamin_a !== undefined && (
-                <NutrientRow
-                  label="Vitamin A"
-                  value={calculatePerServing(nutrition.vitamin_a)}
-                  unit="%"
-                />
-              )}
-              {nutrition.vitamin_c !== undefined && (
-                <NutrientRow
-                  label="Vitamin C"
-                  value={calculatePerServing(nutrition.vitamin_c)}
-                  unit="%"
-                />
-              )}
-              {nutrition.calcium !== undefined && (
-                <NutrientRow
-                  label="Calcium"
-                  value={calculatePerServing(nutrition.calcium)}
-                  unit="%"
-                />
-              )}
-              {nutrition.iron !== undefined && (
-                <NutrientRow
-                  label="Iron"
-                  value={calculatePerServing(nutrition.iron)}
-                  unit="%"
-                />
-              )}
+            <div className="space-y-2 border-t pt-3">
+              <h4 className="text-sm font-medium text-gray-700">Other Nutrients</h4>
+              <div className="space-y-1">
+                {nutrition.cholesterol !== undefined && (
+                  <NutrientRow
+                    label="Cholesterol"
+                    value={calculatePerServing(nutrition.cholesterol)}
+                    unit="mg"
+                  />
+                )}
+                {nutrition.sodium !== undefined && (
+                  <NutrientRow
+                    label="Sodium"
+                    value={calculatePerServing(nutrition.sodium)}
+                    unit="mg"
+                    color={getNutrientColor('sodium', calculatePerServing(nutrition.sodium))}
+                  />
+                )}
+                {nutrition.vitamin_a !== undefined && (
+                  <NutrientRow
+                    label="Vitamin A"
+                    value={calculatePerServing(nutrition.vitamin_a)}
+                    unit="%"
+                  />
+                )}
+                {nutrition.vitamin_c !== undefined && (
+                  <NutrientRow
+                    label="Vitamin C"
+                    value={calculatePerServing(nutrition.vitamin_c)}
+                    unit="%"
+                  />
+                )}
+                {nutrition.calcium !== undefined && (
+                  <NutrientRow
+                    label="Calcium"
+                    value={calculatePerServing(nutrition.calcium)}
+                    unit="%"
+                  />
+                )}
+                {nutrition.iron !== undefined && (
+                  <NutrientRow
+                    label="Iron"
+                    value={calculatePerServing(nutrition.iron)}
+                    unit="%"
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* Daily value disclaimer */}

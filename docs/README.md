@@ -5,14 +5,16 @@
 ### Core Documentation
 - **[SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)** - Complete system architecture overview
 - **[PRD.md](PRD.md)** - Product Requirements Document
-- **[IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md)** - Development roadmap and phases
+- **[DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md)** - Development roadmap and phases
 - **[TECHNICAL_STANDARDS.md](TECHNICAL_STANDARDS.md)** - Coding standards and conventions
 
 ### Feature Documentation  
 - **[AI_INTEGRATION.md](AI_INTEGRATION.md)** - AI integration patterns and implementation
 - **[API_DESIGN.md](API_DESIGN.md)** - API architecture and endpoints
 - **[DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)** - Database structure and models
+- **[FEATURES_DOCUMENTATION.md](FEATURES_DOCUMENTATION.md)** - Feature overview and status
 - **[COMPONENT_ARCHITECTURE.md](COMPONENT_ARCHITECTURE.md)** - Frontend component design
+- **[COMPONENT_INVENTORY.md](COMPONENT_INVENTORY.md)** - Component inventory and guides
 
 ### System Modules
 - **[PROFILE_SYSTEM.md](PROFILE_SYSTEM.md)** - User profile management
@@ -25,9 +27,9 @@
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment procedures
 
 ### Feature Specifications
-- **[UNIFIED_MEAL_PLANNER_SPEC.md](UNIFIED_MEAL_PLANNER_SPEC.md)** - Meal planning system
-- **[VOICE_RECOGNITION_SYSTEM.md](VOICE_RECOGNITION_SYSTEM.md)** - Voice integration
-- **[iOS26_DESIGN_SYSTEM_ARCHITECTURE.md](iOS26_DESIGN_SYSTEM_ARCHITECTURE.md)** - Design system
+- **[FEATURES_SPECIFICATION.md](FEATURES_SPECIFICATION.md)** - Feature specs
+- **[MEAL_PLANNER_CONSOLIDATION_PLAN.md](MEAL_PLANNER_CONSOLIDATION_PLAN.md)** - Meal planning consolidation
+- **[MEAL_PLANNER_TECHNICAL_ROADMAP.md](MEAL_PLANNER_TECHNICAL_ROADMAP.md)** - Meal planner roadmap
 
 ### Archive
 Older documentation and session summaries have been moved to the `archive/` directory for reference.
@@ -84,7 +86,7 @@ SENTRY_DSN=your-sentry-dsn
 
 ```
 kecarajocomer/
-├── app/                    # Next.js 15 App Router
+├── app/                    # Next.js 15.0.0 App Router
 │   ├── (auth)/            # Authentication routes
 │   ├── (dashboard)/       # Protected app routes
 │   ├── api/               # API routes and Edge Functions

@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { getUser } from '@/lib/auth/supabase-auth';
 import { db } from '@/lib/supabase/database.service';
@@ -26,7 +24,7 @@ async function generatePantryBasedRecipes(
   preferences: RecipePreferences
 ) {
   const gemini = new GeminiService();
-  
+
   const prompt = `
 Based on the following available pantry ingredients, suggest 3-5 recipes that can be made:
 
@@ -95,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     // Get optional request body for preferences
     const body = await request.json().catch(() => ({}));
-    const { 
+    const {
       mealType = 'any',
       difficulty = 'any',
       maxCookTime = 60,

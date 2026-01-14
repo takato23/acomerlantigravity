@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/ui/Logo';
 
 import { HeaderProps, User, Notification } from '../../types';
 
@@ -95,7 +96,7 @@ export const Header: React.FC<HeaderProps> = ({
       role="banner"
     >
       <div className="flex items-center justify-between px-4 lg:px-6 h-16">
-        
+
         {/* Left Section */}
         <div className="flex items-center space-x-4">
           {/* Mobile Menu Button */}
@@ -111,19 +112,11 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Logo */}
           {config.showLogo && (
-            <motion.div 
-              className="flex items-center space-x-2"
+            <motion.div
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-lime-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">KC</span>
-              </div>
-              {config.title && (
-                <span className="hidden sm:block text-xl font-bold bg-gradient-to-r from-lime-600 to-purple-600 bg-clip-text text-transparent">
-                  {config.title}
-                </span>
-              )}
+              <Logo />
             </motion.div>
           )}
         </div>
@@ -158,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Section */}
         <div className="flex items-center space-x-2">
-          
+
           {/* Notifications */}
           {config.showNotifications && (
             <div className="relative" ref={notificationsRef}>
@@ -176,7 +169,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 17v-7a8 8 0 1116 0v7" />
                 </svg>
-                
+
                 {/* Notification Badge */}
                 {state.notifications.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -282,7 +275,7 @@ export const Header: React.FC<HeaderProps> = ({
                           <p className="text-sm text-gray-500">{state.user?.email || 'user@example.com'}</p>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <a
                           href="/app/profile"

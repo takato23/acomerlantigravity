@@ -18,12 +18,12 @@ interface ProfileHeaderProps {
 }
 
 // Enhanced Avatar Upload Component
-function EnhancedAvatarUpload({ 
-  src, 
-  alt, 
-  isEditing, 
-  onUpload, 
-  badge 
+function EnhancedAvatarUpload({
+  src,
+  alt,
+  isEditing,
+  onUpload,
+  badge
 }: {
   src?: string;
   alt: string;
@@ -52,7 +52,7 @@ function EnhancedAvatarUpload({
 
   const handleFileUpload = useCallback(async (file: File) => {
     if (!onUpload) return;
-    
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image must be less than 5MB');
       return;
@@ -73,12 +73,12 @@ function EnhancedAvatarUpload({
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     if (!isEditing || !onUpload) return;
-    
+
     const files = Array.from(e.dataTransfer.files);
     const imageFile = files.find(file => file.type.startsWith('image/'));
-    
+
     if (imageFile) {
       await handleFileUpload(imageFile);
     } else {
@@ -94,7 +94,7 @@ function EnhancedAvatarUpload({
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="relative"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -112,7 +112,7 @@ function EnhancedAvatarUpload({
         className={cn(
           'w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 p-0 overflow-hidden cursor-pointer group',
           isDragging && 'ring-4 ring-blue-400/50 ring-offset-2',
-          !src && 'border-2 border-dashed border-gray-300 dark:border-gray-600'
+          !src && 'border-2 border-dashed border-slate-300'
         )}
         onClick={handleClick}
       >
@@ -125,7 +125,7 @@ function EnhancedAvatarUpload({
               className="object-cover"
               sizes="(max-width: 768px) 144px, 160px"
             />
-            
+
             {/* Upload Overlay */}
             <AnimatePresence>
               {isEditing && (
@@ -158,7 +158,7 @@ function EnhancedAvatarUpload({
             </AnimatePresence>
           </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
             {isDragging ? (
               <motion.div
                 initial={{ scale: 0.8 }}
@@ -170,8 +170,8 @@ function EnhancedAvatarUpload({
               </motion.div>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">
+                <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-slate-600">
                     {alt.slice(0, 2).toUpperCase()}
                   </span>
                 </div>
@@ -182,21 +182,21 @@ function EnhancedAvatarUpload({
             )}
           </div>
         )}
-        
+
         {/* Achievement Badge */}
         {badge && (
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-            className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-800"
+            className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
             style={{ backgroundColor: badge.color }}
           >
             <span className="text-white text-lg">{badge.icon}</span>
           </motion.div>
         )}
       </iOS26LiquidCard>
-      
+
       <input
         ref={fileInputRef}
         type="file"
@@ -213,11 +213,11 @@ function EnhancedAvatarUpload({
 }
 
 // Progress Circle Component
-function ProgressCircle({ 
-  percentage, 
-  size = 120, 
+function ProgressCircle({
+  percentage,
+  size = 120,
   strokeWidth = 8,
-  showLabel = true 
+  showLabel = true
 }: {
   percentage: number;
   size?: number;
@@ -227,18 +227,18 @@ function ProgressCircle({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
-  
+
   const getColor = (percent: number) => {
     if (percent >= 80) return '#10B981'; // Green
-    if (percent >= 60) return '#F59E0B'; // Amber  
+    if (percent >= 60) return '#F59E0B'; // Amber
     if (percent >= 40) return '#EF4444'; // Red
-    return '#6B7280'; // Gray
+    return '#6B7280'; // Slate
   };
-  
+
   const color = getColor(percentage);
-  
+
   return (
-    <motion.div 
+    <motion.div
       className="relative flex items-center justify-center"
       style={{ width: size, height: size }}
       initial={{ scale: 0.8, opacity: 0 }}
@@ -258,9 +258,9 @@ function ProgressCircle({
           stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="none"
-          className="text-gray-200 dark:text-gray-700"
+          className="text-slate-200"
         />
-        
+
         {/* Progress circle */}
         <motion.circle
           cx={size / 2}
@@ -276,7 +276,7 @@ function ProgressCircle({
           transition={{ duration: 1.5, ease: 'easeInOut' }}
         />
       </svg>
-      
+
       {showLabel && (
         <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center"
@@ -287,7 +287,7 @@ function ProgressCircle({
           <span className="text-2xl font-bold" style={{ color }}>
             {percentage}%
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+          <span className="text-xs text-slate-500 font-medium">
             Complete
           </span>
         </motion.div>
@@ -305,21 +305,21 @@ function ProfileGamification({ percentage, level }: { percentage: number; level:
     { id: 'master', name: 'Profile Master', icon: '⭐', unlocked: percentage >= 80, description: 'Complete your entire profile' },
     { id: 'legend', name: 'Food Legend', icon: '🏆', unlocked: percentage >= 100, description: 'Perfect profile setup' }
   ];
-  
+
   const nextMilestone = achievements.find(a => !a.unlocked);
-  
+
   return (
     <iOS26LiquidCard variant="subtle" className="p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
           Profile Journey
         </h3>
-        <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full font-medium">
+        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
           Level {level}
         </span>
       </div>
-      
+
       <div className="flex flex-wrap gap-2 mb-3">
         {achievements.map((achievement) => (
           <motion.div
@@ -327,11 +327,11 @@ function ProfileGamification({ percentage, level }: { percentage: number; level:
             className={cn(
               'flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all',
               achievement.unlocked
-                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-slate-100 text-slate-500'
             )}
             initial={{ scale: 0.9, opacity: 0.7 }}
-            animate={{ 
+            animate={{
               scale: achievement.unlocked ? 1 : 0.9,
               opacity: achievement.unlocked ? 1 : 0.7
             }}
@@ -343,19 +343,19 @@ function ProfileGamification({ percentage, level }: { percentage: number; level:
           </motion.div>
         ))}
       </div>
-      
+
       {nextMilestone && (
-        <motion.div 
-          className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded-lg"
+        <motion.div
+          className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <Target className="w-4 h-4 text-blue-500" />
           <div className="flex-1">
-            <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+            <p className="text-xs font-medium text-blue-700">
               Next: {nextMilestone.name}
             </p>
-            <p className="text-xs text-blue-600 dark:text-blue-400">
+            <p className="text-xs text-blue-600">
               {nextMilestone.description}
             </p>
           </div>
@@ -478,13 +478,13 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
               onUpload={uploadAvatar}
               badge={mockBadge}
             />
-            
+
             {/* Progress Circle */}
             <div className="hidden lg:block">
               <ProgressCircle percentage={percentage} />
             </div>
           </div>
-          
+
           {/* Right Column - Info & Actions */}
           <div className="flex-1 space-y-6">
             {/* Header with Edit Actions */}
@@ -520,7 +520,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                         fluid
                       />
                       <div className="relative">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
                           Bio
                         </label>
                         <motion.textarea
@@ -528,8 +528,8 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                             'w-full h-24 p-4 rounded-xl resize-none',
                             'ios26-glass ios26-glass-medium',
                             'bg-transparent border-0 outline-none',
-                            'text-gray-900 dark:text-white',
-                            'placeholder-gray-500 dark:placeholder-gray-400',
+                            'text-slate-900',
+                            'placeholder-slate-500',
                             'focus:ring-2 focus:ring-blue-500/50'
                           )}
                           value={editData.bio}
@@ -541,7 +541,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                           whileFocus={{ scale: 1.01 }}
                           transition={{ duration: 0.2 }}
                         />
-                        <div className="absolute bottom-2 right-3 text-xs text-gray-400">
+                        <div className="absolute bottom-2 right-3 text-xs text-slate-400">
                           {editData.bio.length}/200
                         </div>
                       </div>
@@ -555,16 +555,16 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                       className="space-y-3"
                     >
                       <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                        <h1 className="text-3xl font-bold text-slate-900">
                           {profile.name || 'Welcome to KeCarajoComer!'}
                         </h1>
-                        <p className="text-lg text-gray-600 dark:text-gray-400">
+                        <p className="text-lg text-slate-600">
                           @{profile.username || 'your-username'}
                         </p>
                       </div>
                       {profile.bio && (
-                        <motion.p 
-                          className="text-gray-700 dark:text-gray-300 leading-relaxed max-w-lg"
+                        <motion.p
+                          className="text-slate-700 leading-relaxed max-w-lg"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.2 }}
@@ -626,12 +626,12 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                 </AnimatePresence>
               </div>
             </div>
-            
+
             {/* Mobile Progress Circle */}
             <div className="lg:hidden flex justify-center">
               <ProgressCircle percentage={percentage} size={100} strokeWidth={6} />
             </div>
-            
+
             {/* Stats */}
             <ProfileStats
               level={userLevel}
@@ -652,7 +652,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
           </div>
         </div>
       </iOS26LiquidCard>
-      
+
       {/* Gamification Section */}
       <ProfileGamification percentage={percentage} level={userLevel} />
     </motion.div>

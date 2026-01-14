@@ -24,12 +24,14 @@ interface OpenAIConfig {
 export class OpenAIProvider extends AIProviderInterface {
   name: AIProvider = 'openai';
   private apiKey: string;
+  private useProxy: boolean = false;
   private organization?: string;
   private baseURL: string;
 
-  constructor(config: OpenAIConfig) {
+  constructor(config: OpenAIConfig & { useProxy?: boolean }) {
     super(config);
-    this.apiKey = config.apiKey;
+    this.apiKey = config.apiKey || '';
+    this.useProxy = !!config.useProxy;
     this.organization = config.organization;
     this.baseURL = config.baseURL || 'https://api.openai.com/v1';
   }
@@ -38,9 +40,22 @@ export class OpenAIProvider extends AIProviderInterface {
     request: AITextRequest,
     config: AIServiceConfig
   ): Promise<AITextResponse> {
+    if (this.useProxy) {
+      const { aiProxy } = require('@/lib/ai/AIProxyClient');
+      const text = await aiProxy.generateText(request.prompt, 'openai', config.model);
+      return {
+        data: text,
+        provider: 'openai',
+        model: (config.model || 'gpt-3.5-turbo') as any,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        format: request.format || 'text',
+        metadata: { requestId: 'proxy', timestamp: new Date(), processingTime: 0 }
+      };
+    }
+
     try {
       const messages = this.buildMessages(request);
-      
+
       const response = await this.retry(async () => {
         const res = await fetch(`${this.baseURL}/chat/completions`, {
           method: 'POST',
@@ -100,7 +115,7 @@ export class OpenAIProvider extends AIProviderInterface {
   ): Promise<AIStreamResponse> {
     try {
       const messages = this.buildMessages(request);
-      
+
       const response = await fetch(`${this.baseURL}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -177,6 +192,52 @@ export class OpenAIProvider extends AIProviderInterface {
     }
   }
 
+  async generateImage(
+    request: AIImageGenerationRequest,
+    config: AIServiceConfig
+  ): Promise<AIImageGenerationResponse> {
+    try {
+      const response = await this.retry(async () => {
+        const res = await fetch(`${this.baseURL}/images/generations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`,
+            ...(this.organization && { 'OpenAI-Organization': this.organization }),
+          },
+          body: JSON.stringify({
+            model: 'dall-e-3',
+            prompt: request.prompt,
+            n: request.n || 1,
+            size: request.size || '1024x1024',
+            quality: request.quality || 'standard',
+            style: request.style || 'natural',
+            response_format: 'b64_json',
+          }),
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error?.message || `HTTP ${res.status}`);
+        }
+
+        return res.json();
+      }, config.retryAttempts, config.retryDelay);
+
+      return {
+        data: response.data.map((item: any) => ({
+          url: item.url, // Might be undefined if response_format is b64_json, but typically provided or we use b64_json
+          b64_json: item.b64_json,
+          revised_prompt: item.revised_prompt,
+        })),
+        provider: 'openai',
+        model: 'dall-e-3',
+      };
+    } catch (error: unknown) {
+      throw this.handleError(error);
+    }
+  }
+
   async analyzeImage(
     request: AIImageRequest,
     config: AIServiceConfig
@@ -184,7 +245,7 @@ export class OpenAIProvider extends AIProviderInterface {
     try {
       // Convert image to base64 URL if needed
       let imageUrl: string;
-      
+
       if (typeof request.image === 'string') {
         imageUrl = request.image;
       } else if (request.image instanceof Buffer) {
@@ -288,7 +349,7 @@ export class OpenAIProvider extends AIProviderInterface {
     const modelPricing = pricing[model] || pricing['gpt-3.5-turbo'];
     const inputCost = (usage.prompt_tokens / 1000) * modelPricing.input;
     const outputCost = (usage.completion_tokens / 1000) * modelPricing.output;
-    
+
     return inputCost + outputCost;
   }
 

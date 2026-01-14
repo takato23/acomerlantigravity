@@ -16,23 +16,23 @@ export interface EnhancedRecipeRequest {
   prompt?: string;
   ingredients?: string[];
   pantryIngredients?: string[];
-  
+
   // Preferences
   cuisine?: string;
   mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert';
   difficulty?: 'easy' | 'medium' | 'hard';
   servings?: number;
   maxCookTime?: number;
-  
+
   // Dietary restrictions
   dietary?: string[];
   allergies?: string[];
-  
+
   // Generation options
   provider?: 'openai' | 'anthropic' | 'gemini';
   showPrompt?: boolean;
   temperature?: number;
-  
+
   // Context
   occasionType?: 'casual' | 'special' | 'healthy' | 'comfort';
   budgetLevel?: 'low' | 'medium' | 'high';
@@ -62,7 +62,7 @@ export class EnhancedAIRecipeService {
   private notificationService: NotificationManager;
 
   constructor() {
-    this.aiService = new UnifiedAIService();
+    this.aiService = UnifiedAIService.getInstance();
     this.storageService = new UnifiedStorageService();
     this.notificationService = new NotificationManager();
   }
@@ -74,12 +74,11 @@ export class EnhancedAIRecipeService {
     try {
       // Build intelligent prompt
       const prompt = await this.buildIntelligentPrompt(request);
-      
+
       // Show prompt to user if requested
       if (request.showPrompt) {
-        await this.notificationService.notify({
+        await this.notificationService.notify('Prompt Generado', {
           type: 'info',
-          title: 'Prompt Generado',
           message: 'Puedes revisar el prompt que se enviará a la IA',
           data: { prompt },
           priority: 'medium'
@@ -112,10 +111,9 @@ export class EnhancedAIRecipeService {
 
     } catch (error: unknown) {
       logger.error('Error generating recipe:', 'EnhancedAIRecipeService', error);
-      
-      await this.notificationService.notify({
+
+      await this.notificationService.notify('Error al Generar Receta', {
         type: 'error',
-        title: 'Error al Generar Receta',
         message: 'No se pudo generar la receta. Intenta de nuevo.',
         priority: 'high'
       });
@@ -131,7 +129,7 @@ export class EnhancedAIRecipeService {
     try {
       // Get pantry ingredients
       const pantryItems = await this.storageService.get(`pantry_${userId}`) || [];
-      
+
       if (pantryItems.length === 0) {
         // Suggest popular recipes if no pantry items
         return this.suggestPopularRecipes(additionalRequest);
@@ -295,8 +293,8 @@ Responde en formato JSON válido.`);
       user_id: '', // Will be set by caller
       title: aiResponse.title,
       description: aiResponse.description,
-      instructions: Array.isArray(aiResponse.instructions) 
-        ? aiResponse.instructions 
+      instructions: Array.isArray(aiResponse.instructions)
+        ? aiResponse.instructions
         : aiResponse.instructions.split('\n').filter(Boolean),
       ingredients: aiResponse.ingredients.map((ing: any) => ({
         name: ing.name,
@@ -363,9 +361,8 @@ Responde en formato JSON válido.`);
       showPrompt: false
     };
 
-    await this.notificationService.notify({
+    await this.notificationService.notify('Despensa Vacía', {
       type: 'info',
-      title: 'Despensa Vacía',
       message: 'No tienes ingredientes en tu despensa. Te sugerimos una receta popular.',
       priority: 'medium'
     });

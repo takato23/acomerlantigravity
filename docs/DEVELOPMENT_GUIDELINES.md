@@ -1,7 +1,7 @@
 # Development Guidelines - KeCarajoComer
 
 **Version**: 1.0  
-**Last Updated**: January 2025
+**Last Updated**: July 2025
 
 ## Table of Contents
 
@@ -150,7 +150,7 @@ module.exports = {
 
 ```
 src/
-├── app/                    # Next.js 15 App Router
+├── app/                    # Next.js 15.0.0 App Router
 │   ├── (app)/             # Authenticated routes
 │   ├── (auth)/            # Auth routes
 │   ├── (marketing)/       # Public routes
@@ -176,6 +176,8 @@ src/
 ├── types/                 # Global types
 └── config/                # Configuration
 ```
+
+Routing note: the recipe browser lives in `src/app/(app)/recetas`. `src/app/recipes/page.tsx` redirects to `/recetas` for backward compatibility.
 
 ### Feature Module Structure
 
@@ -828,6 +830,13 @@ const sanitizedHtml = DOMPurify.sanitize(userContent);
 - `test/recipe-components` - Tests
 
 ### Commit Messages
+
+Use Conventional Commits with `<type>(scope): <subject>`.
+
+- `scope` requerido; usá el nombre del feature/módulo.
+- `subject` en imperativo, minúsculas, sin punto final, máximo 72 caracteres.
+- Sin emojis.
+- Tipos válidos: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `build`, `ci`, `style`, `revert`.
 
 ```bash
 # Format: <type>(<scope>): <subject>

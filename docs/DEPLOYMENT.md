@@ -4,7 +4,7 @@ Comprehensive deployment guide for the KeCaraJoComer cooking assistant applicati
 
 ## Overview
 
-KeCaraJoComer is built with Next.js 15 and can be deployed to various platforms including Vercel, Docker containers, and other cloud providers.
+KeCaraJoComer is built with Next.js 15.0.0 and can be deployed to various platforms including Vercel, Docker containers, and other cloud providers.
 
 ## Prerequisites
 

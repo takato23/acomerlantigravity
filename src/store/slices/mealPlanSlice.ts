@@ -1,274 +1,116 @@
 /**
- * Argentine Meal Plan Slice - Zustand store for meal planning with cultural specifics
- * Handles state persistence with localStorage and Supabase sync
+ * Argentine Meal Plan Slice - Unified Zustand store for meal planning
+ * Standardized on System C hybrid types for consistency across the app.
  */
 
 import { StateCreator } from 'zustand';
-import { persist, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import { z } from 'zod';
 import { supabase } from '@/lib/supabase/client';
 import { logger } from '@/lib/logger';
+import { MealPlanService } from '@/lib/supabase/meal-plans';
+import { debounce } from 'lodash';
+import { format, startOfWeek, addDays } from 'date-fns';
+
+// Import standardized System C types
+import type {
+  WeekPlan,
+  UserPreferences,
+  ModeType,
+  MealSlot,
+  Recipe,
+  MealType,
+  AIGeneratedPlan,
+  AIPlannerConfig
+} from '@/features/meal-planning/types';
 
 // ============================================================================
-// TYPES - Argentine-specific meal planning types
+// CONSTANTS & HELPERS
 // ============================================================================
 
-export type MealType = 'desayuno' | 'almuerzo' | 'merienda' | 'cena';
-export type ModeType = 'normal' | 'economico' | 'fiesta' | 'dieta';
-export type RegionType = 'pampa' | 'patagonia' | 'norte' | 'cuyo' | 'centro' | 'litoral';
-export type SeasonType = 'verano' | 'otono' | 'invierno' | 'primavera';
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+const MAX_CACHE_ENTRIES = 5; // Limit entries to prevent bloating
 
-export interface Recipe {
-  id: string;
-  name: string;
-  description?: string;
-  image?: string;
-  ingredients: Ingredient[];
-  instructions: string[];
-  nutrition: NutritionInfo;
-  prepTime: number; // minutes
-  cookTime: number; // minutes
-  servings: number;
-  difficulty: 'facil' | 'medio' | 'dificil';
-  tags: string[];
-  region?: RegionType;
-  season?: SeasonType;
-  cultural: {
-    isTraditional: boolean;
-    occasion?: 'domingo' | 'feriado' | 'dia29' | 'invierno' | 'verano';
-    significance?: string;
-  };
-  cost: {
-    total: number;
-    perServing: number;
-    currency: 'ARS';
-  };
-  locked?: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+// Debounced save to prevent excessive database calls
+const debouncedSave = debounce(async (weekPlan: WeekPlan) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-export interface Ingredient {
-  id: string;
-  name: string;
-  amount: number;
-  unit: string;
-  category: 'carnes' | 'verduras' | 'frutas' | 'lacteos' | 'cereales' | 'condimentos' | 'bebidas' | 'otros';
-  isOptional?: boolean;
-  notes?: string;
-}
-
-export interface NutritionInfo {
-  calories: number;
-  protein: number; // g
-  carbs: number; // g
-  fat: number; // g
-  fiber?: number; // g
-  sodium?: number; // mg
-}
-
-export interface ArgentineMeal {
-  recipe: Recipe;
-  servings: number;
-  notes?: string;
-  locked?: boolean;
-  alternatives?: Recipe[];
-  cost: number;
-  nutrition: NutritionInfo;
-}
-
-export interface ArgentineDayPlan {
-  date: string; // YYYY-MM-DD
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday...
-  dayName: string;
-  desayuno: ArgentineMeal | null;
-  almuerzo: ArgentineMeal | null;
-  merienda: ArgentineMeal | null;
-  cena: ArgentineMeal | null;
-  cultural: {
-    isSpecialDay: boolean;
-    occasion?: string;
-    notes?: string;
-  };
-  dailyNutrition: NutritionInfo;
-  dailyCost: number;
-}
-
-export interface ArgentineWeeklyPlan {
-  planId: string;
-  userId: string;
-  weekStart: string; // YYYY-MM-DD (Monday)
-  weekEnd: string; // YYYY-MM-DD (Sunday)
-  days: ArgentineDayPlan[];
-  weeklyNutrition: NutritionInfo;
-  weeklyCost: number;
-  generatedAt: string;
-  lastModified: string;
-  mode: ModeType;
-  region: RegionType;
-  season: SeasonType;
-  cultural: {
-    hasAsado: boolean;
-    hasMate: boolean;
-    hasNoquis29: boolean;
-    specialOccasions: string[];
-  };
-}
-
-export interface UserPreferences {
-  dietary: {
-    restrictions: string[]; // ['vegetarian', 'gluten-free', etc.]
-    allergies: string[];
-    dislikes: string[];
-    favorites: string[];
-  };
-  cooking: {
-    skill: 'principiante' | 'intermedio' | 'avanzado';
-    timeAvailable: number; // max minutes per meal
-    equipment: string[];
-    preferredTechniques: string[];
-  };
-  cultural: {
-    region: RegionType;
-    traditionLevel: 'baja' | 'media' | 'alta'; // how much traditional food
-    mateFrequency: 'nunca' | 'ocasional' | 'diario';
-    asadoFrequency: 'nunca' | 'mensual' | 'quincenal' | 'semanal';
-  };
-  family: {
-    householdSize: number;
-    hasChildren: boolean;
-    ageRanges: string[];
-    specialNeeds: string[];
-  };
-  budget: {
-    weekly: number;
-    currency: 'ARS';
-    flexibility: 'estricto' | 'flexible' | 'sin_limite';
-  };
-  shopping: {
-    preferredStores: string[];
-    buysBulk: boolean;
-    prefersLocal: boolean;
-    hasGarden: boolean;
-  };
-}
-
-export interface PantryItem {
-  id: string;
-  name: string;
-  category: string;
-  amount: number;
-  unit: string;
-  expiryDate?: string;
-  cost?: number;
-  lastUsed?: string;
-  frequency: 'alta' | 'media' | 'baja';
-}
-
-export interface ShoppingListItem {
-  id: string;
-  name: string;
-  category: string;
-  amount: number;
-  unit: string;
-  estimatedCost: number;
-  priority: 'alta' | 'media' | 'baja';
-  inPantry: boolean;
-  recipes: string[]; // recipe names that use this ingredient
-  checked: boolean;
-}
-
-export interface ShoppingList {
-  id: string;
-  weekPlanId: string;
-  items: ShoppingListItem[];
-  totalCost: number;
-  generatedAt: string;
-  categories: {
-    name: string;
-    items: ShoppingListItem[];
-    subtotal: number;
-  }[];
-}
-
-export interface WeeklyNutritionSummary {
-  daily: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  };
-  weekly: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  };
-  balance: {
-    varietyScore: number; // 0-10
-    nutritionScore: number; // 0-10
-    culturalScore: number; // 0-10
-  };
-  recommendations: string[];
-}
-
-export interface MealPlanRecord {
-  id: string;
-  user_id: string;
-  week_start: string;
-  week_end: string;
-  plan_data: ArgentineWeeklyPlan;
-  created_at: string;
-  updated_at: string;
-}
+    await MealPlanService.saveWeekPlan(
+      user.id,
+      weekPlan.startDate,
+      weekPlan.endDate,
+      weekPlan
+    );
+  } catch (error) {
+    logger.error('Error in debounced save:', 'mealPlanSlice', error);
+  }
+}, 2000);
 
 // ============================================================================
-// ZUSTAND STORE STATE & ACTIONS
+// STORE STATE & ACTIONS
 // ============================================================================
 
 export interface MealPlanState {
-  // Core state
-  weeklyPlan: ArgentineWeeklyPlan | null;
-  preferences: UserPreferences;
-  pantry: PantryItem[];
-  mode: ModeType;
-  weekKey: string; // userId:weekStart for uniqueness
-  isDirty: boolean; // has unsaved changes
-  
-  // UI state
-  isLoading: boolean;
-  isSaving: boolean;
-  error: string | null;
-  
-  // Sync state
-  lastSyncedAt: string | null;
-  syncInProgress: boolean;
-  offlineChanges: any[];
+  mealPlan: {
+    // Core state
+    currentWeekPlan: WeekPlan | null;
+    preferences: UserPreferences;
+    mode: ModeType;
+    weekKey: string; // userId:weekStart for uniqueness
+    isDirty: boolean; // has unsaved changes
+
+    // UI state
+    isLoading: boolean;
+    isSaving: boolean;
+    error: string | null;
+    currentDate: string;
+    staples: Recipe[];
+    activeModal: 'add-recipe' | 'edit-slot' | null;
+    selectedMeal: MealSlot | null;
+
+    // Sync & Cache state
+    lastSyncedAt: string | null;
+    cacheTimestamps: Record<string, number>; // weekKey -> timestamp
+    syncInProgress: boolean;
+    offlineChanges: Array<{
+      type: string;
+      payload: any;
+      timestamp: string;
+    }>;
+  }
 }
 
 export interface MealPlanActions {
   // Core actions
-  setWeeklyPlan: (plan: ArgentineWeeklyPlan | null) => void;
+  loadWeekPlan: (startDate: string) => Promise<void>;
+  saveWeekPlan: (weekPlan: WeekPlan) => Promise<void>;
+  setWeeklyPlan: (plan: WeekPlan | null) => void;
   setPreferences: (preferences: Partial<UserPreferences>) => void;
   setMode: (mode: ModeType) => void;
   setWeekKey: (key: string) => void;
   setDirty: (dirty: boolean) => void;
-  
-  // Pantry management
-  upsertPantryItem: (item: PantryItem) => void;
-  removePantryItem: (itemId: string) => void;
-  updatePantryItem: (itemId: string, updates: Partial<PantryItem>) => void;
-  
-  // Preferences
-  addFavoriteDish: (dish: string) => void;
-  addDislikedIngredient: (ingredient: string) => void;
-  updateCulturalPreferences: (cultural: Partial<UserPreferences['cultural']>) => void;
-  updateBudgetPreferences: (budget: Partial<UserPreferences['budget']>) => void;
-  
+
+  // Meal management
+  addMealToSlot: (slot: Partial<MealSlot>, recipe: Recipe) => void;
+  removeMealFromSlot: (slotId: string) => void;
+  toggleSlotLock: (slotId: string) => void;
+  moveMealSlot: (fromSlotId: string, toDayOfWeek: number, toMealType: MealType) => void;
+
+  // Batch/AI operations
+  generateWeekWithAI: (config: AIPlannerConfig) => Promise<AIGeneratedPlan>;
+  clearWeek: () => void;
+  duplicateWeek: (targetStartDate: string) => Promise<void>;
+  batchUpdateSlots: (updates: Array<{ slotId: string; changes: Partial<MealSlot> }>) => void;
+
+  // UI Actions
+  setCurrentDate: (date: string) => void;
+  setStaples: (staples: Recipe[]) => void;
+  setActiveModal: (modal: 'add-recipe' | 'edit-slot' | null) => void;
+  setSelectedMeal: (meal: MealSlot | null) => void;
+
   // Utilities
   clearError: () => void;
-  resetState: () => void;
+  resetMealPlanState: () => void;
 }
 
 export type MealPlanSlice = MealPlanState & MealPlanActions;
@@ -278,69 +120,21 @@ export type MealPlanSlice = MealPlanState & MealPlanActions;
 // ============================================================================
 
 const DEFAULT_PREFERENCES: UserPreferences = {
-  dietary: {
-    restrictions: [],
-    allergies: [],
-    dislikes: [],
-    favorites: ['asado', 'empanadas', 'milanesas', 'pasta']
-  },
-  cooking: {
-    skill: 'intermedio',
-    timeAvailable: 60,
-    equipment: ['horno', 'estufa', 'microondas'],
-    preferredTechniques: ['plancha', 'horno', 'hervor']
-  },
-  cultural: {
-    region: 'pampa',
-    traditionLevel: 'media',
-    mateFrequency: 'diario',
-    asadoFrequency: 'quincenal'
-  },
-  family: {
-    householdSize: 2,
-    hasChildren: false,
-    ageRanges: ['adulto'],
-    specialNeeds: []
-  },
-  budget: {
-    weekly: 15000,
-    currency: 'ARS',
-    flexibility: 'flexible'
-  },
-  shopping: {
-    preferredStores: ['supermercado'],
-    buysBulk: false,
-    prefersLocal: true,
-    hasGarden: false
-  }
+  dietaryPreferences: ['omnivore'],
+  dietProfile: 'balanced',
+  cuisinePreferences: ['argentina', 'mediterránea'],
+  excludedIngredients: [],
+  preferredIngredients: [],
+  allergies: [],
+  cookingSkill: 'intermediate',
+  maxCookingTime: 60,
+  mealsPerDay: 4,
+  servingsPerMeal: 2,
+  budget: 'medium',
+  preferVariety: true,
+  useSeasonalIngredients: true,
+  considerPantryItems: true
 };
-
-const DEFAULT_PANTRY: PantryItem[] = [
-  {
-    id: 'sal',
-    name: 'Sal',
-    category: 'condimentos',
-    amount: 1,
-    unit: 'kg',
-    frequency: 'alta'
-  },
-  {
-    id: 'aceite',
-    name: 'Aceite',
-    category: 'condimentos', 
-    amount: 1,
-    unit: 'litro',
-    frequency: 'alta'
-  },
-  {
-    id: 'yerba',
-    name: 'Yerba mate',
-    category: 'bebidas',
-    amount: 500,
-    unit: 'g',
-    frequency: 'alta'
-  }
-];
 
 // ============================================================================
 // ZUSTAND STORE IMPLEMENTATION
@@ -352,114 +146,377 @@ export const createMealPlanSlice: StateCreator<
   [],
   MealPlanSlice
 > = (set, get) => ({
-  // Initial state
-  weeklyPlan: null,
-  preferences: DEFAULT_PREFERENCES,
-  pantry: DEFAULT_PANTRY,
-  mode: 'normal',
-  weekKey: '',
-  isDirty: false,
-  isLoading: false,
-  isSaving: false,
-  error: null,
-  lastSyncedAt: null,
-  syncInProgress: false,
-  offlineChanges: [],
+  // Initial state nested under mealPlan
+  mealPlan: {
+    currentWeekPlan: null,
+    preferences: DEFAULT_PREFERENCES,
+    mode: 'normal',
+    weekKey: '',
+    isDirty: false,
+    isLoading: false,
+    isSaving: false,
+    error: null,
+    currentDate: new Date().toISOString(),
+    staples: [],
+    activeModal: null,
+    selectedMeal: null,
+    lastSyncedAt: null,
+    cacheTimestamps: {},
+    syncInProgress: false,
+    offlineChanges: [],
+  },
 
   // Core actions
+  loadWeekPlan: async (startDate: string) => {
+    set((state) => { state.mealPlan.isLoading = true; state.mealPlan.error = null; });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const endDate = format(addDays(new Date(startDate + 'T00:00:00'), 6), 'yyyy-MM-dd');
+
+      // Check for cached plan and TTL
+      const currentTimestamp = Date.now();
+      const cachedTimestamp = get().mealPlan.cacheTimestamps[startDate];
+
+      if (cachedTimestamp && (currentTimestamp - cachedTimestamp < CACHE_TTL)) {
+        // Use currentWeekPlan if it matches the date and is not expired
+        const current = get().mealPlan.currentWeekPlan;
+        if (current && current.startDate === startDate) {
+          set((state) => { state.mealPlan.isLoading = false; });
+          return;
+        }
+      }
+
+      const { data, error } = await MealPlanService.getWeekPlan(user.id, startDate, endDate);
+
+      if (error) throw error;
+
+      set((state) => {
+        state.mealPlan.currentWeekPlan = data;
+        state.mealPlan.cacheTimestamps[startDate] = Date.now();
+        state.mealPlan.isLoading = false;
+
+        // Evict old cache entries if exceeding limit
+        const entries = Object.entries(state.mealPlan.cacheTimestamps);
+        if (entries.length > MAX_CACHE_ENTRIES) {
+          const oldestKey = entries.sort((a, b) => a[1] - b[1])[0][0];
+          delete state.mealPlan.cacheTimestamps[oldestKey];
+          // Note: Since we only persist one plan (current), this mainly cleans up the timestamps Record
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to load week plan', 'mealPlanSlice', error);
+      set((state) => {
+        state.mealPlan.error = error instanceof Error ? error.message : 'Unknown error';
+        state.mealPlan.isLoading = false;
+      });
+    }
+  },
+
+  saveWeekPlan: async (weekPlan: WeekPlan) => {
+    set((state) => { state.mealPlan.isSaving = true; });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await MealPlanService.saveWeekPlan(user.id, weekPlan.startDate, weekPlan.endDate, weekPlan);
+      if (error) throw error;
+
+      set((state) => {
+        state.mealPlan.isSaving = false;
+        state.mealPlan.isDirty = false;
+        state.mealPlan.lastSyncedAt = new Date().toISOString();
+      });
+    } catch (error) {
+      logger.error('Failed to save week plan', 'mealPlanSlice', error);
+      set((state) => {
+        state.mealPlan.error = error instanceof Error ? error.message : 'Unknown error';
+        state.mealPlan.isSaving = false;
+      });
+    }
+  },
+
   setWeeklyPlan: (plan) => set((state) => {
-    state.weeklyPlan = plan;
+    state.mealPlan.currentWeekPlan = plan;
     if (plan) {
-      state.isDirty = true;
-      state.error = null;
+      state.mealPlan.isDirty = true;
+      state.mealPlan.error = null;
     }
   }),
 
   setPreferences: (preferences) => set((state) => {
-    state.preferences = { ...state.preferences, ...preferences };
-    state.isDirty = true;
+    state.mealPlan.preferences = { ...state.mealPlan.preferences, ...preferences };
+    state.mealPlan.isDirty = true;
   }),
 
   setMode: (mode) => set((state) => {
-    state.mode = mode;
-    state.isDirty = true;
+    state.mealPlan.mode = mode;
+    state.mealPlan.isDirty = true;
   }),
 
   setWeekKey: (key) => set((state) => {
-    state.weekKey = key;
+    state.mealPlan.weekKey = key;
   }),
 
   setDirty: (dirty) => set((state) => {
-    state.isDirty = dirty;
+    state.mealPlan.isDirty = dirty;
   }),
 
-  // Pantry management
-  upsertPantryItem: (item) => set((state) => {
-    const existingIndex = state.pantry.findIndex(p => p.id === item.id);
-    if (existingIndex >= 0) {
-      state.pantry[existingIndex] = item;
-    } else {
-      state.pantry.push(item);
-    }
-    state.isDirty = true;
-  }),
+  // Meal management
+  addMealToSlot: (slotData, recipe) => set((state) => {
+    if (!state.mealPlan.currentWeekPlan) return;
 
-  removePantryItem: (itemId) => set((state) => {
-    state.pantry = state.pantry.filter(item => item.id !== itemId);
-    state.isDirty = true;
-  }),
+    const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex(
+      s => (slotData.id && s.id === slotData.id) ||
+        (s.date === slotData.date && s.mealType === slotData.mealType)
+    );
 
-  updatePantryItem: (itemId, updates) => set((state) => {
-    const item = state.pantry.find(p => p.id === itemId);
-    if (item) {
-      Object.assign(item, updates);
-      state.isDirty = true;
-    }
-  }),
+    if (slotIndex !== -1) {
+      const updatedSlot = {
+        ...state.mealPlan.currentWeekPlan.slots[slotIndex],
+        recipeId: recipe.id,
+        recipe: recipe,
+        updatedAt: new Date().toISOString()
+      };
+      state.mealPlan.currentWeekPlan.slots[slotIndex] = updatedSlot;
+      state.mealPlan.isDirty = true;
 
-  // Preferences management
-  addFavoriteDish: (dish) => set((state) => {
-    if (!state.preferences.dietary.favorites.includes(dish)) {
-      state.preferences.dietary.favorites.push(dish);
-      state.isDirty = true;
+      // Use debounced save if not loading
+      if (!state.mealPlan.isLoading) {
+        debouncedSave(state.mealPlan.currentWeekPlan);
+      }
     }
   }),
 
-  addDislikedIngredient: (ingredient) => set((state) => {
-    if (!state.preferences.dietary.dislikes.includes(ingredient)) {
-      state.preferences.dietary.dislikes.push(ingredient);
-      state.isDirty = true;
+  removeMealFromSlot: (slotId) => set((state) => {
+    if (!state.mealPlan.currentWeekPlan) return;
+
+    const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex(s => s.id === slotId);
+    if (slotIndex !== -1) {
+      state.mealPlan.currentWeekPlan.slots[slotIndex].recipeId = undefined;
+      state.mealPlan.currentWeekPlan.slots[slotIndex].recipe = undefined;
+      state.mealPlan.currentWeekPlan.slots[slotIndex].updatedAt = new Date().toISOString();
+      state.mealPlan.isDirty = true;
+
+      debouncedSave(state.mealPlan.currentWeekPlan);
     }
   }),
 
-  updateCulturalPreferences: (cultural) => set((state) => {
-    state.preferences.cultural = { ...state.preferences.cultural, ...cultural };
-    state.isDirty = true;
+  moveMealSlot: (fromSlotId, toDayOfWeek, toMealType) => set((state) => {
+    if (!state.mealPlan.currentWeekPlan) return;
+
+    const sourceIndex = state.mealPlan.currentWeekPlan.slots.findIndex(s => s.id === fromSlotId);
+    const targetIndex = state.mealPlan.currentWeekPlan.slots.findIndex(
+      s => s.dayOfWeek === toDayOfWeek && s.mealType === toMealType
+    );
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const sourceSlot = state.mealPlan.currentWeekPlan.slots[sourceIndex];
+    const targetSlot = state.mealPlan.currentWeekPlan.slots[targetIndex];
+
+    // Swap recipe data
+    const tempRecipeId = targetSlot.recipeId;
+    const tempRecipe = targetSlot.recipe;
+    const tempCustom = targetSlot.customMealName;
+
+    state.mealPlan.currentWeekPlan.slots[targetIndex] = {
+      ...targetSlot,
+      recipeId: sourceSlot.recipeId,
+      recipe: sourceSlot.recipe,
+      customMealName: sourceSlot.customMealName,
+      updatedAt: new Date().toISOString()
+    };
+
+    state.mealPlan.currentWeekPlan.slots[sourceIndex] = {
+      ...sourceSlot,
+      recipeId: tempRecipeId,
+      recipe: tempRecipe,
+      customMealName: tempCustom,
+      updatedAt: new Date().toISOString()
+    };
+
+    state.mealPlan.isDirty = true;
+    debouncedSave(state.mealPlan.currentWeekPlan);
   }),
 
-  updateBudgetPreferences: (budget) => set((state) => {
-    state.preferences.budget = { ...state.preferences.budget, ...budget };
-    state.isDirty = true;
+  toggleSlotLock: (slotId) => set((state) => {
+    if (!state.mealPlan.currentWeekPlan) return;
+
+    const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex(s => s.id === slotId);
+    if (slotIndex !== -1) {
+      state.mealPlan.currentWeekPlan.slots[slotIndex].isLocked = !state.mealPlan.currentWeekPlan.slots[slotIndex].isLocked;
+      state.mealPlan.currentWeekPlan.slots[slotIndex].updatedAt = new Date().toISOString();
+      state.mealPlan.isDirty = true;
+
+      debouncedSave(state.mealPlan.currentWeekPlan);
+    }
+  }),
+
+  // AI Planning
+  generateWeekWithAI: async (config: AIPlannerConfig): Promise<AIGeneratedPlan> => {
+    set((state) => { state.mealPlan.isLoading = true; });
+    try {
+      // Logic for AI generation usually goes through service
+      // Mocking for now to match legacy behavior
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const current = get().mealPlan.currentWeekPlan;
+      if (!current) throw new Error('No current week plan to generate for');
+
+      // Basic random generation mock
+      const state = get() as any; // Cast for accessing other slices in a typed way if possible
+      const recipeList = Object.values(state.recipes?.items || []) as Recipe[];
+      const updatedSlots = current.slots.map(slot => {
+        if (slot.isLocked || !recipeList.length) return slot;
+        const randomRecipe = recipeList[Math.floor(Math.random() * recipeList.length)];
+        return {
+          ...slot,
+          recipeId: randomRecipe.id,
+          recipe: randomRecipe,
+          updatedAt: new Date().toISOString()
+        };
+      });
+
+      const aiGeneratedPlan: AIGeneratedPlan = {
+        id: `ai-plan-${Date.now()}`,
+        config,
+        weekPlan: { ...current, slots: updatedSlots },
+        shoppingList: {
+          id: `shopping-${Date.now()}`,
+          userId: config.userId,
+          weekPlanId: current.id,
+          items: [],
+          categories: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        nutritionSummary: {
+          daily: { calories: 2000, protein: 100, carbs: 250, fat: 70 },
+          weekly: { calories: 14000, protein: 700, carbs: 1750, fat: 490 }
+        },
+        generatedAt: new Date().toISOString(),
+        suggestions: ['Aumenta el consumo de legumbres', 'Prueba nuevas especias locales']
+      };
+
+      set((state) => {
+        state.mealPlan.currentWeekPlan = aiGeneratedPlan.weekPlan;
+        state.mealPlan.isLoading = false;
+        state.mealPlan.isDirty = true;
+      });
+
+      debouncedSave(aiGeneratedPlan.weekPlan);
+      return aiGeneratedPlan;
+    } catch (error) {
+      set((state) => {
+        state.mealPlan.error = error instanceof Error ? error.message : 'AI Generation failed';
+        state.mealPlan.isLoading = false;
+      });
+      throw error;
+    }
+  },
+
+  clearWeek: () => set((state) => {
+    if (!state.mealPlan.currentWeekPlan) return;
+
+    state.mealPlan.currentWeekPlan.slots = state.mealPlan.currentWeekPlan.slots.map(slot => ({
+      ...slot,
+      recipeId: undefined,
+      recipe: undefined,
+      customMealName: undefined,
+      updatedAt: new Date().toISOString()
+    }));
+
+    state.mealPlan.isDirty = true;
+    debouncedSave(state.mealPlan.currentWeekPlan);
+  }),
+
+  duplicateWeek: async (targetStartDate: string) => {
+    const current = get().mealPlan.currentWeekPlan;
+    if (!current) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    set((state) => { state.mealPlan.isSaving = true; });
+
+    const targetEndDate = format(addDays(new Date(targetStartDate + 'T00:00:00'), 6), 'yyyy-MM-dd');
+    const { data: targetPlan, error } = await MealPlanService.duplicateMealPlan(
+      current.id,
+      user.id,
+      targetStartDate,
+      targetEndDate
+    );
+
+    if (error) {
+      set((state) => { state.mealPlan.error = error.message; state.mealPlan.isSaving = false; });
+      return;
+    }
+
+    // After duplicating on server, we might want to load it or just notify
+    set((state) => { state.mealPlan.isSaving = false; });
+  },
+
+  batchUpdateSlots: (updates) => set((state) => {
+    if (!state.mealPlan.currentWeekPlan) return;
+
+    updates.forEach(({ slotId, changes }) => {
+      const index = state.mealPlan.currentWeekPlan!.slots.findIndex(s => s.id === slotId);
+      if (index !== -1) {
+        state.mealPlan.currentWeekPlan!.slots[index] = {
+          ...state.mealPlan.currentWeekPlan!.slots[index],
+          ...changes,
+          updatedAt: new Date().toISOString()
+        };
+      }
+    });
+
+    state.mealPlan.isDirty = true;
+    debouncedSave(state.mealPlan.currentWeekPlan);
   }),
 
   // Utilities
   clearError: () => set((state) => {
-    state.error = null;
+    state.mealPlan.error = null;
   }),
 
-  resetState: () => set((state) => {
-    state.weeklyPlan = null;
-    state.preferences = DEFAULT_PREFERENCES;
-    state.pantry = DEFAULT_PANTRY;
-    state.mode = 'normal';
-    state.weekKey = '';
-    state.isDirty = false;
-    state.isLoading = false;
-    state.isSaving = false;
-    state.error = null;
-    state.lastSyncedAt = null;
-    state.syncInProgress = false;
-    state.offlineChanges = [];
+  setCurrentDate: (date: string) => set((state) => {
+    state.mealPlan.currentDate = date;
+  }),
+
+  setStaples: (staples: Recipe[]) => set((state) => {
+    state.mealPlan.staples = staples;
+  }),
+
+  setActiveModal: (modal: 'add-recipe' | 'edit-slot' | null) => set((state) => {
+    state.mealPlan.activeModal = modal;
+  }),
+
+  setSelectedMeal: (meal: MealSlot | null) => set((state) => {
+    state.mealPlan.selectedMeal = meal;
+  }),
+
+  resetMealPlanState: () => set((state) => {
+    state.mealPlan = {
+      currentWeekPlan: null,
+      preferences: DEFAULT_PREFERENCES,
+      mode: 'normal',
+      weekKey: '',
+      isDirty: false,
+      isLoading: false,
+      isSaving: false,
+      error: null,
+      currentDate: new Date().toISOString(),
+      staples: [],
+      activeModal: null,
+      selectedMeal: null,
+      lastSyncedAt: null,
+      cacheTimestamps: {},
+      syncInProgress: false,
+      offlineChanges: [],
+    };
   })
 });
 
@@ -469,59 +526,20 @@ export const createMealPlanSlice: StateCreator<
 
 export const mealPlanPersistConfig = {
   name: 'kecarajocomer-meal-plan',
-  version: 1,
+  version: 2,
   partialize: (state: MealPlanSlice) => ({
-    preferences: state.preferences,
-    pantry: state.pantry,
-    mode: state.mode,
-    lastSyncedAt: state.lastSyncedAt,
-    // Don't persist weeklyPlan - it should be loaded fresh from server
+    mealPlan: {
+      preferences: state.mealPlan.preferences,
+      mode: state.mealPlan.mode,
+      lastSyncedAt: state.mealPlan.lastSyncedAt,
+      cacheTimestamps: state.mealPlan.cacheTimestamps,
+    }
   }),
   onRehydrateStorage: () => (state?: MealPlanSlice) => {
     if (state) {
       logger.info('Meal plan state rehydrated from localStorage', 'MealPlanSlice');
-      // Could trigger a background sync here
     }
   },
 };
-
-// ============================================================================
-// VALIDATION SCHEMAS
-// ============================================================================
-
-export const MealTypeSchema = z.enum(['desayuno', 'almuerzo', 'merienda', 'cena']);
-export const ModeTypeSchema = z.enum(['normal', 'economico', 'fiesta', 'dieta']);
-export const RegionTypeSchema = z.enum(['pampa', 'patagonia', 'norte', 'cuyo', 'centro', 'litoral']);
-
-export const ArgentineMealSchema = z.object({
-  recipe: z.any(), // Recipe schema would be defined separately
-  servings: z.number().min(1).max(20),
-  notes: z.string().optional(),
-  locked: z.boolean().optional(),
-  alternatives: z.array(z.any()).optional(),
-  cost: z.number().min(0),
-  nutrition: z.object({
-    calories: z.number().min(0),
-    protein: z.number().min(0),
-    carbs: z.number().min(0),
-    fat: z.number().min(0),
-  })
-});
-
-export const ArgentineWeeklyPlanSchema = z.object({
-  planId: z.string(),
-  userId: z.string(),
-  weekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  weekEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  days: z.array(z.any()), // ArgentineDayPlan schema
-  mode: ModeTypeSchema,
-  region: RegionTypeSchema,
-  generatedAt: z.string(),
-  lastModified: z.string(),
-});
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
 
 export type { MealPlanSlice as default };

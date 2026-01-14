@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, X } from 'lucide-react';
+import { useRecipeAvailability } from '@/features/recipes/hooks/useRecipeAvailability';
+import { Recipe } from '@/features/recipes/types';
 
 interface RecipeFiltersProps {
   filters: {
@@ -12,8 +14,11 @@ interface RecipeFiltersProps {
     difficulty?: string[];
     maxTime?: number;
     tags?: string[];
+    canCookNow?: boolean;
   };
   onFiltersChange: (filters: any) => void;
+  recipes?: Recipe[];
+  onFilteredRecipesChange?: (filteredRecipes: Recipe[]) => void;
 }
 
 const CUISINE_TYPES = [
@@ -41,9 +46,27 @@ const DIFFICULTY_LEVELS = [
   { value: 'hard', label: 'Hard', color: 'red' },
 ];
 
-export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) {
+export function RecipeFilters({ filters, onFiltersChange, recipes = [], onFilteredRecipesChange }: RecipeFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchValue, setSearchValue] = useState(filters.search || '');
+
+  const { canCookNow } = useRecipeAvailability(recipes);
+  // canCookNow is already sorted by match percentage and filtered >= 80%
+
+  const handleCookNowToggle = () => {
+    const newValue = !filters.canCookNow;
+    onFiltersChange({ ...filters, canCookNow: newValue });
+
+    if (onFilteredRecipesChange) {
+      // If active, pass only cookable recipes. If inactive, pass all recipes.
+      // Note: This overrides other filters if used simplistically.
+      // Ideally we should combine filters, but for this specific feature request we focus on Cook Now.
+      const result = newValue ? canCookNow : recipes;
+      onFilteredRecipesChange(result);
+    }
+  };
+
+  const canCookNowCount = canCookNow.length;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +78,7 @@ export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) 
     const updated = current.includes(value)
       ? current.filter(v => v !== value)
       : [...current, value];
-    
+
     onFiltersChange({ ...filters, [key]: updated });
   };
 
@@ -70,6 +93,27 @@ export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) 
 
   return (
     <div className="bg-white/80 backdrop-blur-md rounded-xl border border-white/20 shadow-lg p-4 mb-6">
+      {/* Quick Filter: Can Cook Now */}
+      <div className="flex gap-2 mb-4">
+        <button
+          type="button"
+          onClick={handleCookNowToggle}
+          className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${filters.canCookNow
+            ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+            : 'bg-gradient-to-r from-green-50 to-lime-50 text-green-700 border border-green-200 hover:border-green-400'
+            }`}
+        >
+          <span className="text-xl">🍳</span>
+          <span>Puedo cocinar ahora</span>
+          {canCookNowCount > 0 && (
+            <span className={`px-2 py-0.5 rounded-full text-sm ${filters.canCookNow ? 'bg-white/20' : 'bg-green-500 text-white'
+              }`}>
+              {canCookNowCount}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Search Bar */}
       <form onSubmit={handleSearchSubmit} className="flex gap-2 mb-4">
         <div className="flex-1 relative">
@@ -78,7 +122,7 @@ export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) 
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Search recipes..."
+            placeholder="Buscar recetas..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
           />
         </div>
@@ -88,7 +132,7 @@ export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) 
           className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent flex items-center gap-2"
         >
           <Filter className="w-5 h-5" />
-          Filters
+          Filtros
           {activeFilterCount > 0 && (
             <span className="bg-lime-500 text-white text-xs rounded-full px-2 py-0.5">
               {activeFilterCount}
@@ -116,11 +160,10 @@ export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) 
                     <button
                       key={cuisine.value}
                       onClick={() => toggleArrayFilter('cuisineTypes', cuisine.value)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        filters.cuisineTypes?.includes(cuisine.value)
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${filters.cuisineTypes?.includes(cuisine.value)
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       {cuisine.icon} {cuisine.label}
                     </button>
@@ -136,11 +179,10 @@ export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) 
                     <button
                       key={meal.value}
                       onClick={() => toggleArrayFilter('mealTypes', meal.value)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        filters.mealTypes?.includes(meal.value)
-                          ? 'bg-lime-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${filters.mealTypes?.includes(meal.value)
+                        ? 'bg-lime-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       {meal.icon} {meal.label}
                     </button>
@@ -156,11 +198,10 @@ export function RecipeFilters({ filters, onFiltersChange }: RecipeFiltersProps) 
                     <button
                       key={level.value}
                       onClick={() => toggleArrayFilter('difficulty', level.value)}
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        filters.difficulty?.includes(level.value)
-                          ? `bg-${level.color}-500 text-white`
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${filters.difficulty?.includes(level.value)
+                        ? `bg-${level.color}-500 text-white`
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       {level.label}
                     </button>

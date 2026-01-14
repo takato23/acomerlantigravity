@@ -67,22 +67,16 @@ const KeModal = forwardRef<HTMLDivElement, KeModalProps>(({
 
   const variants = {
     default: `
-      bg-white/95 dark:bg-gray-900/95 border-gray-200/50 dark:border-gray-700/50
+      bg-white/95 border-slate-200/50
     `,
     recipe: `
-      bg-white/95 dark:bg-gray-900/95 border-orange-200/50 dark:border-orange-700/50
-      bg-gradient-to-br from-white/95 to-orange-50/80
-      dark:from-gray-900/95 dark:to-orange-900/20
+      bg-white/95 border-orange-200/50
     `,
     pantry: `
-      bg-white/95 dark:bg-gray-900/95 border-green-200/50 dark:border-green-700/50
-      bg-gradient-to-br from-white/95 to-green-50/80
-      dark:from-gray-900/95 dark:to-green-900/20
+      bg-white/95 border-green-200/50
     `,
     shopping: `
-      bg-white/95 dark:bg-gray-900/95 border-blue-200/50 dark:border-blue-700/50
-      bg-gradient-to-br from-white/95 to-blue-50/80
-      dark:from-gray-900/95 dark:to-blue-900/20
+      bg-white/95 border-slate-200/50
     `
   };
 
@@ -140,15 +134,15 @@ const KeModal = forwardRef<HTMLDivElement, KeModalProps>(({
           >
             {/* Header */}
             {(title || showCloseButton) && (
-              <div className="flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-700/50 shrink-0">
+              <div className="flex items-center justify-between p-4 border-b border-slate-200/50 shrink-0">
                 <div className="flex-1 mr-4">
                   {title && (
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h2 className="text-lg font-semibold text-slate-900">
                       {title}
                     </h2>
                   )}
                   {description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <p className="text-sm text-slate-600 mt-1">
                       {description}
                     </p>
                   )}

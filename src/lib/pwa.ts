@@ -125,7 +125,7 @@ export class PWAService {
     window.addEventListener('appinstalled', () => {
 
       this.installPrompt = null;
-      
+
       // Track installation
       this.trackEvent('pwa_installed');
     });
@@ -153,13 +153,13 @@ export class PWAService {
     // Update UI
     document.body.classList.remove('offline');
     document.body.classList.add('online');
-    
+
     // Sync pending data
     this.syncPendingData();
-    
+
     // Update last sync time
     localStorage.setItem('lastSyncTime', new Date().toISOString());
-    
+
     // Dispatch event
     window.dispatchEvent(new CustomEvent('pwa-online'));
   }
@@ -171,7 +171,7 @@ export class PWAService {
     // Update UI
     document.body.classList.remove('online');
     document.body.classList.add('offline');
-    
+
     // Dispatch event
     window.dispatchEvent(new CustomEvent('pwa-offline'));
   }
@@ -184,7 +184,7 @@ export class PWAService {
       try {
         await navigator.serviceWorker.ready;
         const registration = await navigator.serviceWorker.getRegistration();
-        
+
         if (registration && 'sync' in registration) {
           await (registration as any).sync.register('sync-pending-data');
 
@@ -233,7 +233,7 @@ export class PWAService {
    */
   public isRunningAsPWA(): boolean {
     return window.matchMedia('(display-mode: standalone)').matches ||
-           (window.navigator as any).standalone === true;
+      (window.navigator as any).standalone === true;
   }
 
   /**
@@ -253,11 +253,11 @@ export class PWAService {
 
     return new Promise((resolve) => {
       const messageChannel = new MessageChannel();
-      
+
       messageChannel.port1.onmessage = (event) => {
         resolve(event.data);
       };
-      
+
       this.serviceWorker!.postMessage(
         { type: 'GET_CACHE_STATUS' },
         [messageChannel.port2]
@@ -294,19 +294,18 @@ export class PWAService {
    */
   public showNetworkStatus(): void {
     const status = this.isOnline() ? 'online' : 'offline';
-    const message = this.isOnline() 
-      ? 'You are back online!' 
+    const message = this.isOnline()
+      ? 'You are back online!'
       : 'You are offline. Some features may be limited.';
-    
+
     // Simple toast notification
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
-      this.isOnline() ? 'bg-green-500' : 'bg-orange-500'
-    }`;
+    toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${this.isOnline() ? 'bg-green-500' : 'bg-orange-500'
+      }`;
     toast.textContent = message;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.remove();
     }, 3000);
@@ -318,17 +317,18 @@ export class PWAService {
   public showAddToHomeScreenGuidance(): void {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
-    
+
     let message = '';
-    
+
     if (isIOS) {
-      message = 'To install this app on your iOS device, tap the share button and then "Add to Home Screen".';
+      message = 'Para instalar esta app en tu iPhone/iPad, toca el botón de compartir y luego "Agregar a la pantalla de inicio".';
     } else if (isAndroid) {
-      message = 'To install this app on your Android device, tap the menu button and then "Add to Home Screen".';
+      message = 'Para instalar esta app en tu Android, toca el botón de menú y luego "Instalar aplicación" o "Agregar a la pantalla de inicio".';
     } else {
-      message = 'To install this app, look for the install button in your browser\'s address bar.';
+      message = 'Para instalar esta app, busca el botón de instalación en la barra de direcciones de tu navegador.';
     }
 
+    alert(message);
   }
 
   /**

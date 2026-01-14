@@ -380,10 +380,10 @@ export const EnhancedProfileSettings: React.FC = () => {
         return (
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
+              <label className="text-sm font-medium text-slate-900">
                 {setting.label}
               </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-slate-500">
                 {setting.description}
               </p>
             </div>
@@ -391,7 +391,7 @@ export const EnhancedProfileSettings: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               className={cn(
                 'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                setting.value ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'
+                setting.value ? 'bg-orange-500' : 'bg-slate-300'
               )}
               onClick={() => updateSetting(setting.key, !setting.value)}
             >
@@ -408,10 +408,10 @@ export const EnhancedProfileSettings: React.FC = () => {
       case 'select':
         return (
           <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+            <label className="block text-sm font-medium text-slate-900 mb-2">
               {setting.label}
             </label>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+            <p className="text-xs text-slate-500 mb-3">
               {setting.description}
             </p>
             <select
@@ -443,14 +443,14 @@ export const EnhancedProfileSettings: React.FC = () => {
         return (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
+              <label className="text-sm font-medium text-slate-900">
                 {setting.label}
               </label>
-              <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+              <span className="text-sm font-medium text-orange-600">
                 {setting.value}{setting.key.includes('Goal') ? '%' : setting.key.includes('Calories') ? ' cal' : setting.key.includes('Time') ? ' min' : ''}
               </span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+            <p className="text-xs text-slate-500 mb-3">
               {setting.description}
             </p>
             <input
@@ -468,10 +468,10 @@ export const EnhancedProfileSettings: React.FC = () => {
       case 'multiselect':
         return (
           <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+            <label className="block text-sm font-medium text-slate-900 mb-2">
               {setting.label}
             </label>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+            <p className="text-xs text-slate-500 mb-3">
               {setting.description}
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -483,13 +483,13 @@ export const EnhancedProfileSettings: React.FC = () => {
                     whileTap={{ scale: 0.95 }}
                     className={cn(
                       'glass-button text-left p-3 rounded-lg transition-all',
-                      isSelected 
-                        ? 'bg-orange-500/20 border-orange-500/50 text-orange-900 dark:text-orange-100' 
+                      isSelected
+                        ? 'bg-orange-500/20 border-orange-500/50 text-orange-900'
                         : 'bg-white/10 border-white/20'
                     )}
                     onClick={() => {
                       const currentValues = setting.value || [];
-                      const newValues = isSelected 
+                      const newValues = isSelected
                         ? currentValues.filter((v: string) => v !== option.value)
                         : [...currentValues, option.value];
                       updateSetting(setting.key, newValues);
@@ -512,14 +512,14 @@ export const EnhancedProfileSettings: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
             Configuración del Perfil
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-slate-600">
             Personaliza tu experiencia gastronómica
           </p>
         </div>
@@ -539,8 +539,8 @@ export const EnhancedProfileSettings: React.FC = () => {
                       className={cn(
                         'w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-all',
                         activeSection === section.id
-                          ? 'bg-orange-500/20 text-orange-900 dark:text-orange-100 border border-orange-500/30'
-                          : 'hover:bg-white/10 text-gray-700 dark:text-gray-300'
+                          ? 'bg-orange-500/20 text-orange-900 border border-orange-500/30'
+                          : 'hover:bg-slate-50 text-slate-700'
                       )}
                       onClick={() => setActiveSection(section.id)}
                     >
@@ -570,10 +570,10 @@ export const EnhancedProfileSettings: React.FC = () => {
                     <div className="flex items-center space-x-3 mb-6">
                       <section.icon className="w-6 h-6 text-orange-600" />
                       <div>
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        <h2 className="text-xl font-bold text-slate-900">
                           {section.title}
                         </h2>
-                        <p className="text-gray-600 dark:text-gray-300">
+                        <p className="text-slate-600">
                           {section.description}
                         </p>
                       </div>
@@ -589,10 +589,10 @@ export const EnhancedProfileSettings: React.FC = () => {
 
                     {/* Danger Zone for Data section */}
                     {section.id === 'data' && (
-                      <div className="mt-8 p-6 border border-red-300 dark:border-red-700 rounded-lg bg-red-50 dark:bg-red-900/20">
+                      <div className="mt-8 p-6 border border-red-300 rounded-lg bg-red-50">
                         <div className="flex items-center space-x-2 mb-4">
                           <AlertTriangle className="w-5 h-5 text-red-600" />
-                          <h3 className="text-lg font-semibold text-red-800 dark:text-red-300">
+                          <h3 className="text-lg font-semibold text-red-800">
                             Zona de Peligro
                           </h3>
                         </div>

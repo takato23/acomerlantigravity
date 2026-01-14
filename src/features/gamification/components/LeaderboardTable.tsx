@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Crown, Trophy, Medal, Star, TrendingUp, Users } from 'lucide-react';
 
 import { LeaderboardEntry, LeaderboardType, LeaderboardPeriod } from '../types';
@@ -15,19 +16,19 @@ interface LeaderboardTableProps {
   className?: string;
 }
 
-export function LeaderboardTable({ 
-  entries, 
-  currentUserId, 
-  type, 
-  period, 
-  onTypeChange, 
-  onPeriodChange, 
-  className = '' 
+export function LeaderboardTable({
+  entries,
+  currentUserId,
+  type,
+  period,
+  onTypeChange,
+  onPeriodChange,
+  className = ''
 }: LeaderboardTableProps) {
   const [showAll, setShowAll] = useState(false);
-  
+
   const visibleEntries = showAll ? entries : entries.slice(0, 10);
-  
+
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
@@ -109,8 +110,8 @@ export function LeaderboardTable({
                   onClick={() => onTypeChange?.(option.value)}
                   className={`
                     px-3 py-1 rounded-md text-sm font-medium transition-all duration-200
-                    ${type === option.value 
-                      ? 'bg-white text-gray-900 shadow-sm' 
+                    ${type === option.value
+                      ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                     }
                   `}
@@ -132,8 +133,8 @@ export function LeaderboardTable({
                 onClick={() => onPeriodChange?.(option.value)}
                 className={`
                   px-3 py-1 rounded-md text-sm font-medium transition-all duration-200
-                  ${period === option.value 
-                    ? 'bg-white text-gray-900 shadow-sm' 
+                  ${period === option.value
+                    ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                   }
                 `}
@@ -163,12 +164,12 @@ export function LeaderboardTable({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {visibleEntries.map((entry) => (
-              <tr 
+              <tr
                 key={entry.id}
                 className={`
                   transition-colors duration-200
-                  ${entry.user_id === currentUserId 
-                    ? 'bg-blue-50 border-l-4 border-blue-500' 
+                  ${entry.user_id === currentUserId
+                    ? 'bg-blue-50 border-l-4 border-blue-500'
                     : 'hover:bg-gray-50'
                   }
                 `}
@@ -182,10 +183,12 @@ export function LeaderboardTable({
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       {entry.user_avatar ? (
-                        <img 
-                          className="h-10 w-10 rounded-full" 
-                          src={entry.user_avatar} 
-                          alt={entry.user_name || 'User'} 
+                        <Image
+                          className="rounded-full"
+                          src={entry.user_avatar}
+                          alt={entry.user_name || 'User'}
+                          width={40}
+                          height={40}
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">

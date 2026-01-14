@@ -18,29 +18,29 @@ import { createUISlice, UISlice } from './slices/uiSlice';
 import { createSettingsSlice, SettingsSlice } from './slices/settingsSlice';
 
 // Combined store type
-export type AppStore = UserSlice & 
-  PantrySlice & 
-  RecipeSlice & 
-  MealPlanSlice & 
-  ShoppingSlice & 
-  PricingSlice & 
-  UISlice & 
+export type AppStore = UserSlice &
+  PantrySlice &
+  RecipeSlice &
+  MealPlanSlice &
+  ShoppingSlice &
+  PricingSlice &
+  UISlice &
   SettingsSlice;
 
 // Main store
 export const useAppStore = create<AppStore>()(
   subscribeWithSelector(
     persist(
-      immer((...a) => ({
-        ...createUserSlice(...a),
-        ...createPantrySlice(...a),
-        ...createRecipeSlice(...a),
-        ...createMealPlanSlice(...a),
-        ...createShoppingSlice(...a),
-        ...createPricingSlice(...a),
-        ...createUISlice(...a),
-        ...createSettingsSlice(...a),
-      })),
+      immer((...a: any[]) => ({
+        ...createUserSlice(a[0], a[1], a[2]),
+        ...createPantrySlice(a[0], a[1], a[2]),
+        ...createRecipeSlice(a[0], a[1], a[2]),
+        ...createMealPlanSlice(a[0], a[1], a[2]),
+        ...createShoppingSlice(a[0], a[1], a[2]),
+        ...createPricingSlice(a[0], a[1], a[2]),
+        ...createUISlice(a[0], a[1], a[2]),
+        ...createSettingsSlice(a[0], a[1], a[2]),
+      })) as any,
       {
         name: 'kecarajo-store',
         // Only persist certain slices
@@ -101,10 +101,27 @@ export const useRecipeActions = () => useAppStore((state) => ({
 
 export const useMealPlan = () => useAppStore((state) => state.mealPlan);
 export const useMealPlanActions = () => useAppStore((state) => ({
-  updateMealPlan: state.updateMealPlan,
-  addMealToDate: state.addMealToDate,
-  removeMealFromDate: state.removeMealFromDate,
-  generateWeeklyPlan: state.generateWeeklyPlan
+  loadWeekPlan: state.loadWeekPlan,
+  saveWeekPlan: state.saveWeekPlan,
+  setWeeklyPlan: state.setWeeklyPlan,
+  setPreferences: state.setPreferences,
+  setMode: state.setMode,
+  setWeekKey: state.setWeekKey,
+  setDirty: state.setDirty,
+  addMealToSlot: state.addMealToSlot,
+  removeMealFromSlot: state.removeMealFromSlot,
+  toggleSlotLock: state.toggleSlotLock,
+  moveMealSlot: state.moveMealSlot,
+  generateWeekWithAI: state.generateWeekWithAI,
+  clearWeek: state.clearWeek,
+  duplicateWeek: state.duplicateWeek,
+  batchUpdateSlots: state.batchUpdateSlots,
+  setCurrentDate: state.setCurrentDate,
+  setStaples: state.setStaples,
+  setActiveModal: state.setActiveModal,
+  setSelectedMeal: state.setSelectedMeal,
+  clearError: state.clearError,
+  resetMealPlanState: state.resetMealPlanState
 }));
 
 export const useShopping = () => useAppStore((state) => state.shopping);
@@ -152,13 +169,13 @@ export const useComputed = () => {
   const recipes = useRecipes();
   const shopping = useShopping();
   const mealPlan = useMealPlan();
-  
+
   return useAppStore((state) => ({
     // Low stock items
-    lowStockItems: pantry.items.filter(item => 
+    lowStockItems: pantry.items.filter(item =>
       item.currentStock <= (item.minimumStock || 1)
     ),
-    
+
     // Expiring items (within 3 days)
     expiringItems: pantry.items.filter(item => {
       if (!item.expirationDate) return false;
@@ -166,40 +183,40 @@ export const useComputed = () => {
       threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
       return new Date(item.expirationDate) <= threeDaysFromNow;
     }),
-    
+
     // Favorite recipes
     favoriteRecipes: recipes.items.filter(recipe => recipe.isFavorite),
-    
+
     // Pending shopping items
-    pendingShoppingItems: shopping.lists.reduce((total, list) => 
+    pendingShoppingItems: shopping.lists.reduce((total, list) =>
       total + list.items.filter(item => !item.completed).length, 0
     ),
-    
+
     // This week's meal plan
-    thisWeekMeals: Object.entries(mealPlan.weeklyPlan).filter(([date]) => {
-      const mealDate = new Date(date);
+    thisWeekMeals: (mealPlan.currentWeekPlan?.slots || []).filter((slot) => {
+      const mealDate = new Date(slot.date);
       const now = new Date();
       const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 6);
       return mealDate >= weekStart && mealDate <= weekEnd;
     }),
-    
+
     // Total estimated shopping cost
-    totalShoppingCost: shopping.lists.reduce((total, list) => 
+    totalShoppingCost: shopping.lists.reduce((total, list) =>
       total + (list.totalEstimatedPrice || 0), 0
     ),
-    
+
     // Recipe suggestions based on pantry
     suggestedRecipes: recipes.items.filter(recipe => {
-      const availableIngredients = pantry.items.map(item => 
+      const availableIngredients = pantry.items.map(item =>
         item.name.toLowerCase()
       );
-      const requiredIngredients = recipe.ingredients.map(ing => 
+      const requiredIngredients = recipe.ingredients.map(ing =>
         ing.name.toLowerCase()
       );
-      const matchingIngredients = requiredIngredients.filter(ing => 
-        availableIngredients.some(available => 
+      const matchingIngredients = requiredIngredients.filter(ing =>
+        availableIngredients.some(available =>
           available.includes(ing) || ing.includes(available)
         )
       );
@@ -211,7 +228,7 @@ export const useComputed = () => {
 // Store action creators for complex operations
 export const useStoreActions = () => {
   const store = useAppStore();
-  
+
   return {
     // Initialize app data
     initializeApp: async (userId: string) => {
@@ -228,7 +245,6 @@ export const useStoreActions = () => {
         ]);
       } catch (error: unknown) {
         store.showNotification({
-          id: Date.now().toString(),
           type: 'error',
           title: 'Error de carga',
           message: 'No se pudo cargar los datos de la aplicación',
@@ -238,17 +254,16 @@ export const useStoreActions = () => {
         store.setLoading('app', false);
       }
     },
-    
+
     // Sync data with server
     syncData: async () => {
       store.setLoading('sync', true);
       try {
         // Sync all data with server
-        const state = store.getState();
+        const state = useAppStore.getState();
         // await syncWithServer(state);
-        
+
         store.showNotification({
-          id: Date.now().toString(),
           type: 'success',
           title: 'Sincronización completa',
           message: 'Todos los datos han sido sincronizados',
@@ -256,7 +271,6 @@ export const useStoreActions = () => {
         });
       } catch (error: unknown) {
         store.showNotification({
-          id: Date.now().toString(),
           type: 'error',
           title: 'Error de sincronización',
           message: 'No se pudo sincronizar con el servidor',
@@ -266,50 +280,51 @@ export const useStoreActions = () => {
         store.setLoading('sync', false);
       }
     },
-    
+
     // Generate shopping list from meal plan
     generateShoppingFromMealPlan: (startDate: Date, endDate: Date) => {
-      const mealPlan = store.getState().mealPlan.weeklyPlan;
-      const pantry = store.getState().pantry.items;
-      
+      const currentPlan = store.mealPlan.currentWeekPlan;
+      const pantry = store.pantry.items;
+
+      if (!currentPlan) return;
+
       // Get all meals in date range
-      const mealsInRange = Object.entries(mealPlan).filter(([date]) => {
-        const mealDate = new Date(date);
+      const slotsInRange = currentPlan.slots.filter((slot: any) => {
+        const mealDate = new Date(slot.date);
         return mealDate >= startDate && mealDate <= endDate;
       });
-      
+
       // Collect all required ingredients
       const requiredIngredients = new Map<string, { quantity: number; unit: string }>();
-      
-      mealsInRange.forEach(([_, meals]) => {
-        Object.values(meals).flat().forEach(meal => {
-          if (meal.recipe) {
-            meal.recipe.ingredients.forEach(ingredient => {
-              const key = ingredient.name.toLowerCase();
-              const existing = requiredIngredients.get(key);
-              if (existing) {
-                existing.quantity += ingredient.quantity;
-              } else {
-                requiredIngredients.set(key, {
-                  quantity: ingredient.quantity,
-                  unit: ingredient.unit
-                });
-              }
-            });
-          }
-        });
+
+      slotsInRange.forEach((slot: any) => {
+        if (slot.recipe) {
+          slot.recipe.ingredients.forEach((ingredient: any) => {
+            const key = ingredient.name.toLowerCase();
+            const quantity = (ingredient as any).amount || 0;
+            const existing = requiredIngredients.get(key);
+            if (existing) {
+              existing.quantity += quantity;
+            } else {
+              requiredIngredients.set(key, {
+                quantity: quantity,
+                unit: ingredient.unit || 'uds'
+              });
+            }
+          });
+        }
       });
-      
+
       // Subtract available pantry items
       const shoppingItems: any[] = [];
       requiredIngredients.forEach((required, name) => {
-        const pantryItem = pantry.find(item => 
+        const pantryItem = pantry.find((item: any) =>
           item.name.toLowerCase() === name
         );
-        
+
         const availableQuantity = pantryItem?.currentStock || 0;
         const neededQuantity = Math.max(0, required.quantity - availableQuantity);
-        
+
         if (neededQuantity > 0) {
           shoppingItems.push({
             name,
@@ -321,17 +336,18 @@ export const useStoreActions = () => {
           });
         }
       });
-      
+
       // Create new shopping list
       const newList = {
         name: `Compras ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
-        items: shoppingItems
+        items: shoppingItems,
+        shared: false,
+        archived: false
       };
-      
+
       store.addShoppingList(newList);
-      
+
       store.showNotification({
-        id: Date.now().toString(),
         type: 'success',
         title: 'Lista generada',
         message: `Se generó una lista con ${shoppingItems.length} productos`,

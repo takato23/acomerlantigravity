@@ -79,7 +79,7 @@ export interface RecipeSlice {
     isLoading: boolean;
     lastSync?: Date;
   };
-  
+
   // Actions
   addRecipe: (recipe: Omit<Recipe, 'id' | 'createdAt' | 'updatedAt' | 'rating' | 'ratingCount' | 'cookCount'>) => void;
   updateRecipe: (id: string, updates: Partial<Recipe>) => void;
@@ -129,7 +129,7 @@ const defaultCuisines = [
   'brasileña'
 ];
 
-export const createRecipeSlice: StateCreator<RecipeSlice> = (set, get) => ({
+export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, get) => ({
   recipes: {
     items: [],
     favorites: [],
@@ -142,7 +142,7 @@ export const createRecipeSlice: StateCreator<RecipeSlice> = (set, get) => ({
     isLoading: false,
     lastSync: undefined
   },
-  
+
   addRecipe: (recipe) => set((state) => {
     const newRecipe: Recipe = {
       ...recipe,
@@ -153,45 +153,45 @@ export const createRecipeSlice: StateCreator<RecipeSlice> = (set, get) => ({
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    
+
     state.recipes.items.push(newRecipe);
-    
+
     // Add new categories, cuisines, and tags
     if (!state.recipes.categories.includes(recipe.category)) {
       state.recipes.categories.push(recipe.category);
     }
-    
+
     if (recipe.cuisine && !state.recipes.cuisines.includes(recipe.cuisine)) {
       state.recipes.cuisines.push(recipe.cuisine);
     }
-    
+
     recipe.tags.forEach(tag => {
       if (!state.recipes.tags.includes(tag)) {
         state.recipes.tags.push(tag);
       }
     });
   }),
-  
+
   updateRecipe: (id, updates) => set((state) => {
     const index = state.recipes.items.findIndex(recipe => recipe.id === id);
     if (index !== -1) {
       Object.assign(state.recipes.items[index], updates, { updatedAt: new Date() });
     }
   }),
-  
+
   deleteRecipe: (id) => set((state) => {
     state.recipes.items = state.recipes.items.filter(recipe => recipe.id !== id);
     state.recipes.favorites = state.recipes.favorites.filter(favId => favId !== id);
     state.recipes.recentlyViewed = state.recipes.recentlyViewed.filter(viewId => viewId !== id);
   }),
-  
+
   favoriteRecipe: (id, favorite) => set((state) => {
     const recipe = state.recipes.items.find(recipe => recipe.id === id);
     if (recipe) {
       const isFavorite = favorite !== undefined ? favorite : !recipe.isFavorite;
       recipe.isFavorite = isFavorite;
       recipe.updatedAt = new Date();
-      
+
       if (isFavorite && !state.recipes.favorites.includes(id)) {
         state.recipes.favorites.push(id);
       } else if (!isFavorite) {
@@ -199,31 +199,31 @@ export const createRecipeSlice: StateCreator<RecipeSlice> = (set, get) => ({
       }
     }
   }),
-  
+
   rateRecipe: (id, rating) => set((state) => {
     const recipe = state.recipes.items.find(recipe => recipe.id === id);
     if (recipe) {
       // Simple rating update (in real app, would handle user-specific ratings)
       const newRatingCount = recipe.ratingCount + 1;
       const newRating = ((recipe.rating * recipe.ratingCount) + rating) / newRatingCount;
-      
+
       recipe.rating = newRating;
       recipe.ratingCount = newRatingCount;
       recipe.updatedAt = new Date();
     }
   }),
-  
+
   addToRecentlyViewed: (id) => set((state) => {
     // Remove if already exists and add to front
     state.recipes.recentlyViewed = state.recipes.recentlyViewed.filter(viewId => viewId !== id);
     state.recipes.recentlyViewed.unshift(id);
-    
+
     // Keep only last 20 items
     if (state.recipes.recentlyViewed.length > 20) {
       state.recipes.recentlyViewed = state.recipes.recentlyViewed.slice(0, 20);
     }
   }),
-  
+
   markAsCooked: (id) => set((state) => {
     const recipe = state.recipes.items.find(recipe => recipe.id === id);
     if (recipe) {
@@ -232,42 +232,42 @@ export const createRecipeSlice: StateCreator<RecipeSlice> = (set, get) => ({
       recipe.updatedAt = new Date();
     }
   }),
-  
+
   setRecipeFilter: (filter) => set((state) => {
     Object.assign(state.recipes.currentFilter, filter);
   }),
-  
+
   clearRecipeFilter: () => set((state) => {
     state.recipes.currentFilter = {};
   }),
-  
+
   addSearchTerm: (term) => set((state) => {
     const trimmedTerm = term.trim().toLowerCase();
     if (trimmedTerm && !state.recipes.searchHistory.includes(trimmedTerm)) {
       state.recipes.searchHistory.unshift(trimmedTerm);
-      
+
       // Keep only last 10 searches
       if (state.recipes.searchHistory.length > 10) {
         state.recipes.searchHistory = state.recipes.searchHistory.slice(0, 10);
       }
     }
   }),
-  
+
   clearSearchHistory: () => set((state) => {
     state.recipes.searchHistory = [];
   }),
-  
+
   setRecipesLoading: (loading) => set((state) => {
     state.recipes.isLoading = loading;
   }),
-  
+
   importRecipes: (recipes) => set((state) => {
     recipes.forEach(recipe => {
       // Check if recipe already exists
-      const existingIndex = state.recipes.items.findIndex(existing => 
+      const existingIndex = state.recipes.items.findIndex(existing =>
         existing.title === recipe.title && existing.source === recipe.source
       );
-      
+
       if (existingIndex === -1) {
         state.recipes.items.push({
           ...recipe,
@@ -280,7 +280,7 @@ export const createRecipeSlice: StateCreator<RecipeSlice> = (set, get) => ({
       }
     });
   }),
-  
+
   duplicateRecipe: (id) => set((state) => {
     const original = state.recipes.items.find(recipe => recipe.id === id);
     if (original) {
@@ -297,7 +297,7 @@ export const createRecipeSlice: StateCreator<RecipeSlice> = (set, get) => ({
         updatedAt: new Date(),
         lastCooked: undefined
       };
-      
+
       state.recipes.items.push(duplicate);
     }
   })

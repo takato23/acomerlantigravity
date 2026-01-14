@@ -4,14 +4,14 @@
  */
 
 import { logger } from '@/lib/logger';
-import { 
-  generateArgentineMealPlanPrompt, 
+import {
+  generateArgentineMealPlanPrompt,
   generateDailyMealPrompt,
-  getMealSuggestions 
+  getMealSuggestions
 } from '@/lib/prompts/argentineMealPrompts';
-import { 
-  UserPreferences, 
-  PlanningConstraints, 
+import {
+  UserPreferences,
+  PlanningConstraints,
   WeeklyPlan,
   DailyMeals,
   MealSuggestion,
@@ -26,7 +26,7 @@ import {
   Grams,
   PositiveInteger
 } from '../types/mealPlanning';
-import { prisma } from '../prisma';
+import { supabase } from '@/lib/supabase/client';
 import { enhancedCache, CacheKeyGenerator } from './enhancedCacheService';
 import { getGeminiService, GeminiService, GeminiMealPlanResponse } from './geminiService';
 import { GeminiPromptTemplates } from './geminiPromptTemplates';
@@ -85,11 +85,11 @@ export interface HolisticPlannerContext {
 export class GeminiPlannerService {
   private geminiService: GeminiService;
   private readonly CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours
-  
+
   constructor() {
     try {
       this.geminiService = getGeminiService({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash',
         temperature: 0.7,
         maxOutputTokens: 8192
       });
@@ -114,18 +114,18 @@ export class GeminiPlannerService {
     }
   ): Promise<GeminiPlanResult> {
     const startTime = Date.now();
-    
+
     try {
       // Build comprehensive context
       const context = await this.buildHolisticContext(preferences, constraints);
-      
+
       // Check cache
       const cacheKey = CacheKeyGenerator.holisticPlan(
         preferences.userId,
         JSON.stringify(constraints),
         JSON.stringify(options)
       );
-      
+
       const cached = await enhancedCache.get<GeminiPlanResult>(cacheKey);
       if (cached && !this.isContextStale(cached, context)) {
         logger.info('Returning cached meal plan', 'geminiPlannerService');
@@ -137,9 +137,9 @@ export class GeminiPlannerService {
 
       // Generate meal plan using service or fallback
       logger.info('Generating meal plan with Gemini', 'geminiPlannerService');
-      
+
       let geminiResponse: GeminiMealPlanResponse;
-      
+
       try {
         geminiResponse = await this.geminiService.generateMealPlan(
           preferences,
@@ -156,7 +156,7 @@ export class GeminiPlannerService {
         );
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        
+
         // Check if it's a rate limit error
         if (errorMessage.includes('quota') || errorMessage.includes('rate limit') || errorMessage.includes('429')) {
           logger.warn('API quota exceeded, using mock meal plan for testing', 'geminiPlannerService');
@@ -168,24 +168,25 @@ export class GeminiPlannerService {
 
       // Process response
       const processedResult = await this.processGeminiResponse(
-        geminiResponse, 
-        context, 
+        geminiResponse,
+        context,
         startTime
       );
-      
+
       // Cache successful result
       if (processedResult.success) {
         await enhancedCache.set(cacheKey, processedResult, this.CACHE_TTL);
       }
-      
+
       return processedResult;
-      
+
     } catch (error: unknown) {
       logger.error('Error in holistic planning:', 'geminiPlannerService', error);
-      
+
       return {
         success: false,
-        meta: { promptTokens: 0,
+        meta: {
+          promptTokens: 0,
           responseTokens: 0,
           processingTime: Date.now() - startTime,
           confidenceScore: 0,
@@ -205,10 +206,10 @@ export class GeminiPlannerService {
     focusDay: Date
   ): Promise<GeminiPlanResult> {
     const startTime = Date.now();
-    
+
     try {
       const context = await this.buildDailyContext(preferences, currentPlan, focusDay);
-      
+
       const geminiResponse = await this.geminiService.generateDailyMeal(
         preferences,
         currentPlan,
@@ -225,13 +226,14 @@ export class GeminiPlannerService {
       );
 
       return this.processGeminiResponse(geminiResponse, context, startTime);
-      
+
     } catch (error: unknown) {
       logger.error('Error in daily optimization:', 'geminiPlannerService', error);
-      
+
       return {
         success: false,
-        meta: { promptTokens: 0,
+        meta: {
+          promptTokens: 0,
           responseTokens: 0,
           processingTime: Date.now() - startTime,
           confidenceScore: 0,
@@ -268,7 +270,7 @@ export class GeminiPlannerService {
       );
 
       return this.convertGeminiMealToSuggestion(meal);
-      
+
     } catch (error: unknown) {
       logger.error('Error regenerating meal:', 'geminiPlannerService', error);
       return null;
@@ -284,7 +286,7 @@ export class GeminiPlannerService {
   ): Promise<MealSuggestion[]> {
     try {
       const pantryItems = await this.getUserPantryItems(userId);
-      
+
       if (pantryItems.length === 0) {
         return [];
       }
@@ -304,7 +306,7 @@ export class GeminiPlannerService {
       );
 
       return recipes.map(recipe => this.convertGeminiMealToSuggestion(recipe));
-      
+
     } catch (error: unknown) {
       logger.error('Error suggesting from pantry:', 'geminiPlannerService', error);
       return [];
@@ -327,7 +329,7 @@ export class GeminiPlannerService {
     try {
       // Store feedback for future learning
       await this.saveLearningInsights(planId, feedback);
-      
+
       // Generate insights
       const insights = {
         preferredMeals: Object.entries(feedback.mealRatings)
@@ -343,15 +345,15 @@ export class GeminiPlannerService {
           })),
         successfulInnovations: feedback.innovations
       };
-      
+
       const adaptations = {
         ratingWeight: 1.2, // Increase weight of highly rated meals
         timeMultiplier: this.calculateAverageTimeAccuracy(feedback.timeAccuracy),
         difficultyAdjustment: this.calculateDifficultyAdjustment(feedback.difficultyActual)
       };
-      
+
       return { insights, adaptations };
-      
+
     } catch (error) {
       logger.error('Error processing learning feedback:', 'geminiPlannerService', error);
       return { insights: {}, adaptations: {} };
@@ -403,7 +405,7 @@ export class GeminiPlannerService {
     focusDay: Date
   ): Promise<HolisticPlannerContext> {
     const pantryItems = await this.getUserPantryItems(preferences.userId);
-    
+
     return {
       userState: {
         preferences,
@@ -443,7 +445,7 @@ export class GeminiPlannerService {
   ): Promise<GeminiPlanResult> {
     try {
       const weeklyPlan = await this.convertToWeeklyPlan(geminiResponse, context);
-      
+
       return {
         success: true,
         plan: weeklyPlan,
@@ -456,20 +458,22 @@ export class GeminiPlannerService {
           },
           learningAdaptations: {}
         },
-        meta: { promptTokens: this.estimateTokens(JSON.stringify(context)),
+        meta: {
+          promptTokens: this.estimateTokens(JSON.stringify(context)),
           responseTokens: this.estimateTokens(JSON.stringify(geminiResponse)),
           processingTime: Date.now() - startTime,
           confidenceScore: this.calculateConfidence(geminiResponse),
           geminiModel: 'gemini-1.5-flash'
         }
       };
-      
+
     } catch (error) {
       logger.error('Error processing Gemini response:', 'geminiPlannerService', error);
-      
+
       return {
         success: false,
-        meta: { promptTokens: 0,
+        meta: {
+          promptTokens: 0,
           responseTokens: 0,
           processingTime: Date.now() - startTime,
           confidenceScore: 0,
@@ -490,14 +494,14 @@ export class GeminiPlannerService {
     const meals: DailyMeals[] = geminiResponse.daily_plans.map((dayPlan, index) => {
       const date = new Date(context.userState.constraints.startDate);
       date.setDate(date.getDate() + index);
-      
+
       return {
         date,
-        breakfast: dayPlan.meals.breakfast ? 
+        breakfast: dayPlan.meals.breakfast ?
           this.convertGeminiMealToSuggestion(dayPlan.meals.breakfast) : undefined,
-        lunch: dayPlan.meals.lunch ? 
+        lunch: dayPlan.meals.lunch ?
           this.convertGeminiMealToSuggestion(dayPlan.meals.lunch) : undefined,
-        dinner: dayPlan.meals.dinner ? 
+        dinner: dayPlan.meals.dinner ?
           this.convertGeminiMealToSuggestion(dayPlan.meals.dinner) : undefined,
         totalCalories: this.calculateDailyCalories(dayPlan) as Calories,
         totalCost: this.estimateDailyCost(dayPlan) as Dollars,
@@ -508,17 +512,17 @@ export class GeminiPlannerService {
 
     // Calculate summaries
     const nutritionSummary = this.calculateNutritionSummary(
-      meals, 
+      meals,
       geminiResponse.nutritional_analysis
     );
-    
+
     const budgetSummary = this.calculateBudgetSummary(
       meals,
       geminiResponse.optimization_summary
     );
-    
+
     const prepPlan = await this.generatePrepPlan(meals);
-    
+
     const shoppingList = this.generateShoppingList(
       geminiResponse.shopping_list_preview,
       geminiResponse.optimization_summary.total_estimated_cost
@@ -538,7 +542,8 @@ export class GeminiPlannerService {
       constraints: context.userState.constraints,
       confidence: this.calculateConfidence(geminiResponse) as Percentage,
       generatedAt: new Date(),
-      meta: { aiModel: 'gemini-1.5-pro',
+      meta: {
+        aiModel: 'gemini-1.5-pro',
         generationTime: 0 as Minutes,
         revisionCount: PositiveInteger.create(1),
         userFeedback: null
@@ -592,7 +597,7 @@ export class GeminiPlannerService {
     geminiNutrition: any
   ): NutritionSummary {
     const totalDays = meals.length || 1;
-    
+
     return {
       totalCalories: (geminiNutrition.average_daily_calories * totalDays) as Calories,
       totalProtein: (geminiNutrition.protein_grams * totalDays) as Grams,
@@ -628,7 +633,7 @@ export class GeminiPlannerService {
   ): BudgetSummary {
     const totalDays = meals.length || 1;
     const totalCost = optimization.total_estimated_cost as Dollars;
-    
+
     return {
       totalCost,
       dailyAverage: (totalCost / totalDays) as Dollars,
@@ -731,7 +736,7 @@ export class GeminiPlannerService {
         {
           name: 'Produce',
           items: shoppingPreview
-            .filter(item => ['vegetables', 'fruits'].some(cat => 
+            .filter(item => ['vegetables', 'fruits'].some(cat =>
               item.item.toLowerCase().includes(cat)
             ))
             .map(item => ({
@@ -763,8 +768,19 @@ export class GeminiPlannerService {
    */
   private async getUserPantryItems(userId: string) {
     try {
-      return await db.getPantryItems(userId);
-    } catch {
+      const { data, error } = await supabase
+        .from('pantry_items')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (error) {
+        logger.error('Error fetching pantry items:', 'geminiPlannerService', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      logger.error('Exception fetching pantry items:', 'geminiPlannerService', error);
       return [];
     }
   }
@@ -790,10 +806,10 @@ export class GeminiPlannerService {
 
   private getSeasonalFactors() {
     const month = new Date().getMonth() + 1;
-    const season = month >= 12 || month <= 2 ? 'summer' : 
-                   month >= 3 && month <= 5 ? 'fall' : 
-                   month >= 6 && month <= 8 ? 'winter' : 'spring';
-    
+    const season = month >= 12 || month <= 2 ? 'summer' :
+      month >= 3 && month <= 5 ? 'fall' :
+        month >= 6 && month <= 8 ? 'winter' : 'spring';
+
     return {
       season,
       month,
@@ -902,12 +918,12 @@ export class GeminiPlannerService {
 
   private calculateConfidence(response: GeminiMealPlanResponse): number {
     let score = 0.5;
-    
+
     if (response.daily_plans?.length > 0) score += 0.2;
     if (response.nutritional_analysis) score += 0.1;
     if (response.optimization_summary) score += 0.1;
     if (response.shopping_list_preview?.length > 0) score += 0.1;
-    
+
     return Math.min(score, 1.0);
   }
 
@@ -954,7 +970,7 @@ export const geminiPlannerService = {
     }
     return _geminiPlannerService.generateHolisticPlan(preferences, constraints, options);
   },
-  
+
   generateDailyOptimization: async (
     preferences: UserPreferences,
     currentPlan: Partial<WeeklyPlan>,
@@ -966,7 +982,7 @@ export const geminiPlannerService = {
     }
     return _geminiPlannerService.generateDailyOptimization(preferences, currentPlan, focusDay, optimizationOptions);
   },
-  
+
   suggestFromPantry: async (
     userId: string,
     preferences?: Partial<UserPreferences>,

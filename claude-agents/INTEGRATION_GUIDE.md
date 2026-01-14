@@ -4,7 +4,7 @@ Esta guía explica cómo utilizar los agentes especializados de SuperClaude en e
 
 ## Stack Tecnológico del Proyecto
 
-- **Frontend**: Next.js 15, React 18, TypeScript
+- **Frontend**: Next.js 15.0.0, React 18, TypeScript
 - **Styling**: Tailwind CSS, Framer Motion, Glassmorphism
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Testing**: Jest, Playwright, Testing Library

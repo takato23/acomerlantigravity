@@ -188,13 +188,13 @@ export function VirtualRecipeList({
     >
       <div className="flex gap-4">
         {recipe.imageUrl && (
-          <div className="w-24 h-24 rounded-lg bg-gray-200 flex-shrink-0" />
+          <div className="w-24 h-24 rounded-lg bg-slate-200 flex-shrink-0" />
         )}
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+          <h3 className="font-semibold text-slate-900 mb-1">
             {recipe.name}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+          <p className="text-sm text-gray-600 line-clamp-2">
             {recipe.description}
           </p>
           <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">

@@ -3,16 +3,16 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 
-import type { 
-  PantryItem, 
-  AddPantryItemForm, 
-  PantryAPIResponse 
+import type {
+  PantryItem,
+  AddPantryItemForm,
+  PantryAPIResponse
 } from '@/features/pantry/types';
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
-    
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -121,7 +121,11 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'private, max-age=1800, stale-while-revalidate=60' // 30 minutes
+      }
+    });
   } catch (error: unknown) {
     logger.error('Unexpected error in GET /api/pantry/items:', 'API:route', error);
     return NextResponse.json(
@@ -134,7 +138,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
-    
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -156,7 +160,7 @@ export async function POST(request: NextRequest) {
 
     // Check if ingredient exists, if not create it
     let ingredientId = null;
-    
+
     const { data: existingIngredient } = await supabase
       .from('ingredients')
       .select('id')
@@ -203,6 +207,22 @@ export async function POST(request: NextRequest) {
       notes: body.notes || null,
       purchase_date: new Date().toISOString(),
     };
+
+    // Update ingredient price history if cost provided
+    if (body.cost && body.quantity) {
+      // Calculate price per unit (assuming unit matches default)
+      // For simplicity, we just update the 'average_price' field with the latest price
+      // This acts as "Last Known Price"
+      try {
+        await supabase
+          .from('ingredients')
+          .update({ average_price: body.cost / body.quantity })
+          .eq('id', ingredientId);
+      } catch (err) {
+        // Non-critical error
+        logger.warn('Failed to update ingredient price history', err);
+      }
+    }
 
     const { data: newItem, error } = await supabase
       .from('pantry_items')

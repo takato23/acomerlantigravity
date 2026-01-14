@@ -165,7 +165,7 @@ model UserPreferences {
 ## 🛠️ Technical Stack
 
 ### Frontend
-- **Framework**: Next.js 14+ (App Router)
+- **Framework**: Next.js 15.0.0 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + shadcn/ui
 - **State**: Zustand + React Query

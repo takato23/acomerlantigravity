@@ -7,14 +7,13 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import geminiConfig from '@/lib/config/gemini.config';;
 import { logger } from '@/services/logger';
 
-import { 
+import {
   PantryItem,
-  PantryStats 
+  PantryStats
 } from '../types';
 
-const genAI = 
-  const featureConfig = geminiConfig.getFeatureConfig('pantryAnalysis');
-  new GoogleGenerativeAI(featureConfig.apiKey)!);
+const featureConfig = geminiConfig.getFeatureConfig('pantryAnalysis');
+const genAI = new GoogleGenerativeAI(featureConfig.apiKey || '');
 
 export interface PantryInsight {
   type: 'waste_reduction' | 'usage_optimization' | 'storage_improvement' | 'recipe_suggestion' | 'shopping_optimization';
@@ -67,7 +66,7 @@ export interface IngredientSubstitution {
 }
 
 export class GeminiPantryService {
-  
+
   /**
    * Generate comprehensive pantry insights using Gemini AI
    */
@@ -82,25 +81,25 @@ export class GeminiPantryService {
     }
   ): Promise<PantryInsight[]> {
     const model = genAI.getGenerativeModel({ model: geminiConfig.default.model });
-    
+
     const prompt = `
 As a pantry management expert, analyze this pantry inventory and provide actionable insights.
 
 PANTRY DATA:
 ${JSON.stringify({
-  total_items: pantryStats.totalItems,
-  expiring_items: pantryStats.expiringItems,
-  expired_items: pantryStats.expiredItems,
-  categories: pantryStats.categories,
-  sample_items: pantryItems.slice(0, 20).map(item => ({
-    name: item.ingredient_name,
-    quantity: item.quantity,
-    unit: item.unit,
-    category: item.category,
-    expiration_date: item.expiration_date,
-    location: item.location
-  }))
-}, null, 2)}
+      total_items: pantryStats.totalItems,
+      expiring_items: pantryStats.expiringItems,
+      expired_items: pantryStats.expiredItems,
+      categories: pantryStats.categories,
+      sample_items: pantryItems.slice(0, 20).map(item => ({
+        name: item.ingredient_name,
+        quantity: item.quantity,
+        unit: item.unit,
+        category: item.category,
+        expiration_date: item.expiration_date,
+        location: item.location
+      }))
+    }, null, 2)}
 
 USER PREFERENCES:
 ${JSON.stringify(userPreferences || {}, null, 2)}
@@ -133,12 +132,12 @@ Provide 5-8 most impactful insights.`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const content = response.text();
-      
+
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
       }
-      
+
       const parsed = JSON.parse(jsonMatch[0]);
       return parsed.insights || [];
     } catch (error: unknown) {
@@ -154,9 +153,9 @@ Provide 5-8 most impactful insights.`;
     pantryItems: PantryItem[]
   ): Promise<SmartExpirationPrediction[]> {
     const model = genAI.getGenerativeModel({ model: geminiConfig.default.model });
-    
+
     const itemsWithoutExpiration = pantryItems.filter(item => !item.expiration_date);
-    
+
     if (itemsWithoutExpiration.length === 0) {
       return [];
     }
@@ -166,14 +165,14 @@ As a food science expert, predict expiration dates for pantry items without know
 
 ITEMS TO ANALYZE:
 ${JSON.stringify(itemsWithoutExpiration.map(item => ({
-  id: item.id,
-  name: item.ingredient_name,
-  category: item.category,
-  quantity: item.quantity,
-  unit: item.unit,
-  location: item.location,
-  purchase_date: item.purchase_date
-})), null, 2)}
+      id: item.id,
+      name: item.ingredient_name,
+      category: item.category,
+      quantity: item.quantity,
+      unit: item.unit,
+      location: item.location,
+      purchase_date: item.purchase_date
+    })), null, 2)}
 
 For each item, provide predictions in this JSON format:
 {
@@ -202,12 +201,12 @@ Provide realistic predictions based on food science principles.`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const content = response.text();
-      
+
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
       }
-      
+
       const parsed = JSON.parse(jsonMatch[0]);
       return parsed.predictions?.map((pred: any) => ({
         ...pred,
@@ -227,7 +226,7 @@ Provide realistic predictions based on food science principles.`;
     availablePantryItems: PantryItem[]
   ): Promise<IngredientSubstitution[]> {
     const model = genAI.getGenerativeModel({ model: geminiConfig.default.model });
-    
+
     const prompt = `
 As a culinary expert, suggest ingredient substitutions using available pantry items.
 
@@ -236,11 +235,11 @@ ${JSON.stringify(missingIngredients)}
 
 AVAILABLE PANTRY ITEMS:
 ${JSON.stringify(availablePantryItems.map(item => ({
-  name: item.ingredient_name,
-  quantity: item.quantity,
-  unit: item.unit,
-  category: item.category
-})), null, 2)}
+      name: item.ingredient_name,
+      quantity: item.quantity,
+      unit: item.unit,
+      category: item.category
+    })), null, 2)}
 
 For each missing ingredient, suggest substitutions in this JSON format:
 {
@@ -268,12 +267,12 @@ Consider flavor profiles, cooking properties, and nutritional impact.`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const content = response.text();
-      
+
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
       }
-      
+
       const parsed = JSON.parse(jsonMatch[0]);
       return parsed.substitutions || [];
     } catch (error: unknown) {
@@ -295,25 +294,25 @@ Consider flavor profiles, cooking properties, and nutritional impact.`;
     }>
   ): Promise<PantryOptimizationPlan> {
     const model = genAI.getGenerativeModel({ model: geminiConfig.default.model });
-    
+
     const prompt = `
 Create a comprehensive pantry optimization plan based on current inventory and usage patterns.
 
 CURRENT PANTRY STATE:
 ${JSON.stringify({
-  total_items: pantryStats.totalItems,
-  expiring_items: pantryStats.expiringItems,
-  expired_items: pantryStats.expiredItems,
-  categories: pantryStats.categories,
-  recent_items: pantryItems.slice(0, 15).map(item => ({
-    name: item.ingredient_name,
-    quantity: item.quantity,
-    unit: item.unit,
-    category: item.category,
-    expiration_date: item.expiration_date,
-    location: item.location
-  }))
-}, null, 2)}
+      total_items: pantryStats.totalItems,
+      expiring_items: pantryStats.expiringItems,
+      expired_items: pantryStats.expiredItems,
+      categories: pantryStats.categories,
+      recent_items: pantryItems.slice(0, 15).map(item => ({
+        name: item.ingredient_name,
+        quantity: item.quantity,
+        unit: item.unit,
+        category: item.category,
+        expiration_date: item.expiration_date,
+        location: item.location
+      }))
+    }, null, 2)}
 
 USAGE HISTORY:
 ${JSON.stringify(usageHistory?.slice(0, 20) || [], null, 2)}
@@ -354,12 +353,12 @@ Provide 3-5 immediate actions, 4-week plan, and long-term strategy.`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const content = response.text();
-      
+
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
       }
-      
+
       const parsed = JSON.parse(jsonMatch[0]);
       return parsed;
     } catch (error: unknown) {
@@ -386,18 +385,18 @@ Provide 3-5 immediate actions, 4-week plan, and long-term strategy.`;
     cost_estimate?: number;
   }>> {
     const model = genAI.getGenerativeModel({ model: geminiConfig.default.model });
-    
+
     const prompt = `
 Analyze pantry inventory and upcoming meals to generate smart shopping recommendations.
 
 CURRENT PANTRY:
 ${JSON.stringify(pantryItems.map(item => ({
-  name: item.ingredient_name,
-  quantity: item.quantity,
-  unit: item.unit,
-  category: item.category,
-  expiration_date: item.expiration_date
-})), null, 2)}
+      name: item.ingredient_name,
+      quantity: item.quantity,
+      unit: item.unit,
+      category: item.category,
+      expiration_date: item.expiration_date
+    })), null, 2)}
 
 UPCOMING MEALS:
 ${JSON.stringify(upcomingMeals || [], null, 2)}
@@ -428,12 +427,12 @@ Provide 8-12 most important recommendations.`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const content = response.text();
-      
+
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
       }
-      
+
       const parsed = JSON.parse(jsonMatch[0]);
       return parsed.recommendations || [];
     } catch (error: unknown) {
@@ -447,7 +446,7 @@ Provide 8-12 most important recommendations.`;
    */
   private static getFallbackInsights(pantryItems: PantryItem[], pantryStats: PantryStats): PantryInsight[] {
     const insights: PantryInsight[] = [];
-    
+
     if (pantryStats.expiredItems > 0) {
       insights.push({
         type: 'waste_reduction',

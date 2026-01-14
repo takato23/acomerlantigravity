@@ -45,14 +45,14 @@ interface PantryCategory {
 
 // Categorías predefinidas con emojis
 const PANTRY_CATEGORIES: PantryCategory[] = [
-  { id: 'carnes', name: 'Carnes', icon: '🥩', color: 'from-red-500 to-pink-600', count: 0 },
-  { id: 'lacteos', name: 'Lácteos', icon: '🥛', color: 'from-blue-500 to-cyan-600', count: 0 },
-  { id: 'verduras', name: 'Verduras', icon: '🥬', color: 'from-green-500 to-emerald-600', count: 0 },
-  { id: 'frutas', name: 'Frutas', icon: '🍎', color: 'from-yellow-500 to-orange-600', count: 0 },
-  { id: 'granos', name: 'Granos', icon: '🌾', color: 'from-amber-500 to-yellow-600', count: 0 },
-  { id: 'condimentos', name: 'Condimentos', icon: '🧂', color: 'from-purple-500 to-indigo-600', count: 0 },
-  { id: 'bebidas', name: 'Bebidas', icon: '🥤', color: 'from-teal-500 to-blue-600', count: 0 },
-  { id: 'otros', name: 'Otros', icon: '📦', color: 'from-gray-500 to-slate-600', count: 0 }
+  { id: 'carnes', name: 'Carnes', icon: '🥩', color: 'bg-red-600', count: 0 },
+  { id: 'lacteos', name: 'Lácteos', icon: '🥛', color: 'bg-slate-600', count: 0 },
+  { id: 'verduras', name: 'Verduras', icon: '🥬', color: 'bg-green-600', count: 0 },
+  { id: 'frutas', name: 'Frutas', icon: '🍎', color: 'bg-orange-500', count: 0 },
+  { id: 'granos', name: 'Granos', icon: '🌾', color: 'bg-amber-500', count: 0 },
+  { id: 'condimentos', name: 'Condimentos', icon: '🧂', color: 'bg-slate-700', count: 0 },
+  { id: 'bebidas', name: 'Bebidas', icon: '🥤', color: 'bg-slate-500', count: 0 },
+  { id: 'otros', name: 'Otros', icon: '📦', color: 'bg-gray-600', count: 0 }
 ];
 
 // Componente de item de despensa
@@ -87,7 +87,7 @@ const PantryItemCard: React.FC<{
           <div className="flex items-center space-x-3">
             <span className="text-2xl">{item.emoji || '📦'}</span>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">{item.name}</h3>
+              <h3 className="font-semibold text-slate-900">{item.name}</h3>
               <p className="text-sm text-gray-600">
                 {item.quantity} {item.unit} • {item.category}
               </p>
@@ -134,10 +134,10 @@ const CategoryCard: React.FC<{
     onClick={onClick}
   >
     <CardContent className="p-4 text-center">
-      <div className={`w-12 h-12 mx-auto rounded-2xl bg-gradient-to-r ${category.color} flex items-center justify-center text-2xl mb-3`}>
+      <div className={`w-12 h-12 mx-auto rounded-2xl ${category.color} flex items-center justify-center text-2xl mb-3`}>
         {category.icon}
       </div>
-      <h3 className="font-medium text-gray-900 dark:text-white text-sm">{category.name}</h3>
+      <h3 className="font-medium text-slate-900 text-sm">{category.name}</h3>
       <p className="text-xs text-gray-500 mt-1">{category.count} items</p>
     </CardContent>
   </Card>
@@ -304,45 +304,45 @@ export const PantryDashboard: React.FC = () => {
 
           {/* Estadísticas */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-2xl">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Total Items</p>
-                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.totalItems}</p>
+                  <p className="text-sm text-slate-600 font-medium">Total Items</p>
+                  <p className="text-2xl font-bold text-slate-900">{stats.totalItems}</p>
                 </div>
-                <Package className="w-8 h-8 text-blue-600" />
+                <Package className="w-8 h-8 text-slate-600" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 p-4 rounded-2xl">
+            <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Expiran Pronto</p>
-                  <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{stats.expiringSoon}</p>
+                  <p className="text-sm text-amber-600 font-medium">Expiran Pronto</p>
+                  <p className="text-2xl font-bold text-amber-700">{stats.expiringSoon}</p>
                 </div>
-                <AlertTriangle className="w-8 h-8 text-yellow-600" />
+                <AlertTriangle className="w-8 h-8 text-amber-600" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-4 rounded-2xl">
+            <div className="bg-red-50 p-4 rounded-2xl border border-red-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-red-600 dark:text-red-400 font-medium">Expirados</p>
-                  <p className="text-2xl font-bold text-red-700 dark:text-red-300">{stats.expiredItems}</p>
+                  <p className="text-sm text-red-600 font-medium">Expirados</p>
+                  <p className="text-2xl font-bold text-red-700">{stats.expiredItems}</p>
                 </div>
                 <XCircle className="w-8 h-8 text-red-600" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 p-4 rounded-2xl">
+            <div className="bg-green-50 p-4 rounded-2xl border border-green-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">En Buen Estado</p>
-                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                  <p className="text-sm text-green-600 font-medium">En Buen Estado</p>
+                  <p className="text-2xl font-bold text-green-700">
                     {stats.totalItems - stats.expiredItems - stats.expiringSoon}
                   </p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
             </div>
           </div>
@@ -361,7 +361,7 @@ export const PantryDashboard: React.FC = () => {
                 placeholder="Buscar productos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-800 dark:border-gray-700"
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-slate-300 focus:border-slate-400"
                 aria-label="Buscar productos en despensa"
               />
             </div>
@@ -406,7 +406,7 @@ export const PantryDashboard: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             <CategoryCard
-              category={{ id: 'all', name: 'Todas', icon: '📦', color: 'from-gray-500 to-slate-600', count: stats.totalItems }}
+              category={{ id: 'all', name: 'Todas', icon: '📦', color: 'bg-gray-600', count: stats.totalItems }}
               isSelected={selectedCategory === null}
               onClick={() => setSelectedCategory(null)}
             />

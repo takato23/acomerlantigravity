@@ -5,9 +5,9 @@ export async function POST(req: NextRequest) {
   try {
     // Get API key
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
-    
+
     if (!apiKey) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'No API key found'
       }, { status: 500 });
     }
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // Create recipe generation prompt
     const recipePrompt = `
@@ -71,7 +71,7 @@ Haz una receta típica argentina.`;
 
   } catch (error: any) {
     console.error('Error generating recipe:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: false,
       error: error.message || 'Failed to generate recipe'
     }, { status: 500 });

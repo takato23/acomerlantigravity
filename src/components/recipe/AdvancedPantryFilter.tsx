@@ -80,16 +80,16 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
     <Card 
       className={cn(
         'border-2 transition-all duration-200',
-        showOnlyCanMake 
-          ? 'border-food-fresh-300 bg-food-fresh-50 dark:bg-food-fresh-900/20' 
-          : 'border-neutral-200 dark:border-neutral-700',
+        showOnlyCanMake
+          ? 'border-food-fresh-300 bg-food-fresh-50'
+          : 'border-slate-200',
         className
       )}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-food-fresh-100 dark:bg-food-fresh-900/30">
+            <div className="p-2 rounded-lg bg-food-fresh-100">
               <Icons.ChefHat className="w-5 h-5 text-food-fresh-600" />
             </div>
             
@@ -115,7 +115,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                 
                 {!showOnlyCanMake && (
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-neutral-400" />
+                    <div className="w-2 h-2 rounded-full bg-slate-400" />
                     <Text size="sm" color="muted">
                       {totalRecipes - canMakeCount} con ingredientes faltantes
                     </Text>
@@ -183,7 +183,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
             }
             className={cn(
               "transition-all duration-200",
-              showOnlyCanMake && "ring-2 ring-food-fresh-200 dark:ring-food-fresh-700"
+              showOnlyCanMake && "ring-2 ring-food-fresh-200"
             )}
           >
             {showOnlyCanMake ? 'Solo lo que puedo cocinar' : 'Mostrar todo'}
@@ -215,8 +215,8 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
 
         {/* Advanced Options */}
         {showAdvancedOptions && (
-          <div className="space-y-4 p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700">
-            <Heading size="xs" className="text-neutral-600 dark:text-neutral-400">
+          <div className="space-y-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
+            <Heading size="xs" className="text-slate-600">
               Filtros Avanzados
             </Heading>
 
@@ -234,7 +234,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                     max="100"
                     value={compatibilityThreshold}
                     onChange={(e) => setCompatibilityThreshold(parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700"
+                    className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                   />
                   <Button
                     variant="fresh"
@@ -262,7 +262,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                     step="5000"
                     value={maxCostThreshold}
                     onChange={(e) => setMaxCostThreshold(parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700"
+                    className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                   />
                   <Button
                     variant="warm"
@@ -289,7 +289,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                     max="10"
                     value={maxMissingIngredients}
                     onChange={(e) => setMaxMissingIngredients(parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700"
+                    className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                   />
                   <Button
                     variant="golden"
@@ -303,7 +303,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
             )}
 
             {/* Quick Reset */}
-            <div className="flex justify-end pt-2 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="flex justify-end pt-2 border-t border-slate-200">
               <Button
                 variant="neutral"
                 size="xs"
@@ -329,7 +329,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                 {compatibilityPercentage}%
               </Text>
             </div>
-            <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+            <div className="w-full bg-slate-200 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-food-fresh-400 to-food-fresh-600 h-2 rounded-full transition-all duration-500"
                 style={{ 
@@ -342,7 +342,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
 
         {/* Insights */}
         {mostMissingIngredient && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-food-warm-50 dark:bg-food-warm-900/20">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-food-warm-50">
             <Icons.TrendingUp size="sm" className="text-food-warm-600" />
             <div>
               <Text size="sm" weight="medium">Ingrediente más solicitado</Text>

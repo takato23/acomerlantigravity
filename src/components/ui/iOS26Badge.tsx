@@ -16,11 +16,11 @@ export const iOS26Badge: React.FC<iOS26BadgeProps> = ({
   className,
 }) => {
   const variantClasses = {
-    default: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700',
-    success: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
-    warning: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800',
-    error: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800',
-    premium: 'bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+    default: 'bg-slate-100 text-slate-700 border-slate-200',
+    success: 'bg-green-100 text-green-700 border-green-200',
+    warning: 'bg-amber-100 text-amber-700 border-amber-200',
+    error: 'bg-red-100 text-red-700 border-red-200',
+    premium: 'bg-slate-200 text-slate-700 border-slate-300',
   };
 
   const sizeClasses = {

@@ -11,10 +11,10 @@ interface GlassCardProps {
 
 export function GlassCard({ children, className, variant = 'default' }: GlassCardProps) {
   const variants = {
-    default: 'bg-white/5 border-white/10',
-    highlight: 'bg-purple-500/10 border-purple-400/20',
-    error: 'bg-red-500/10 border-red-400/20',
-    success: 'bg-green-500/10 border-green-400/20',
+    default: 'bg-white/80 border-gray-200',
+    highlight: 'bg-slate-50 border-slate-200',
+    error: 'bg-red-50 border-red-200',
+    success: 'bg-green-50 border-green-200',
   };
 
   return (
@@ -28,9 +28,9 @@ export function GlassCard({ children, className, variant = 'default' }: GlassCar
         className
       )}
       style={{
-        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: '0 4px 16px 0 rgba(0, 0, 0, 0.05)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
       }}
     >
       {children}
@@ -54,9 +54,9 @@ export function GlassButton({
   type?: 'button' | 'submit';
 }) {
   const variants = {
-    primary: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600',
-    secondary: 'bg-white/10 text-white hover:bg-white/20 border border-white/20',
-    ghost: 'text-white/80 hover:text-white hover:bg-white/10',
+    primary: 'bg-black text-white hover:bg-gray-800',
+    secondary: 'bg-white text-slate-700 hover:bg-gray-50 border border-gray-200',
+    ghost: 'text-slate-600 hover:text-slate-900 hover:bg-gray-50',
   };
 
   return (
@@ -68,7 +68,7 @@ export function GlassButton({
       disabled={disabled}
       className={cn(
         'px-6 py-3 font-medium rounded-xl transition-all duration-200',
-        'focus:outline-none focus:ring-4 focus:ring-purple-500/50',
+        'focus:outline-none focus:ring-4 focus:ring-slate-300',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variants[variant],
         className

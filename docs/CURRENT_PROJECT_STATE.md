@@ -1,12 +1,12 @@
 # Current Project State - KeCarajoComer
 
-**Date**: January 2025  
+**Date**: July 2025  
 **Version**: 0.1.0  
 **Status**: Development Phase
 
 ## Executive Summary
 
-KeCarajoComer is an AI-powered meal planning application built with Next.js 15, Supabase, and integrated AI services (Claude & Gemini). The project is currently in active development with core features implemented and ready for enhancement.
+KeCarajoComer is an AI-powered meal planning application built with Next.js 15.0.0, Supabase, and integrated AI services (Claude & Gemini). The project is currently in active development with core features implemented and ready for enhancement.
 
 ## Technology Stack
 
@@ -105,7 +105,7 @@ KeCarajoComer is an AI-powered meal planning application built with Next.js 15, 
 ```
 kecarajocomer/
 ├── src/
-│   ├── app/                    # Next.js 15 App Router pages
+│   ├── app/                    # Next.js 15.0.0 App Router pages
 │   │   ├── (app)/             # Authenticated app routes
 │   │   ├── (auth)/            # Authentication routes
 │   │   └── api/               # API endpoints

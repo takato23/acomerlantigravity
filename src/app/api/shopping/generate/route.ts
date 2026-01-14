@@ -4,15 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '@/lib/supabase/client';
 import { logger } from '@/services/logger';
 import { autoShoppingListGenerator } from '@/services/shopping/AutoShoppingListGenerator';
 import { MealPlanService } from '@/lib/supabase/meal-plans';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = createServerSupabaseClient();
 
 export async function POST(request: NextRequest) {
   try {

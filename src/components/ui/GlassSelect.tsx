@@ -19,7 +19,7 @@ export const GlassSelect = forwardRef<HTMLSelectElement, GlassSelectProps>(
     return (
       <div className="space-y-2">
         {label && (
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-slate-700">
             {label}
           </label>
         )}
@@ -37,13 +37,13 @@ export const GlassSelect = forwardRef<HTMLSelectElement, GlassSelectProps>(
             ref={ref}
             className={cn(
               "w-full px-4 py-3 pr-10 rounded-xl appearance-none",
-              "bg-white/10 dark:bg-gray-900/10",
+              "bg-white/80",
               "backdrop-blur-md",
-              "border border-white/20 dark:border-gray-700/20",
-              "text-gray-900 dark:text-gray-100",
+              "border border-slate-200",
+              "text-slate-900",
               "transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-white/30 dark:focus:ring-gray-600/30",
-              "hover:bg-white/20 dark:hover:bg-gray-900/20",
+              "focus:outline-none focus:ring-2 focus:ring-slate-400/30",
+              "hover:bg-white/90 hover:border-slate-300",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               "cursor-pointer",
               error && "border-red-500/50",
@@ -62,7 +62,7 @@ export const GlassSelect = forwardRef<HTMLSelectElement, GlassSelectProps>(
               <option
                 key={option.value}
                 value={option.value}
-                className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="bg-white text-slate-900"
               >
                 {option.label}
               </option>
@@ -74,7 +74,7 @@ export const GlassSelect = forwardRef<HTMLSelectElement, GlassSelectProps>(
           
           {/* Custom dropdown arrow */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-            <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <ChevronDown className="w-5 h-5 text-slate-500" />
           </div>
         </motion.div>
         
@@ -82,7 +82,7 @@ export const GlassSelect = forwardRef<HTMLSelectElement, GlassSelectProps>(
           <motion.p
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-500 dark:text-red-400"
+            className="text-sm text-red-500"
           >
             {error}
           </motion.p>

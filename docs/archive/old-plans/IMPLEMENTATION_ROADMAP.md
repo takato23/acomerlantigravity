@@ -45,7 +45,7 @@ gantt
 **Tasks**:
 ```yaml
 Day 1-2: Project Initialization
-  - Initialize Next.js 15 project with TypeScript
+  - Initialize Next.js 15.0.0 project with TypeScript
   - Configure ESLint, Prettier, and Husky
   - Set up Git repository and branching strategy
   - Create project documentation structure

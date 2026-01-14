@@ -33,7 +33,7 @@ export class RecipePhotoScanService {
   private notificationService: NotificationManager;
 
   constructor() {
-    this.aiService = new UnifiedAIService();
+    this.aiService = UnifiedAIService.getInstance();
     this.notificationService = new NotificationManager();
   }
 
@@ -45,9 +45,8 @@ export class RecipePhotoScanService {
     options: ScanOptions
   ): Promise<PhotoScanResult> {
     try {
-      await this.notificationService.notify({
+      await this.notificationService.notify('Escaneando Receta', {
         type: 'info',
-        title: 'Escaneando Receta',
         message: 'Procesando imagen y extrayendo texto...',
         priority: 'medium'
       });
@@ -76,9 +75,8 @@ export class RecipePhotoScanService {
         suggestions: recipeData.suggestions
       };
 
-      await this.notificationService.notify({
+      await this.notificationService.notify('Escaneo Completado', {
         type: 'success',
-        title: 'Escaneo Completado',
         message: `Receta "${recipeData.recipe?.title || 'Sin título'}" extraída con ${Math.round(recipeData.confidence * 100)}% de confianza`,
         priority: 'high'
       });
@@ -88,9 +86,8 @@ export class RecipePhotoScanService {
     } catch (error: unknown) {
       logger.error('Error scanning recipe from photo:', 'RecipePhotoScanService', error);
 
-      await this.notificationService.notify({
+      await this.notificationService.notify('Error en Escaneo', {
         type: 'error',
-        title: 'Error en Escaneo',
         message: 'No se pudo extraer la receta de la imagen',
         priority: 'high'
       });
@@ -114,12 +111,12 @@ export class RecipePhotoScanService {
   ): Promise<PhotoScanResult> {
     try {
       // Request camera permissions
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
           facingMode: 'environment', // Use back camera on mobile
           width: { ideal: 1920 },
           height: { ideal: 1080 }
-        } 
+        }
       });
 
       // Create video element for capture
@@ -131,7 +128,7 @@ export class RecipePhotoScanService {
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         throw new Error('No se pudo crear el contexto del canvas');
@@ -155,9 +152,8 @@ export class RecipePhotoScanService {
     } catch (error: unknown) {
       logger.error('Error scanning from camera:', 'RecipePhotoScanService', error);
 
-      await this.notificationService.notify({
+      await this.notificationService.notify('Error de Cámara', {
         type: 'error',
-        title: 'Error de Cámara',
         message: 'No se pudo acceder a la cámara o capturar la imagen',
         priority: 'high'
       });
@@ -176,7 +172,7 @@ export class RecipePhotoScanService {
   ): Promise<PhotoScanResult> {
     try {
       const correctedText = `${extractedText}\n\nCorrecciones del usuario: ${corrections}`;
-      
+
       const recipeData = await this.parseRecipeFromText(correctedText, options);
 
       return {
@@ -234,7 +230,7 @@ export class RecipePhotoScanService {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         if (!ctx) {
           reject(new Error('No se pudo crear el contexto del canvas'));
           return;
@@ -252,7 +248,7 @@ export class RecipePhotoScanService {
         // Convert to base64
         resolve(canvas.toDataURL('image/jpeg', 0.7));
       };
-      
+
       img.onerror = () => reject(new Error('Error cargando la imagen'));
       img.src = `data:image/jpeg;base64,${base64Image}`;
     });
@@ -368,8 +364,8 @@ Si el texto no parece ser una receta, indica confidence: 0.0
         user_id: options.userId,
         title: parsedData.title || 'Receta Escaneada',
         description: parsedData.description || 'Receta extraída desde imagen',
-        instructions: Array.isArray(parsedData.instructions) 
-          ? parsedData.instructions 
+        instructions: Array.isArray(parsedData.instructions)
+          ? parsedData.instructions
           : [parsedData.instructions || 'Instrucciones no detectadas'],
         ingredients: parsedData.ingredients || [],
         prep_time: parsedData.prep_time || 15,

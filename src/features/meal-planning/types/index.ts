@@ -23,56 +23,52 @@ export type ArgentineSeason = 'verano' | 'otoño' | 'invierno' | 'primavera';
 export interface Recipe {
   id: string;
   name: string;
+  title?: string; // Compatibility alias for name
   description?: string;
   image?: string;
   prepTime: number; // minutes
+  prep_time?: number; // Compatibility alias
   cookTime: number; // minutes
+  cook_time?: number; // Compatibility alias
+  total_time?: number; // Compatibility alias
   servings: number;
-  difficulty: Difficulty;
+  difficulty: Difficulty | string; // Allow string for legacy values like 'medio'
   ingredients: Ingredient[];
   instructions: string[];
   nutrition?: NutritionInfo;
-  dietaryLabels: DietaryPreference[];
+  nutritional_info?: NutritionInfo; // Compatibility alias
+  dietaryLabels?: DietaryPreference[];
+  dietary_tags?: string[]; // Compatibility alias
   cuisine?: string;
   tags: string[];
   rating?: number;
+  ratingCount?: number;
+  reviewCount?: number;
   isAiGenerated?: boolean;
+  ai_generated?: boolean; // Compatibility alias
   isFavorite?: boolean;
+  isBookmarked?: boolean;
+  author?: string;
+  user_id?: string; // Compatibility for owner
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+
+  // Argentine-specific extensions (Summit)
+  region?: ArgentineRegion | string;
+  season?: ArgentineSeason | string;
+  cultural?: {
+    isTraditional?: boolean;
+    occasion?: string;
+    significance?: string;
+  };
+  cost?: {
+    total: number;
+    perServing: number;
+    currency: string;
+  };
 }
 
-export interface Ingredient {
-  id?: string;
-  name: string;
-  amount?: number;
-  unit?: string;
-  category?: IngredientCategory;
-  aisle?: ShoppingAisle; // Argentine-specific shopping location
-  notes?: string;
-  isOptional?: boolean;
-  substitution?: string;
-  regionAvailability?: ArgentineRegion[]; // Regional availability
-}
-
-export interface NutritionInfo {
-  calories: number;
-  protein: number; // grams
-  carbs: number; // grams
-  fat: number; // grams
-  fiber?: number; // grams
-  sugar?: number; // grams
-  sodium?: number; // mg
-}
-
-export type IngredientCategory = 
-  | 'produce'
-  | 'meat'
-  | 'dairy'
-  | 'grains'
-  | 'pantry'
-  | 'spices'
-  | 'frozen'
-  | 'beverages'
-  | 'other';
+// ... existing Ingredient and NutritionInfo ...
 
 export interface MealSlot {
   id: string;
@@ -84,10 +80,31 @@ export interface MealSlot {
   recipe?: Recipe;
   servings: number;
   isLocked: boolean;
+  locked?: boolean; // Compatibility alias
   isCompleted: boolean;
   notes?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// Legacy compatibility types (System A/B)
+export type ArgentineMeal = MealSlot;
+export interface ArgentineDayPlan {
+  date: string;
+  dayOfWeek: number;
+  dayName?: string;
+  desayuno?: ArgentineMeal;
+  almuerzo?: ArgentineMeal;
+  merienda?: ArgentineMeal;
+  cena?: ArgentineMeal;
+  cultural?: {
+    isSpecialDay?: boolean;
+    occasion?: string;
+    notes?: string;
+  };
+  dailyNutrition?: NutritionInfo;
+  dailyCost?: number;
+  isToday?: boolean;
 }
 
 export interface WeekPlan {
@@ -96,9 +113,45 @@ export interface WeekPlan {
   startDate: string; // YYYY-MM-DD format
   endDate: string; // YYYY-MM-DD format
   slots: MealSlot[];
-  isActive: boolean;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
+
+  // Argentine-specific extensions
+  weeklyNutrition?: NutritionInfo;
+  weeklyCost?: number;
+  mode?: ModeType;
+  region?: ArgentineRegion | string;
+  season?: ArgentineSeason | string;
+  cultural?: {
+    hasAsado?: boolean;
+    hasMate?: boolean;
+    hasNoquis29?: boolean;
+    specialOccasions?: string[];
+  };
+}
+
+export type ArgentineWeeklyPlan = WeekPlan;
+
+export interface WeeklyNutritionSummary {
+  daily: NutritionInfo;
+  weekly: NutritionInfo;
+  balance?: {
+    varietyScore: number;
+    nutritionScore: number;
+    culturalScore: number;
+  };
+  recommendations?: string[];
+}
+
+export interface MealPlanRecord {
+  id: string;
+  user_id: string;
+  week_start: string;
+  week_end: string;
+  plan_data: WeekPlan;
+  created_at: string;
+  updated_at: string;
 }
 
 // =============================================
@@ -128,10 +181,23 @@ export interface WeekSummary {
 }
 
 // =============================================
-// USER PREFERENCES
+// USER PREFERENCES & PANTRY
 // =============================================
 
+export interface PantryItem {
+  id: string;
+  name: string;
+  category: string | IngredientCategory;
+  amount: number;
+  unit: string;
+  expiryDate?: string;
+  cost?: number;
+  frequency?: 'alta' | 'media' | 'baja' | string;
+  inStock?: boolean;
+}
+
 export interface UserPreferences {
+  // Core System C fields
   dietaryPreferences: DietaryPreference[];
   dietProfile: DietProfile;
   cuisinePreferences: string[];
@@ -146,38 +212,45 @@ export interface UserPreferences {
   preferVariety: boolean;
   useSeasonalIngredients: boolean;
   considerPantryItems: boolean;
-}
 
-// =============================================
-// AI PLANNING TYPES
-// =============================================
-
-export interface AIPlannerConfig {
-  userId: string;
-  startDate: string;
-  numberOfDays: number;
-  mealsPerDay: MealType[];
-  preferences: UserPreferences;
-  replaceExisting: boolean;
-  lockExistingMeals: boolean;
-}
-
-export interface AIGeneratedPlan {
-  id: string;
-  config: AIPlannerConfig;
-  weekPlan: WeekPlan;
-  shoppingList: ShoppingList;
-  nutritionSummary: {
-    daily: NutritionInfo;
-    weekly: NutritionInfo;
+  // Compatibility fields (System A/B)
+  userId?: string;
+  user_id?: string;
+  dietary?: {
+    restrictions: string[];
+    allergies: string[];
+    dislikes: string[];
+    favorites: string[];
   };
-  estimatedCost?: {
-    total: number;
-    perMeal: number;
-    perServing: number;
+  cooking?: {
+    skill: string;
+    timeAvailable: number;
+    equipment: string[];
+    preferredTechniques: string[];
   };
-  generatedAt: string;
-  suggestions: string[];
+  cultural?: {
+    region: string;
+    traditionLevel: string;
+    mateFrequency: string;
+    asadoFrequency: string;
+  };
+  family?: {
+    householdSize: number;
+    hasChildren: boolean;
+    ageRanges: string[];
+    specialNeeds: string[];
+  };
+  budget_legacy?: { // Renamed to avoid collision with 'budget' prop
+    weekly: number;
+    currency: string;
+    flexibility: string;
+  };
+  shopping?: {
+    preferredStores: string[];
+    buysBulk: boolean;
+    prefersLocal: boolean;
+    hasGarden: boolean;
+  };
 }
 
 // =============================================
@@ -187,10 +260,15 @@ export interface AIGeneratedPlan {
 export interface ShoppingList {
   id: string;
   userId: string;
+  user_id?: string; // Compatibility
   weekPlanId: string;
+  week_plan_id?: string; // Compatibility
   items: ShoppingListItem[];
+  shopping_items?: ShoppingListItem[]; // Compatibility
+  shopping_list_items?: ShoppingListItem[]; // Compatibility
   categories: ShoppingListCategory[];
   estimatedTotal?: number;
+  total_cost?: number; // Compatibility
   createdAt: string;
   updatedAt: string;
 }
@@ -198,13 +276,22 @@ export interface ShoppingList {
 export interface ShoppingListItem {
   id: string;
   ingredientName: string;
+  custom_name?: string; // Compatibility
   totalAmount: number;
+  quantity?: number; // Compatibility
   unit: string;
-  category: IngredientCategory;
+  category: IngredientCategory | string;
   recipeNames: string[]; // Recipes that use this ingredient
+  recipes?: string[]; // Compatibility
   isPurchased: boolean;
+  is_purchased?: boolean; // Compatibility
+  checked?: boolean; // Compatibility
   estimatedPrice?: number;
+  estimated_cost?: number; // Compatibility
+  price?: number; // Compatibility
   notes?: string;
+  source?: string; // Compatibility
+  position?: number; // Compatibility
   packageInfo?: {
     amount: number;
     unit: string;
@@ -228,7 +315,8 @@ export interface MealPlanningStore {
   recipes: Record<string, Recipe>;
   userPreferences: UserPreferences | null;
   currentDate: Date;
-  
+  staples: string[];
+
   // UI State
   isLoading: boolean;
   error: string | null;
@@ -237,58 +325,59 @@ export interface MealPlanningStore {
   isOnline: boolean;
   isSyncing: boolean;
   lastSyncedAt: string | null;
-  
+
   // Modal State
   activeModal: 'recipe-select' | 'ai-planner' | 'preferences' | 'shopping-list' | 'recipe-detail' | null;
   selectedMeal: MealSlot | null;
-  
+
   // Offline queue
   offlineQueue: Array<() => Promise<void>>;
-  
+
   // Real-time state
   realtimeStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
-  
+
   // Actions - Data Management
   loadWeekPlan: (startDate: string) => Promise<void>;
   saveWeekPlan: (weekPlan: WeekPlan) => Promise<void>;
-  
+
   // Actions - Meal Management
   addMealToSlot: (slot: Partial<MealSlot>, recipe: Recipe) => Promise<void>;
   updateMealSlot: (slotId: string, updates: Partial<MealSlot>) => Promise<void>;
   removeMealFromSlot: (slotId: string) => Promise<void>;
   toggleSlotLock: (slotId: string) => Promise<void>;
-  
+
   // Actions - Batch Operations
   generateWeekWithAI: (config: AIPlannerConfig) => Promise<AIGeneratedPlan>;
   clearWeek: () => Promise<void>;
   duplicateWeek: (targetStartDate: string) => Promise<void>;
-  
+
   // Actions - UI
   setCurrentDate: (date: Date) => void;
   setActiveModal: (modal: MealPlanningStore['activeModal']) => void;
   setSelectedMeal: (meal: MealSlot | null) => void;
   toggleSlotSelection: (slotId: string, multi?: boolean) => void;
-  
+  setStaples: (staples: string[]) => void;
+
   // Selectors
   getSlotForDay: (dayOfWeek: number, mealType: MealType) => MealSlot | undefined;
   getWeekSummary: () => WeekSummary;
   getDayPlan: (dayOfWeek: number) => DayPlan;
   getShoppingList: () => Promise<ShoppingList>;
-  
+
   // Export functionality
   exportWeekPlanAsJSON: () => String;
   exportWeekPlanAsCSV: () => String;
   exportWeekPlanAsPDF: () => Promise<Blob>;
   downloadWeekPlan: (format: 'json' | 'csv' | 'pdf') => void;
-  
+
   // Real-time sync methods
   setupRealtimeSync: () => Promise<void>;
   cleanupRealtimeSync: () => Promise<void>;
-  
+
   // Offline support methods
   syncOfflineChanges: () => Promise<void>;
   setOnlineStatus: (isOnline: boolean) => void;
-  
+
   // Batch operations
   batchUpdateSlots: (updates: Array<{ slotId: string; changes: Partial<MealSlot> }>) => Promise<void>;
 }
@@ -422,6 +511,30 @@ export interface SummitUserPreferences {
   household_size: number;
   budget_weekly: number;
   region?: ArgentineRegion;
+}
+
+// =============================================
+// AI GENERATION TYPES
+// =============================================
+
+export interface AIPlannerConfig {
+  userId: string;
+  startDate: string;
+  endDate: string;
+  preferences: UserPreferences;
+  optimizationFocus?: 'waste_reduction' | 'budget' | 'nutrition' | 'time';
+  variationLevel?: number; // 0-1
+  includeStaples?: boolean;
+}
+
+export interface AIGeneratedPlan {
+  id: string;
+  config: AIPlannerConfig;
+  weekPlan: WeekPlan;
+  shoppingList: ShoppingList;
+  nutritionSummary: WeeklyNutritionSummary;
+  generatedAt: string;
+  suggestions: string[];
 }
 
 // Utility functions for type conversion

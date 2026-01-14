@@ -42,7 +42,7 @@ export function ProfileAchievements({
     return [...achievements].sort((a, b) => {
       if (a.unlockedAt && !b.unlockedAt) return -1;
       if (!a.unlockedAt && b.unlockedAt) return 1;
-      
+
       const aProgress = (a.progress || 0) / (a.maxProgress || 1);
       const bProgress = (b.progress || 0) / (b.maxProgress || 1);
       return bProgress - aProgress;
@@ -67,15 +67,15 @@ export function ProfileAchievements({
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'profile':
-        return 'text-blue-600 dark:text-blue-400';
+        return 'text-slate-600';
       case 'activity':
-        return 'text-green-600 dark:text-green-400';
+        return 'text-green-600';
       case 'social':
-        return 'text-purple-600 dark:text-purple-400';
+        return 'text-slate-500';
       case 'mastery':
-        return 'text-yellow-600 dark:text-yellow-400';
+        return 'text-orange-500';
       default:
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-slate-500';
     }
   };
 
@@ -84,7 +84,7 @@ export function ProfileAchievements({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-yellow-500" />
+            <Trophy className="h-6 w-6 text-orange-500" />
             Achievements
           </CardTitle>
           <div className="flex items-center gap-4">
@@ -157,33 +157,33 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
             <Card
               className={`relative overflow-hidden transition-all ${
                 isUnlocked
-                  ? 'bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-300 dark:border-yellow-700'
-                  : 'bg-gray-50 dark:bg-gray-900 opacity-75'
+                  ? 'bg-gradient-to-br from-orange-50 to-slate-50 border-orange-300'
+                  : 'bg-slate-50 opacity-75'
               }`}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div className="text-3xl">{achievement.icon}</div>
                   {isUnlocked ? (
-                    <Badge className="bg-yellow-500 text-white">
+                    <Badge className="bg-orange-500 text-white">
                       +{achievement.points}
                     </Badge>
                   ) : (
-                    <Lock className="h-4 w-4 text-gray-400" />
+                    <Lock className="h-4 w-4 text-slate-400" />
                   )}
                 </div>
-                
-                <h4 className={`font-semibold mb-1 ${isUnlocked ? '' : 'text-gray-500'}`}>
+
+                <h4 className={`font-semibold mb-1 ${isUnlocked ? '' : 'text-slate-500'}`}>
                   {achievement.name}
                 </h4>
-                
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+
+                <p className="text-sm text-slate-500 mb-3">
                   {achievement.description}
                 </p>
 
                 {achievement.maxProgress && !isUnlocked && (
                   <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-xs text-slate-500">
                       <span>Progress</span>
                       <span>{progress}/{maxProgress}</span>
                     </div>
@@ -198,7 +198,7 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
                       animate={{ scale: 1 }}
                       className="absolute top-2 right-2"
                     >
-                      <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                      <Star className="h-6 w-6 text-orange-500 fill-orange-500" />
                     </motion.div>
                   </AnimatePresence>
                 )}

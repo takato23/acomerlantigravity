@@ -21,6 +21,7 @@ import {
 // Removed Popover import - will use dialog instead
 
 import { EnhancedPriceDisplay } from './EnhancedPriceDisplay';
+import { ProductComparisonModal } from './ProductComparisonModal';
 
 interface PriceSearchComponentProps {
   initialQuery?: string;
@@ -41,6 +42,8 @@ export function PriceSearchComponent({
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<StoreProduct | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const scraper = useEnhancedPriceScraper({
     useCache,
@@ -99,25 +102,48 @@ export function PriceSearchComponent({
                 </button>
               )}
             </div>
-            
+
             <Button
               onClick={() => handleSearch(query)}
               disabled={!query.trim() || scraper.isLoading}
             >
               Buscar
             </Button>
-            
+
             {!compact && (
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setShowSettings(true)}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
+                  title={viewMode === 'grid' ? 'Ver como lista' : 'Ver como grilla'}
+                >
+                  {viewMode === 'grid' ? (
+                    <div className="flex flex-col gap-0.5">
+                      <div className="h-0.5 w-3 bg-current" />
+                      <div className="h-0.5 w-3 bg-current" />
+                      <div className="h-0.5 w-3 bg-current" />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-0.5">
+                      <div className="h-1 w-1 bg-current" />
+                      <div className="h-1 w-1 bg-current" />
+                      <div className="h-1 w-1 bg-current" />
+                      <div className="h-1 w-1 bg-current" />
+                    </div>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowSettings(true)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </>
             )}
           </div>
-          
+
           {/* Search history */}
           {showHistory && searchHistory.length > 0 && !scraper.isLoading && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -187,58 +213,35 @@ export function PriceSearchComponent({
         responseTime={scraper.responseTime}
         onProductSelect={handleProductSelect}
         onRefresh={() => handleSearch(query)}
+        viewMode={viewMode}
       />
 
       {/* Product detail dialog */}
       <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedProduct?.name}</DialogTitle>
-            <DialogDescription>
-              Detalles del producto en {selectedProduct?.store}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedProduct && (
-            <div className="space-y-4">
-              {selectedProduct.image && (
-                <img
-                  src={selectedProduct.image}
-                  alt={selectedProduct.name}
-                  className="w-full h-48 object-cover rounded"
-                />
-              )}
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Precio</span>
-                  <span className="font-semibold text-xl">
-                    ${selectedProduct.price.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tienda</span>
-                  <span>{selectedProduct.store}</span>
-                </div>
-                {selectedProduct.barcode && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Código de barras</span>
-                    <span className="font-mono text-sm">{selectedProduct.barcode}</span>
-                  </div>
-                )}
-              </div>
-              
-              {selectedProduct.url && selectedProduct.url !== '#' && (
-                <Button
-                  className="w-full"
-                  onClick={() => window.open(selectedProduct.url, '_blank')}
-                >
-                  Ver en tienda online
-                </Button>
-              )}
-            </div>
-          )}
-        </DialogContent>
+        {selectedProduct && scraper.productGroups.length > 0 ? (
+          // Find the group related to this product
+          (() => {
+            const group = scraper.productGroups.find(g =>
+              g.baseProduct.id === selectedProduct.id ||
+              g.variations.some(v => v.id === selectedProduct.id)
+            );
+
+            // Or create an ad-hoc group if not found (shouldn't happen with enriched data)
+            const variations = group
+              ? [...(group.baseProduct.id !== selectedProduct.id ? [group.baseProduct] : []), ...group.variations.filter(v => v.id !== selectedProduct.id)]
+              : scraper.products.filter(p => p.name === selectedProduct.name && p.store !== selectedProduct.store);
+
+            return <ProductComparisonModal product={selectedProduct} variations={variations} />;
+          })()
+        ) : (
+          // Fallback if no groups (should be covered by enrichment) or standard view
+          selectedProduct && (
+            <ProductComparisonModal
+              product={selectedProduct}
+              variations={scraper.products.filter(p => p.name === selectedProduct.name && p.id !== selectedProduct.id)}
+            />
+          )
+        )}
       </Dialog>
 
       {/* Settings Dialog */}
@@ -258,7 +261,7 @@ export function PriceSearchComponent({
                 className="h-4 w-4 rounded border-gray-300"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <Label htmlFor="group">Agrupar productos</Label>
               <input
@@ -269,7 +272,7 @@ export function PriceSearchComponent({
                 className="h-4 w-4 rounded border-gray-300"
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Estado del caché</span>
@@ -288,7 +291,7 @@ export function PriceSearchComponent({
                 Limpiar caché
               </Button>
             </div>
-            
+
             <div className="space-y-2">
               <h5 className="text-sm font-medium">Estado del servicio</h5>
               <div className="text-xs space-y-1 text-muted-foreground">
@@ -309,10 +312,10 @@ export function PriceSearchComponent({
 }
 
 // Compact version for embedding in other components
-export function CompactPriceSearch({ 
-  onProductSelect 
-}: { 
-  onProductSelect?: (product: StoreProduct) => void 
+export function CompactPriceSearch({
+  onProductSelect
+}: {
+  onProductSelect?: (product: StoreProduct) => void
 }) {
   return (
     <PriceSearchComponent

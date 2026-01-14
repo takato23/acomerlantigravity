@@ -223,10 +223,10 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <h2 className="text-3xl font-bold text-white mb-2">
+        <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-2">
           Preferencias y Restricciones Dietéticas
         </h2>
-        <p className="text-white/60">
+        <p className="text-gray-600">
           Selecciona cualquier preferencia o restricción dietética que sigas
         </p>
       </motion.div>
@@ -234,7 +234,7 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Dietary Restrictions */}
         <div>
-          <h3 className="text-lg font-semibold text-white mb-4">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">
             Restricciones Dietéticas
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -246,22 +246,22 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
                 transition={{ duration: 0.3, delay: 0.05 * index }}
                 type="button"
                 onClick={() => toggleRestriction(option.value)}
-                className={`p-4 rounded-xl border-2 backdrop-blur-xl transition-all ${
+                className={`p-4 rounded-xl border-2 backdrop-blur-sm transition-all ${
                   selectedRestrictions.includes(option.value)
-                    ? 'border-purple-400 bg-purple-500/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                    ? 'border-slate-700 bg-slate-50'
+                    : 'border-gray-200 bg-white hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{option.icon}</span>
                   <div className="flex-1 text-left">
-                    <div className="font-medium text-white flex items-center gap-2">
+                    <div className="font-medium text-slate-900 flex items-center gap-2">
                       {option.label}
                       {selectedRestrictions.includes(option.value) && (
-                        <Check className="h-4 w-4 text-purple-400" />
+                        <Check className="h-4 w-4 text-slate-700" />
                       )}
                     </div>
-                    <div className="text-sm text-white/60 mt-1">
+                    <div className="text-sm text-gray-600 mt-1">
                       {option.description}
                     </div>
                   </div>
@@ -290,10 +290,10 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
 
         {/* Allergies */}
         <GlassCard>
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">
             Alergias e Intolerancias
           </h3>
-          <p className="text-sm text-white/60 mb-4">
+          <p className="text-sm text-gray-600 mb-4">
             Añade cualquier ingrediente específico que necesites evitar
           </p>
           
@@ -303,7 +303,7 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
               <button
                 type="button"
                 onClick={() => setShowAllergenSuggestions(true)}
-                className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
+                className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors"
               >
                 <Sparkles className="w-4 h-4" />
                 Mostrar alérgenos comunes
@@ -312,13 +312,13 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
             
             <AnimatePresence>
               {showAllergenSuggestions && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="bg-purple-500/10 rounded-xl p-3 space-y-2 border border-purple-400/20"
+                  className="bg-slate-50 rounded-xl p-3 space-y-2 border border-slate-200"
                 >
-                  <p className="text-xs text-purple-300 font-medium">Alérgenos comunes - Haz clic para añadir:</p>
+                  <p className="text-xs text-slate-600 font-medium">Alérgenos comunes - Haz clic para añadir:</p>
                   <div className="flex flex-wrap gap-2">
                     {COMMON_ALLERGENS.filter(a => !allergies.includes(a)).map((allergen, index) => (
                       <motion.button
@@ -328,7 +328,7 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
                         transition={{ delay: index * 0.03 }}
                         type="button"
                         onClick={() => addCommonAllergen(allergen)}
-                        className="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-sm hover:bg-white/20 transition-all text-white/80"
+                        className="px-3 py-1 bg-white border border-gray-200 rounded-full text-sm hover:bg-gray-50 transition-all text-slate-700"
                       >
                         + {allergen}
                       </motion.button>
@@ -346,7 +346,7 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
                 onChange={(e) => setNewAllergy(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAllergy())}
                 placeholder="ej: mariscos, soja, huevos"
-                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all"
+                className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder-gray-400 focus:ring-2 focus:ring-slate-300 focus:border-slate-400 focus:outline-none transition-all"
               />
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -354,7 +354,7 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
                 type="button"
                 onClick={addAllergy}
                 disabled={!newAllergy.trim()}
-                className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-4 py-3 bg-black text-white rounded-xl hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <Plus className="h-5 w-5" />
               </motion.button>
@@ -415,11 +415,11 @@ export function DietaryPreferencesStep({ onNext, onBack }: DietaryPreferencesSte
 
         {/* Info Box */}
         <GlassCard className="flex gap-3">
-          <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+          <Info className="h-5 w-5 text-slate-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium mb-1 text-white">Tus preferencias son privadas</p>
-            <p className="text-white/60">
-              Usamos esta información únicamente para proporcionarte sugerencias de comidas adecuadas 
+            <p className="font-medium mb-1 text-slate-900">Tus preferencias son privadas</p>
+            <p className="text-gray-600">
+              Usamos esta información únicamente para proporcionarte sugerencias de comidas adecuadas
               y garantizar tu seguridad. Puedes actualizar estas preferencias en cualquier momento.
             </p>
           </div>

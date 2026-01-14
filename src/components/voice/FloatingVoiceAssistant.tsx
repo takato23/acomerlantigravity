@@ -178,7 +178,7 @@ export function FloatingVoiceAssistant({
                 style={{ width: 380, maxHeight: 600 }}
               >
                 {/* Header */}
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 text-white">
+                <div className="bg-black p-4 text-white">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Bot className="h-5 w-5" />
@@ -244,7 +244,7 @@ export function FloatingVoiceAssistant({
                                 onClick={() => switchLanguage(lang)}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                                   currentLanguage === lang
-                                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                                    ? 'bg-slate-100 text-slate-700 border border-slate-300'
                                     : 'bg-white hover:bg-gray-100 border border-gray-200'
                                 }`}
                               >
@@ -266,7 +266,7 @@ export function FloatingVoiceAssistant({
                               className="sr-only"
                             />
                             <div className={`relative w-10 h-6 rounded-full transition-colors ${
-                              voiceFeedbackEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                              voiceFeedbackEnabled ? 'bg-slate-700' : 'bg-gray-300'
                             }`}>
                               <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
                                 voiceFeedbackEnabled ? 'translate-x-4' : ''
@@ -283,7 +283,7 @@ export function FloatingVoiceAssistant({
                               className="sr-only"
                             />
                             <div className={`relative w-10 h-6 rounded-full transition-colors ${
-                              continuousMode ? 'bg-blue-600' : 'bg-gray-300'
+                              continuousMode ? 'bg-slate-700' : 'bg-gray-300'
                             }`}>
                               <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
                                 continuousMode ? 'translate-x-4' : ''
@@ -303,9 +303,9 @@ export function FloatingVoiceAssistant({
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-blue-50 rounded-lg p-3"
+                      className="bg-slate-50 rounded-lg p-3"
                     >
-                      <Text size="sm" className="text-blue-900">
+                      <Text size="sm" className="text-slate-900">
                         {transcript}
                       </Text>
                     </motion.div>
@@ -322,7 +322,7 @@ export function FloatingVoiceAssistant({
                           className={`rounded-lg p-3 ${
                             entry.type === 'user'
                               ? 'bg-gray-100 ml-8'
-                              : 'bg-purple-50 mr-8'
+                              : 'bg-slate-50 mr-8'
                           }`}
                         >
                           <Text size="xs" className="text-gray-600 mb-1">
@@ -431,7 +431,7 @@ export function FloatingVoiceAssistant({
                 <div className="relative w-16 h-16">
                   {/* Background glow */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-lg"
+                    className="absolute inset-0 bg-slate-700 rounded-full blur-lg"
                     animate={{
                       scale: isListening ? [1, 1.2, 1] : 1,
                       opacity: isListening ? [0.5, 0.8, 0.5] : 0.5
@@ -445,8 +445,8 @@ export function FloatingVoiceAssistant({
                   {/* Main button */}
                   <div className={`relative w-full h-full rounded-full shadow-lg flex items-center justify-center transition-colors ${
                     isListening
-                      ? 'bg-gradient-to-r from-red-500 to-red-600'
-                      : 'bg-gradient-to-r from-purple-600 to-blue-600'
+                      ? 'bg-red-500'
+                      : 'bg-black'
                   }`}>
                     {isContinuousMode && isWaitingForWakeWord ? (
                       <Sparkles className="h-6 w-6 text-white" />
@@ -485,7 +485,7 @@ export function FloatingVoiceAssistant({
                   )}
                   
                   {isSpeaking && (
-                    <Volume2 className="absolute -bottom-1 -right-1 h-4 w-4 text-blue-600 bg-white rounded-full p-0.5" />
+                    <Volume2 className="absolute -bottom-1 -right-1 h-4 w-4 text-slate-600 bg-white rounded-full p-0.5" />
                   )}
                 </div>
                 

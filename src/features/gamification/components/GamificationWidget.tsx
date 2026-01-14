@@ -87,7 +87,7 @@ export function GamificationWidget({ userId, className = '' }: GamificationWidge
             </div>
           </div>
           
-          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
+          <button className="text-slate-600 hover:text-slate-800 text-sm font-medium flex items-center gap-1">
             View All
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -111,7 +111,7 @@ export function GamificationWidget({ userId, className = '' }: GamificationWidge
           </div>
           
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-purple-600 mb-1">
+            <div className="flex items-center justify-center gap-1 text-slate-600 mb-1">
               <Trophy className="w-4 h-4" />
               <span className="text-sm font-medium">{recentAchievements.length}</span>
             </div>
@@ -180,8 +180,8 @@ export function GamificationWidget({ userId, className = '' }: GamificationWidge
                 </span>
                 <div className="flex items-center gap-2">
                   <div className="w-16 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                    <div
+                      className="bg-slate-700 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(progress, 100)}%` }}
                     />
                   </div>
@@ -204,7 +204,7 @@ export function GamificationWidgetCompact({ userId, className = '' }: Gamificati
 
   if (!profile) {
     return (
-      <div className={`bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 ${className}`}>
+      <div className={`bg-slate-50 rounded-lg p-4 ${className}`}>
         <div className="text-center">
           <Gift className="w-8 h-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-500">Start earning XP!</p>
@@ -214,7 +214,7 @@ export function GamificationWidgetCompact({ userId, className = '' }: Gamificati
   }
 
   return (
-    <div className={`bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 ${className}`}>
+    <div className={`bg-slate-50 rounded-lg p-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <LevelBadge level={profile.level} size="sm" />

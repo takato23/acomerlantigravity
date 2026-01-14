@@ -106,7 +106,7 @@ const STARTER_KITS = {
 
 export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
   const { data, savePantryItems } = useOnboardingStore();
-  
+
   const [pantryItems, setPantryItems] = useState<PantryItem[]>(data.pantryItems || []);
   const [selectedCategory, setSelectedCategory] = useState<PantryCategory>(PantryCategory.PROTEINS);
   const [newItemName, setNewItemName] = useState('');
@@ -118,7 +118,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
 
   const cookingPersona = data.profile?.cooking_persona || 'beginner';
   const dietaryRestrictions = data.preferences?.dietary_restrictions || [];
-  
+
   const filteredCommonItems = COMMON_ITEMS[selectedCategory]?.filter(item =>
     item.toLowerCase().includes(searchTerm.toLowerCase()) &&
     !pantryItems.some(pantryItem => pantryItem.name.toLowerCase() === item.toLowerCase())
@@ -126,7 +126,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
 
   const generatePersonalizedSuggestions = async () => {
     if (personalizedSuggestions.length > 0) return;
-    
+
     setIsGeneratingSuggestions(true);
     try {
       const apiKey = geminiConfig.getApiKey();
@@ -149,17 +149,17 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
       
       Responde SOLO con un JSON array de 6 strings con los nombres de los ingredientes, sin markdown ni explicaciones.`;
 
-      const result = await aiService.generateText({ prompt: prompt);
+      const result = await aiService.generateText({ prompt: prompt });
       const response = await result.response;
       let text = response.text().trim();
-      
+
       // Clean markdown if present
       if (text.startsWith('```json')) text = text.slice(7);
       if (text.startsWith('```')) text = text.slice(3);
       if (text.endsWith('```')) text = text.slice(0, -3);
-      
+
       const suggestions = JSON.parse(text.trim());
-      setPersonalizedSuggestions(suggestions.filter(s => 
+      setPersonalizedSuggestions(suggestions.filter(s =>
         !pantryItems.some(item => item.name.toLowerCase() === s.toLowerCase())
       ));
     } catch (error) {
@@ -196,7 +196,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
 
   const applyStarterKit = () => {
     const kit = STARTER_KITS[cookingPersona] || STARTER_KITS.beginner;
-    const newItems = kit.items.filter(kitItem => 
+    const newItems = kit.items.filter(kitItem =>
       !pantryItems.some(existing => existing.name.toLowerCase() === kitItem.name.toLowerCase())
     );
     setPantryItems([...pantryItems, ...newItems]);
@@ -205,7 +205,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     setIsLoading(true);
     try {
       await savePantryItems(pantryItems);
@@ -225,7 +225,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
@@ -346,11 +346,11 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
                   {isGeneratingSuggestions ? 'Generando...' : 'Sugerencias IA'}
                 </button>
               </div>
-              
+
               {/* Personalized Suggestions */}
               <AnimatePresence>
                 {personalizedSuggestions.length > 0 && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -430,8 +430,8 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
                   if (items.length === 0) return null;
 
                   return (
-                    <motion.div 
-                      key={category.value} 
+                    <motion.div
+                      key={category.value}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
@@ -443,8 +443,8 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
                       </h4>
                       <div className="space-y-2">
                         {items.map((item, index) => (
-                          <motion.div 
-                            key={`${item.name}-${index}`} 
+                          <motion.div
+                            key={`${item.name}-${index}`}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
@@ -475,7 +475,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
           <div className="text-sm">
             <p className="font-medium text-white mb-1">Consejo</p>
             <p className="text-white/60">
-              ¡No te preocupes por ser completo! Siempre puedes añadir más ingredientes después. 
+              ¡No te preocupes por ser completo! Siempre puedes añadir más ingredientes después.
               Esta configuración inicial ayuda a nuestra IA a entender qué sueles tener disponible.
             </p>
           </div>
@@ -491,7 +491,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
             <ArrowLeft className="w-4 h-4" />
             Atrás
           </GlassButton>
-          
+
           <GlassButton
             type="submit"
             disabled={isLoading}

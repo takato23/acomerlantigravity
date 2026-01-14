@@ -11,34 +11,34 @@ export default function SearchPage() {
 
   const recentSearches = [
     'Pasta carbonara',
-    'Ensalada césar',
+    'Ensalada cesar',
     'Pollo al curry',
     'Brownies de chocolate'
   ];
 
   const popularSearches = [
     'Recetas veganas',
-    'Comidas rápidas',
-    'Postres sin azúcar',
-    'Platos mediterráneos'
+    'Comidas rapidas',
+    'Postres sin azucar',
+    'Platos mediterraneos'
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-white min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-4xl mx-auto"
       >
-        <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-8 text-center">
+        <h1 className="text-3xl lg:text-4xl font-black tracking-tighter text-slate-900 mb-8 text-center">
           Buscar en KeCarajoComer
         </h1>
 
         {/* Search Input */}
-        <GlassCard variant="medium" className="p-6 mb-8">
+        <GlassCard variant="medium" className="p-6 mb-8 bg-slate-50 border border-slate-200">
           <GlassInput
             placeholder="Buscar recetas, ingredientes, planificaciones..."
-            icon={<Search className="w-5 h-5" />}
+            icon={<Search className="w-5 h-5 text-slate-500" />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="text-lg"
@@ -46,17 +46,17 @@ export default function SearchPage() {
         </GlassCard>
 
         {/* Recent Searches */}
-        <GlassCard variant="subtle" className="p-6 mb-6">
+        <GlassCard variant="subtle" className="p-6 mb-6 bg-white border border-slate-200">
           <div className="flex items-center gap-2 mb-4">
-            <Clock className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold">Búsquedas Recientes</h2>
+            <Clock className="w-5 h-5 text-slate-600" />
+            <h2 className="text-lg font-semibold text-slate-900">Busquedas Recientes</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {recentSearches.map((search) => (
               <button
                 key={search}
                 onClick={() => setSearchQuery(search)}
-                className="px-4 py-2 bg-white/50 dark:bg-gray-800/50 rounded-full text-sm hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors"
+                className="px-4 py-2 bg-slate-100 rounded-full text-sm text-slate-700 hover:bg-slate-200 transition-colors"
               >
                 {search}
               </button>
@@ -65,17 +65,17 @@ export default function SearchPage() {
         </GlassCard>
 
         {/* Popular Searches */}
-        <GlassCard variant="subtle" className="p-6 mb-6">
+        <GlassCard variant="subtle" className="p-6 mb-6 bg-white border border-slate-200">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold">Búsquedas Populares</h2>
+            <TrendingUp className="w-5 h-5 text-orange-500" />
+            <h2 className="text-lg font-semibold text-slate-900">Busquedas Populares</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {popularSearches.map((search) => (
               <button
                 key={search}
                 onClick={() => setSearchQuery(search)}
-                className="px-4 py-2 bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-900/20 dark:to-pink-900/20 rounded-full text-sm hover:from-orange-100 hover:to-pink-100 dark:hover:from-orange-900/30 dark:hover:to-pink-900/30 transition-colors"
+                className="px-4 py-2 bg-orange-50 rounded-full text-sm text-orange-700 hover:bg-orange-100 transition-colors"
               >
                 {search}
               </button>
@@ -86,10 +86,10 @@ export default function SearchPage() {
         {/* Search Categories */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: ChefHat, label: 'Recetas', color: 'from-pink-500 to-purple-500' },
-            { icon: Package, label: 'Despensa', color: 'from-blue-500 to-green-500' },
-            { icon: Calendar, label: 'Planes', color: 'from-purple-500 to-blue-500' },
-            { icon: ShoppingCart, label: 'Compras', color: 'from-green-500 to-orange-500' }
+            { icon: ChefHat, label: 'Recetas', color: 'bg-slate-800' },
+            { icon: Package, label: 'Despensa', color: 'bg-slate-700' },
+            { icon: Calendar, label: 'Planes', color: 'bg-slate-600' },
+            { icon: ShoppingCart, label: 'Compras', color: 'bg-orange-500' }
           ].map((category) => {
             const Icon = category.icon;
             return (
@@ -99,11 +99,11 @@ export default function SearchPage() {
                 whileTap={{ scale: 0.95 }}
                 className="group"
               >
-                <GlassCard variant="medium" className="p-6 text-center" interactive>
-                  <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-white`}>
+                <GlassCard variant="medium" className="p-6 text-center bg-white border border-slate-200 hover:border-slate-300" interactive>
+                  <div className={`w-12 h-12 mx-auto mb-3 rounded-xl ${category.color} flex items-center justify-center text-white`}>
                     <Icon className="w-6 h-6" />
                   </div>
-                  <p className="font-medium">{category.label}</p>
+                  <p className="font-medium text-slate-900">{category.label}</p>
                 </GlassCard>
               </motion.button>
             );

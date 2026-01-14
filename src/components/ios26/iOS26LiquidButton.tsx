@@ -94,7 +94,7 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
         };
       case 'ghost':
         return {
-          className: 'hover:bg-white/10 dark:hover:bg-black/10',
+          className: 'hover:bg-white/10',
           background: 'transparent',
           hoverBackground: 'transparent'
         };

@@ -48,18 +48,15 @@ const KeButton = forwardRef<HTMLButtonElement, KeButtonProps>(({
       focus:ring-green-500 backdrop-blur-md
     `,
     secondary: `
-      bg-gray-100/80 hover:bg-gray-200/80 text-gray-900 border-gray-200/50
-      dark:bg-gray-800/80 dark:hover:bg-gray-700/80 dark:text-white dark:border-gray-700/50
-      shadow-md focus:ring-gray-400
+      bg-slate-100/80 hover:bg-slate-200/80 text-slate-900 border-slate-200/50
+      shadow-md focus:ring-slate-400
     `,
     outline: `
       bg-white/50 hover:bg-white/70 text-green-700 border-green-300/60
-      dark:bg-gray-900/50 dark:hover:bg-gray-800/70 dark:text-green-400 dark:border-green-700/60
       shadow-sm focus:ring-green-500
     `,
     ghost: `
       bg-transparent hover:bg-green-50/80 text-green-700 border-transparent
-      dark:hover:bg-green-900/20 dark:text-green-400
       focus:ring-green-500
     `,
     danger: `

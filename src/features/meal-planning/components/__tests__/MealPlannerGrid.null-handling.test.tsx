@@ -14,6 +14,21 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
   }),
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+}));
+
+jest.mock('@/store', () => ({
+  useUser: () => ({
+    profile: { id: '123' }
+  }),
+}));
+
+jest.mock('@/hooks/useShoppingList', () => ({
+  useShoppingList: () => ({
+    addItems: jest.fn(),
+  }),
 }));
 
 // Mock framer-motion
@@ -42,6 +57,15 @@ jest.mock('../MobileGrid', () => ({
       Mobile Grid - Plan: {weekPlan ? 'loaded' : 'null'}
     </div>
   ),
+}));
+
+jest.mock('@/components/ui', () => ({
+  KeCard: ({ children }: any) => <div>{children}</div>,
+  KeCardHeader: ({ children }: any) => <div>{children}</div>,
+  KeCardTitle: ({ children }: any) => <div>{children}</div>,
+  KeCardContent: ({ children }: any) => <div>{children}</div>,
+  KeButton: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
+  KeBadge: ({ children }: any) => <div>{children}</div>,
 }));
 
 jest.mock('../DesktopGrid', () => ({
@@ -171,7 +195,7 @@ describe('MealPlannerGrid - Null Handling', () => {
     // Should render the component without errors
     expect(screen.getByText('0 de 28 comidas planificadas')).toBeInTheDocument();
     expect(screen.getByText('Progreso de la semana')).toBeInTheDocument();
-    
+
     // Grid should receive null-safe data
     const grid = screen.getByTestId('desktop-grid');
     expect(grid).toHaveTextContent('Plan: loaded'); // adaptMealDataForGrid handles null

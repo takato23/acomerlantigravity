@@ -49,39 +49,32 @@ const KeBadge = forwardRef<HTMLDivElement, KeBadgeProps>(({
 
   const variants = {
     default: `
-      bg-gray-100/80 text-gray-700 border-gray-200/60
-      dark:bg-gray-800/80 dark:text-gray-300 dark:border-gray-700/60
-      hover:bg-gray-200/80 dark:hover:bg-gray-700/80
+      bg-slate-100/80 text-slate-700 border-slate-200/60
+      hover:bg-slate-200/80
     `,
     primary: `
       bg-green-100/80 text-green-700 border-green-200/60
-      dark:bg-green-900/30 dark:text-green-300 dark:border-green-700/60
-      hover:bg-green-200/80 dark:hover:bg-green-800/40
+      hover:bg-green-200/80
     `,
     secondary: `
-      bg-blue-100/80 text-blue-700 border-blue-200/60
-      dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700/60
-      hover:bg-blue-200/80 dark:hover:bg-blue-800/40
+      bg-slate-100/80 text-slate-700 border-slate-200/60
+      hover:bg-slate-200/80
     `,
     success: `
       bg-emerald-100/80 text-emerald-700 border-emerald-200/60
-      dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700/60
-      hover:bg-emerald-200/80 dark:hover:bg-emerald-800/40
+      hover:bg-emerald-200/80
     `,
     warning: `
-      bg-orange-100/80 text-orange-700 border-orange-200/60
-      dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700/60
-      hover:bg-orange-200/80 dark:hover:bg-orange-800/40
+      bg-amber-100/80 text-amber-700 border-amber-200/60
+      hover:bg-amber-200/80
     `,
     danger: `
       bg-red-100/80 text-red-700 border-red-200/60
-      dark:bg-red-900/30 dark:text-red-300 dark:border-red-700/60
-      hover:bg-red-200/80 dark:hover:bg-red-800/40
+      hover:bg-red-200/80
     `,
     info: `
-      bg-cyan-100/80 text-cyan-700 border-cyan-200/60
-      dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-700/60
-      hover:bg-cyan-200/80 dark:hover:bg-cyan-800/40
+      bg-slate-100/80 text-slate-700 border-slate-200/60
+      hover:bg-slate-200/80
     `
   };
 

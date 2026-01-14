@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient, supabase } from '@/lib/supabase/client';
 import { logger } from '@/services/logger';
 
 import type { Database } from '@/types/database';
@@ -16,25 +16,18 @@ import { getProfileManager, ProfileManager } from '../profile/ProfileManager';
  */
 export class HolisticFoodSystem {
   private supabase;
-  
+
   // Subsistemas
   private scanner: ReceiptScanner;
   private pantryManager: PantryManager;
   // private mealPlanner: MealPlanner; // Comentado temporalmente
   private shoppingOptimizer: ShoppingOptimizer;
   private profileManager: ProfileManager;
-  
+
   constructor() {
-    // Inicializar Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Faltan variables de entorno de Supabase');
-    }
-    
-    this.supabase = createClient<Database>(supabaseUrl, supabaseKey);
-    
+    // Use centralized Supabase client with mock fallback
+    this.supabase = createServerSupabaseClient();
+
     // Inicializar subsistemas
     this.scanner = new ReceiptScanner(this);
     this.pantryManager = getPantryManager(this);
@@ -42,14 +35,14 @@ export class HolisticFoodSystem {
     this.shoppingOptimizer = getShoppingOptimizer(this);
     this.profileManager = getProfileManager(this);
   }
-  
+
   /**
    * Obtener cliente de Supabase para uso en subsistemas
    */
   getSupabaseClient() {
     return this.supabase;
   }
-  
+
   /**
    * Flujo completo: Ticket → Despensa → Plan → Lista
    */
@@ -59,29 +52,29 @@ export class HolisticFoodSystem {
       // 1. Escanear ticket
 
       const parsedReceipt = await this.scanner.scanReceipt(receiptImage);
-      
+
       // 2. Actualizar despensa
 
       const pantryItems = await this.pantryManager.addItemsFromReceipt(
-        parsedReceipt.items, 
+        parsedReceipt.items,
         userId,
         parsedReceipt.date || new Date()
       );
-      
+
       // 3. Obtener estadísticas actualizadas
 
       const pantryStats = await this.pantryManager.getPantryStats(userId);
-      
+
       // 4. Generar sugerencias de compra
 
       const suggestions = await this.pantryManager.getShoppingSuggestions(userId);
-      
+
       // 5. Generar plan de comidas optimizado
 
       const currentPantryItems = await this.pantryManager.getPantryItems(userId);
       // Temporal: MealPlanner no disponible
       const mealPlan = null;
-      
+
       return {
         success: true,
         scannedReceipt: parsedReceipt,
@@ -95,13 +88,13 @@ export class HolisticFoodSystem {
         shoppingList: mealPlan.shoppingList,
         insights: await this.generateInsights(userId, { parsedReceipt, pantryStats, mealPlan })
       };
-      
+
     } catch (error: unknown) {
       logger.error('Error en procesamiento holístico:', 'HolisticSystem', error);
       throw error;
     }
   }
-  
+
   /**
    * Obtener preferencias del usuario
    */
@@ -111,15 +104,15 @@ export class HolisticFoodSystem {
       .select('*')
       .eq('user_id', userId)
       .single();
-    
+
     if (error) {
       logger.error('Error obteniendo preferencias:', 'HolisticSystem', error);
       return null;
     }
-    
+
     return data;
   }
-  
+
   /**
    * Obtener presupuesto del usuario
    */
@@ -127,7 +120,7 @@ export class HolisticFoodSystem {
     const profile = await this.getUserPreferences(userId);
     return profile?.monthly_budget || 0;
   }
-  
+
   /**
    * Generar insights usando IA (Gemini para ahorrar costos)
    */
@@ -140,19 +133,19 @@ export class HolisticFoodSystem {
       'Te faltan vegetales verdes para una dieta balanceada'
     ];
   }
-  
+
   /**
    * Método para usar Gemini en lugar de GPT-4 (ahorro de costos)
    */
   async callGeminiAPI(prompt: string) {
     // TODO: Implementar cuando tengamos la API key
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-    
+
     if (!apiKey) {
       logger.warn('Gemini API key no configurada, usando mock', 'HolisticSystem');
       return { success: false, message: 'Gemini no configurado' };
     }
-    
+
     // Implementar llamada a Gemini
     return { success: true, data: 'Mock response' };
   }

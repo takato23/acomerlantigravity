@@ -33,8 +33,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     const variantClasses = {
       default: [
-        'bg-white border border-neutral-200 shadow-sm',
-        'dark:bg-neutral-800 dark:border-neutral-700',
+        'bg-white border border-slate-200 shadow-sm',
       ],
       glass: [
         'glass',
@@ -121,12 +120,12 @@ const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
       >
         <div className="min-w-0 flex-1">
           {title && (
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+            <h3 className="text-lg font-semibold text-slate-900 truncate">
               {title}
             </h3>
           )}
           {subtitle && (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               {subtitle}
             </p>
           )}
@@ -148,7 +147,7 @@ const CardBody = React.forwardRef<HTMLDivElement, CardBodyProps>(
     return (
       <div
         ref={ref}
-        className={cn('text-neutral-700 dark:text-neutral-300', className)}
+        className={cn('text-slate-700', className)}
         {...props}
       />
     );
@@ -175,7 +174,7 @@ const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
       <div
         ref={ref}
         className={cn(
-          'flex items-center gap-3 mt-4 pt-4 border-t border-neutral-200/50 dark:border-neutral-700/50',
+          'flex items-center gap-3 mt-4 pt-4 border-t border-slate-200/50',
           justifyClasses[justify],
           className
         )}

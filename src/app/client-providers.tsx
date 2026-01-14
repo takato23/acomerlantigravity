@@ -4,6 +4,8 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { IOS26Provider } from "@/components/ios26";
+import { AnalyticsProvider } from "@/providers/AnalyticsProvider";
+import { MonetizationProvider } from "@/features/monetization/MonetizationProvider";
 import { Toaster } from "sonner";
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
@@ -11,11 +13,15 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <>
       <ThemeProvider defaultTheme="system" storageKey="ui-theme">
         <AuthProvider>
-          <ProfileProvider>
-            <IOS26Provider>
-              {children}
-            </IOS26Provider>
-          </ProfileProvider>
+          <AnalyticsProvider>
+            <ProfileProvider>
+              <MonetizationProvider>
+                <IOS26Provider>
+                  {children}
+                </IOS26Provider>
+              </MonetizationProvider>
+            </ProfileProvider>
+          </AnalyticsProvider>
         </AuthProvider>
       </ThemeProvider>
       <Toaster richColors closeButton />

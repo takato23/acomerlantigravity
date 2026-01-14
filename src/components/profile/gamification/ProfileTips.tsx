@@ -2,12 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Lightbulb, 
-  ArrowRight, 
-  CheckCircle, 
-  X, 
-  Sparkles, 
+import {
+  Lightbulb,
+  ArrowRight,
+  CheckCircle,
+  X,
+  Sparkles,
   Target,
   TrendingUp,
   Users,
@@ -220,9 +220,9 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
     // Filter tips based on completion status and dismissed tips
     return allTips.filter(tip => {
       if (dismissedTips.includes(tip.id)) return false;
-      
+
       const sectionCompletion = metrics.sections[tip.section as keyof typeof metrics.sections] || 0;
-      
+
       // Show tip if section is not complete
       if (sectionCompletion < 100) {
         // Prioritize tips for less complete sections
@@ -230,19 +230,19 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
         if (tip.priority === 'medium' && sectionCompletion < 75) return true;
         if (tip.priority === 'low' && sectionCompletion < 90) return true;
       }
-      
+
       return false;
     }).sort((a, b) => {
       // Sort by priority and section completion
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       const aPriority = priorityOrder[a.priority];
       const bPriority = priorityOrder[b.priority];
-      
+
       if (aPriority !== bPriority) return bPriority - aPriority;
-      
+
       const aCompletion = metrics.sections[a.section as keyof typeof metrics.sections] || 0;
       const bCompletion = metrics.sections[b.section as keyof typeof metrics.sections] || 0;
-      
+
       return aCompletion - bCompletion;
     }).slice(0, 6); // Show max 6 tips
   }, [metrics, dismissedTips]);
@@ -259,11 +259,11 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20';
+        return 'border-red-200 bg-red-50';
       case 'medium':
-        return 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20';
+        return 'border-amber-200 bg-amber-50';
       case 'low':
-        return 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20';
+        return 'border-blue-200 bg-blue-50';
       default:
         return '';
     }
@@ -272,11 +272,11 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
   const getPriorityBadgeColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
+        return 'bg-red-100 text-red-700';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300';
+        return 'bg-amber-100 text-amber-700';
       case 'low':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300';
+        return 'bg-blue-100 text-blue-700';
       default:
         return '';
     }
@@ -288,7 +288,7 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Great job!</h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-slate-600">
             You've completed most of your profile. Keep using the app to unlock more achievements!
           </p>
         </CardContent>
@@ -300,7 +300,7 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Lightbulb className="h-6 w-6 text-yellow-500" />
+          <Lightbulb className="h-6 w-6 text-amber-500" />
           Personalized Tips
           <Badge variant="secondary">{tips.length}</Badge>
         </CardTitle>
@@ -320,7 +320,7 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 flex-1">
-                        <div className="flex-shrink-0 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                        <div className="flex-shrink-0 p-2 bg-white rounded-lg shadow-sm">
                           {tip.icon}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -333,11 +333,11 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
                               +{tip.points} pts
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                          <p className="text-sm text-slate-700 mb-3">
                             {tip.description}
                           </p>
                           <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="text-xs text-slate-500">
                               ⏱️ {tip.estimatedTime}
                             </span>
                             <Button
@@ -351,7 +351,7 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
                               {expandedTip === tip.id ? 'Less' : 'More'}
                             </Button>
                           </div>
-                          
+
                           <AnimatePresence>
                             {expandedTip === tip.id && (
                               <motion.div
@@ -362,13 +362,13 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
                               >
                                 {tip.steps && (
                                   <div>
-                                    <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <h5 className="text-xs font-medium text-slate-700 mb-2">
                                       Steps to complete:
                                     </h5>
-                                    <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                    <ul className="text-xs text-slate-600 space-y-1">
                                       {tip.steps.map((step, stepIndex) => (
                                         <li key={stepIndex} className="flex items-start gap-2">
-                                          <span className="flex-shrink-0 w-4 h-4 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-xs flex items-center justify-center font-medium">
+                                          <span className="flex-shrink-0 w-4 h-4 bg-blue-100 text-blue-700 rounded-full text-xs flex items-center justify-center font-medium">
                                             {stepIndex + 1}
                                           </span>
                                           {step}
@@ -377,16 +377,16 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
                                     </ul>
                                   </div>
                                 )}
-                                
+
                                 {tip.benefits && (
                                   <div>
-                                    <h5 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <h5 className="text-xs font-medium text-slate-700 mb-2">
                                       Benefits:
                                     </h5>
-                                    <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                    <ul className="text-xs text-slate-600 space-y-1">
                                       {tip.benefits.map((benefit, benefitIndex) => (
                                         <li key={benefitIndex} className="flex items-center gap-2">
-                                          <Sparkles className="h-3 w-3 text-yellow-500" />
+                                          <Sparkles className="h-3 w-3 text-amber-500" />
                                           {benefit}
                                         </li>
                                       ))}
@@ -396,7 +396,7 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
                               </motion.div>
                             )}
                           </AnimatePresence>
-                          
+
                           <div className="flex items-center gap-2">
                             <Button
                               size="sm"
@@ -410,7 +410,7 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
                               size="sm"
                               variant="ghost"
                               onClick={() => dismissTip(tip.id)}
-                              className="text-xs h-7 w-7 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                              className="text-xs h-7 w-7 p-0 hover:bg-slate-200"
                             >
                               <X className="h-3 w-3" />
                             </Button>
@@ -423,10 +423,10 @@ export function ProfileTips({ metrics, onSectionClick }: ProfileTipsProps) {
               </motion.div>
             ))}
           </AnimatePresence>
-          
+
           {tips.length > 3 && (
             <div className="text-center pt-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-slate-500">
                 Complete these tips to unlock more personalized suggestions!
               </p>
             </div>

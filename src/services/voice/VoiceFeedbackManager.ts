@@ -27,7 +27,7 @@ export class VoiceFeedbackManager {
     if ('speechSynthesis' in window) {
       this.synthesis = window.speechSynthesis;
       this.loadVoices();
-      
+
       // Handle voice list changes
       if (this.synthesis.onvoiceschanged !== undefined) {
         this.synthesis.onvoiceschanged = () => this.loadVoices();
@@ -44,7 +44,7 @@ export class VoiceFeedbackManager {
 
   private loadVoices(): void {
     if (!this.synthesis) return;
-    
+
     this.voices = this.synthesis.getVoices();
 
   }
@@ -87,7 +87,7 @@ export class VoiceFeedbackManager {
 
     return new Promise((resolve, reject) => {
       const utterance = new SpeechSynthesisUtterance(text);
-      
+
       // Configure utterance
       utterance.lang = options.language || this.config.language;
       utterance.rate = options.rate || 1.0;
@@ -122,7 +122,7 @@ export class VoiceFeedbackManager {
       };
 
       // Add to queue or speak immediately
-      if (options.priority === 'high') {
+      if (options.priority === 'high' && this.synthesis) {
         // Cancel current and speak immediately
         this.synthesis.cancel();
         this.utteranceQueue = [];
@@ -130,9 +130,11 @@ export class VoiceFeedbackManager {
       } else if (this.isSpeaking) {
         // Add to queue
         this.utteranceQueue.push(utterance);
-      } else {
+      } else if (this.synthesis) {
         // Speak immediately
         this.synthesis.speak(utterance);
+      } else {
+        reject(new Error('Speech synthesis not available'));
       }
     });
   }

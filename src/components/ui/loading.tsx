@@ -17,7 +17,7 @@ export function LoadingSpinner({ size = 'md', className, color = 'primary' }: Lo
   };
 
   const colorClasses = {
-    primary: 'text-blue-600',
+    primary: 'text-slate-700',
     secondary: 'text-gray-600',
     white: 'text-white',
   };
@@ -72,14 +72,14 @@ interface LoadingBarProps {
 
 export function LoadingBar({ progress, className }: LoadingBarProps) {
   return (
-    <div className={cn('w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700', className)}>
+    <div className={cn('w-full bg-gray-200 rounded-full h-2.5', className)}>
       {progress !== undefined ? (
         <div
-          className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+          className="bg-slate-700 h-2.5 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
         ></div>
       ) : (
-        <div className="bg-blue-600 h-2.5 rounded-full animate-progress"></div>
+        <div className="bg-slate-700 h-2.5 rounded-full animate-progress"></div>
       )}
     </div>
   );
@@ -96,11 +96,11 @@ export function LoadingOverlay({ isLoading, message, children }: LoadingOverlayP
     <div className="relative">
       {children}
       {isLoading && (
-        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
           <div className="text-center">
             <LoadingSpinner size="lg" />
             {message && (
-              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">{message}</p>
+              <p className="mt-4 text-sm text-gray-600">{message}</p>
             )}
           </div>
         </div>
@@ -118,9 +118,9 @@ export function LoadingCard({ title = 'Loading...', description }: LoadingCardPr
   return (
     <div className="glass rounded-lg p-6 text-center">
       <LoadingSpinner size="lg" className="mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
       {description && (
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{description}</p>
+        <p className="mt-2 text-sm text-gray-600">{description}</p>
       )}
     </div>
   );
@@ -134,15 +134,15 @@ export function AIGeneratingCard() {
         <div className="relative">
           <LoadingSpinner size="lg" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-6 w-6 bg-blue-600 rounded-full animate-ping"></div>
+            <div className="h-6 w-6 bg-slate-700 rounded-full animate-ping"></div>
           </div>
         </div>
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">
         AI is creating your recipe
       </h3>
-      <LoadingDots className="justify-center text-blue-600" />
-      <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+      <LoadingDots className="justify-center text-slate-700" />
+      <p className="mt-4 text-sm text-gray-600">
         Analyzing ingredients and preferences...
       </p>
     </div>
@@ -160,7 +160,7 @@ export function MealPlanGeneratingCard() {
 
   return (
     <div className="glass-interactive rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Creating your personalized meal plan
       </h3>
       <div className="space-y-3">
@@ -168,7 +168,7 @@ export function MealPlanGeneratingCard() {
           <div key={index} className="flex items-center space-x-3">
             <div className={cn(
               'h-6 w-6 rounded-full flex items-center justify-center text-xs font-medium',
-              index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+              index === 0 ? 'bg-slate-700 text-white' : 'bg-gray-200 text-gray-600'
             )}>
               {index === 0 ? <LoadingDots className="text-white" /> : index + 1}
             </div>

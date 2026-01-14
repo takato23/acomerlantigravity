@@ -57,10 +57,10 @@ interface OnboardingPacksProps {
 }
 
 const packIcons = {
-  basico: { icon: Home, color: 'from-blue-400 to-blue-600', bgColor: 'bg-blue-50 dark:bg-blue-900/20' },
-  fitness: { icon: Dumbbell, color: 'from-red-400 to-red-600', bgColor: 'bg-red-50 dark:bg-red-900/20' },
-  familia: { icon: Users, color: 'from-green-400 to-green-600', bgColor: 'bg-green-50 dark:bg-green-900/20' },
-  default: { icon: Package, color: 'from-gray-400 to-gray-600', bgColor: 'bg-gray-50 dark:bg-gray-900/20' }
+  basico: { icon: Home, color: 'from-slate-500 to-slate-700', bgColor: 'bg-slate-50' },
+  fitness: { icon: Dumbbell, color: 'from-red-500 to-red-600', bgColor: 'bg-red-50' },
+  familia: { icon: Users, color: 'from-green-500 to-green-600', bgColor: 'bg-green-50' },
+  default: { icon: Package, color: 'from-slate-500 to-slate-700', bgColor: 'bg-slate-50' }
 };
 
 export function OnboardingPacks({ onPackSelected, isLoading = false }: OnboardingPacksProps) {
@@ -141,7 +141,7 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
       <div className="space-y-6">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Cargando packs de inicio...</p>
+          <p className="text-slate-600">Cargando packs de inicio...</p>
         </div>
       </div>
     );
@@ -155,13 +155,13 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
         animate={{ opacity: 1, y: 0 }}
         className="text-center"
       >
-        <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <Sparkles className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">
           ¡Comenzá con un pack rápido!
         </h2>
-        <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
+        <p className="text-slate-600 max-w-md mx-auto">
           Elegí un pack prearmado para llenar tu despensa con los ingredientes esenciales
         </p>
       </motion.div>
@@ -236,21 +236,21 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
 
                   {/* Quick preview of ingredients */}
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                    <p className="text-sm text-slate-600 font-medium">
                       Incluye {pack.ingredients.length} ingredientes:
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {pack.ingredients.slice(0, 4).map((ingredient, idx) => (
                         <span 
                           key={idx}
-                          className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                          className="text-xs px-2 py-1 bg-slate-100 rounded-lg"
                         >
                           {ingredient.name}
                         </span>
                       ))}
                       {pack.ingredients.length > 4 && (
-                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                          +{pack.ingredients.length - 4} más
+                        <span className="text-xs px-2 py-1 bg-slate-100 rounded-lg">
+                          +{pack.ingredients.length - 4} mas
                         </span>
                       )}
                     </div>
@@ -286,7 +286,7 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
         {selectedPack && (
           <div className="space-y-6">
             {/* Pack info */}
-            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "p-3 rounded-xl bg-gradient-to-r",
@@ -295,20 +295,20 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
                   <Package className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className="font-semibold text-slate-900">
                     {selectedPack.ingredients.length} ingredientes
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-slate-600">
                     Costo estimado: ${(selectedPack.estimated_cost_ars / 1000).toFixed(0)}k ARS
                   </p>
                 </div>
               </div>
-              <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
+              <TrendingUp className="w-8 h-8 text-green-600" />
             </div>
 
             {/* Target audience */}
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+              <h4 className="font-semibold text-slate-900 mb-3">
                 Ideal para:
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -326,7 +326,7 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
 
             {/* Ingredients list */}
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+              <h4 className="font-semibold text-slate-900 mb-3">
                 Ingredientes incluidos:
               </h4>
               <div className="grid gap-2 max-h-60 overflow-y-auto">
@@ -335,15 +335,15 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
                   .map((ingredient, index) => (
                     <div 
                       key={index}
-                      className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200/50 dark:border-gray-700/50"
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="font-medium text-slate-900">
                           {ingredient.name}
                         </span>
                       </div>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-sm text-slate-600">
                         {ingredient.quantity} {ingredient.unit}
                       </span>
                     </div>
@@ -352,7 +352,7 @@ export function OnboardingPacks({ onPackSelected, isLoading = false }: Onboardin
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+            <div className="flex gap-3 pt-4 border-t border-slate-200">
               <KeButton
                 variant="primary"
                 className="flex-1"

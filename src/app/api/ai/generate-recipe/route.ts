@@ -1,23 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { logger } from '@/lib/logger';
-
 import { UnifiedAIService } from '@/services/ai';
-import type { Database } from '@/lib/supabase/types';
+import { createClient } from '@/lib/supabase/server';
+import type { Database } from '@/lib/supabase/database.types';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient<Database>({ cookies });
-    
-    // Get auth session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!user) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    // Get auth user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (!user || authError) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.ingredients || !Array.isArray(body.ingredients) || body.ingredients.length === 0) {
       return NextResponse.json(
@@ -27,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate recipe using AI
-    const aiService = new UnifiedAIService();
+    const aiService = UnifiedAIService.getInstance();
     const generatedRecipe = await aiService.generateRecipe({
       ingredients: body.ingredients,
       preferences: {

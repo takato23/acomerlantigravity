@@ -39,10 +39,10 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
 
   if (can_make) {
     return (
-      <Card className={cn('border-food-fresh-200 bg-food-fresh-50 dark:bg-food-fresh-900/20', className)}>
+      <Card className={cn('border-food-fresh-200 bg-food-fresh-50', className)}>
         <CardBody className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-food-fresh-100 dark:bg-food-fresh-900/30">
+            <div className="p-2 rounded-lg bg-food-fresh-100">
               <Icons.CheckCircle className="w-5 h-5 text-food-fresh-600" />
             </div>
             <div>
@@ -60,7 +60,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
   }
 
   return (
-    <Card className={cn('border-food-warm-200 bg-food-warm-50 dark:bg-food-warm-900/20', className)}>
+    <Card className={cn('border-food-warm-200 bg-food-warm-50', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <Heading size="sm">Análisis de Despensa</Heading>
@@ -93,7 +93,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
 
         {/* Difficulty Impact */}
         {recipe_difficulty_adjustment && recipe_difficulty_adjustment > 1.2 && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-food-golden-50 dark:bg-food-golden-900/20">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-food-golden-50">
             <Icons.TrendingUp size="sm" className="text-food-golden-600" />
             <div>
               <Text size="sm" weight="medium">
@@ -129,7 +129,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
 
         {/* Nutritional Impact */}
         {nutritional_impact && nutritional_impact.calories_missing > 0 && (
-          <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/50">
+          <div className="p-3 rounded-lg bg-slate-50">
             <Text size="sm" weight="medium" className="mb-2">Impacto Nutricional</Text>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex justify-between">
@@ -163,14 +163,14 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
             </div>
             <div className="space-y-1">
               {substitution_suggestions.slice(0, 2).map((suggestion, index) => (
-                <div key={index} className="text-xs p-2 rounded bg-food-fresh-50 dark:bg-food-fresh-900/20">
+                <div key={index} className="text-xs p-2 rounded bg-food-fresh-50">
                   <Text size="xs">
                     <span className="font-medium">{suggestion.missing_ingredient}</span>
                     {' → '}
                     <span className="text-food-fresh-600">
                       {suggestion.suggested_substitutes[0]?.pantry_item.ingredient?.name}
                     </span>
-                    <span className="text-neutral-500 ml-1">
+                    <span className="text-slate-500 ml-1">
                       ({Math.round(suggestion.suggested_substitutes[0]?.confidence * 100)}% confianza)
                     </span>
                   </Text>
@@ -181,7 +181,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-700">
+        <div className="flex gap-2 pt-2 border-t border-slate-200">
           {onAddToShoppingList && (
             <Button
               variant="warm"

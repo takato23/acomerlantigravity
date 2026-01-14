@@ -74,7 +74,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
 
     const inputClasses = cn(
       "w-full bg-transparent outline-none transition-all duration-300",
-      "text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500",
+      "text-slate-900 placeholder-slate-400",
       icon && "pl-10",
       (clearable || shouldShowPasswordToggle) && "pr-10",
       floatingLabel && label && "pt-5 pb-1",
@@ -106,7 +106,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
 
           {/* Icon */}
           {icon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none z-10">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
               <motion.div
                 animate={{ 
                   scale: isFocused ? 1.1 : 1,
@@ -129,7 +129,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
               }}
               transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
               className={cn(
-                "absolute left-4 top-3 text-gray-500 dark:text-gray-400 pointer-events-none",
+                "absolute left-4 top-3 text-slate-500 pointer-events-none",
                 "origin-left transition-all duration-200",
                 icon && "left-14",
                 (hasValue || isFocused) && "text-xs",
@@ -170,7 +170,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
                 type="button"
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-glass-medium transition-colors"
               >
-                <X className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                <X className="h-4 w-4 text-slate-400 hover:text-slate-600" />
               </motion.button>
             )}
           </AnimatePresence>
@@ -189,9 +189,9 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
                 transition={{ duration: 0.2 }}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <EyeOff className="h-4 w-4 text-slate-400 hover:text-slate-600" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  <Eye className="h-4 w-4 text-slate-400 hover:text-slate-600" />
                 )}
               </motion.div>
             </button>
@@ -226,7 +226,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
                 "mt-1.5 text-xs px-4",
                 error && "text-red-500",
                 success && "text-green-500",
-                !error && !success && "text-gray-500 dark:text-gray-400"
+                !error && !success && "text-slate-500"
               )}
             >
               {error || success || helperText}
@@ -236,7 +236,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
 
         {/* Non-floating label */}
         {!floatingLabel && label && (
-          <label className="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block mb-1.5 text-sm font-medium text-slate-700">
             {label}
           </label>
         )}

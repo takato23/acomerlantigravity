@@ -78,54 +78,56 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .glassmorphism {
-    background: rgba(30, 30, 30, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  }
+/* Dark mode support - uses .dark class from ThemeContext */
+.dark .glassmorphism {
+  background: rgba(30, 30, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
 
-  .glassmorphism-hover:hover {
-    background: rgba(30, 30, 30, 0.8);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-  }
+.dark .glassmorphism-hover:hover {
+  background: rgba(30, 30, 30, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
 
-  .glassmorphism-card {
-    background: rgba(20, 20, 20, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.4);
-  }
+.dark .glassmorphism-card {
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.4);
+}
 
-  .glassmorphism-modal {
-    background: rgba(20, 20, 20, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
-  }
+.dark .glassmorphism-modal {
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
+}
 
-  .glassmorphism-button {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
+.dark .glassmorphism-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-  .glassmorphism-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
-  }
+.dark .glassmorphism-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
+}
 
-  .glassmorphism-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
-  }
+.dark .glassmorphism-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
 
-  .glassmorphism-input:focus {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(59, 130, 246, 0.5);
-  }
+.dark .glassmorphism-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(59, 130, 246, 0.5);
+}
 
-  .glassmorphism-nav {
-    background: rgba(20, 20, 20, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
+.dark .glassmorphism-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .glassmorphism-nav {
+  background: rgba(20, 20, 20, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

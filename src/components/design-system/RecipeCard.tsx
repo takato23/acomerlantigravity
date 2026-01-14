@@ -105,8 +105,8 @@ const RecipeCard = React.forwardRef<HTMLDivElement, RecipeCardProps>(
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-food-fresh-100 to-food-warm-100 dark:from-food-fresh-900/20 dark:to-food-warm-900/20 flex items-center justify-center">
-              <Icons.ChefHat size="xl" className="text-food-fresh-400 dark:text-food-fresh-600" />
+            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+              <Icons.ChefHat size="xl" className="text-slate-400" />
             </div>
           )}
 
@@ -127,10 +127,10 @@ const RecipeCard = React.forwardRef<HTMLDivElement, RecipeCardProps>(
               onClick={handleFavoriteClick}
               className={cn(
                 'p-2 rounded-full glass-interactive backdrop-blur-md transition-all duration-200',
-                'hover:scale-110 focus:outline-none focus:ring-2 focus:ring-food-fresh-300',
+                'hover:scale-110 focus:outline-none focus:ring-2 focus:ring-slate-300',
                 isFavorite
                   ? 'text-error-500 glow-warm'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:text-error-500'
+                  : 'text-slate-600 hover:text-error-500'
               )}
             >
               <Icons.Heart
@@ -170,7 +170,7 @@ const RecipeCard = React.forwardRef<HTMLDivElement, RecipeCardProps>(
                 size={variant === 'compact' ? 'md' : 'lg'}
                 weight="semibold"
                 truncate
-                className="group-hover:text-food-fresh-600 dark:group-hover:text-food-fresh-400 transition-colors"
+                className="group-hover:text-slate-600 transition-colors"
               >
                 {name}
               </Heading>
@@ -217,9 +217,9 @@ const RecipeCard = React.forwardRef<HTMLDivElement, RecipeCardProps>(
               {onShare && (
                 <button
                   onClick={handleShareClick}
-                  className="p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                  className="p-1 rounded-md hover:bg-slate-100 transition-colors"
                 >
-                  <Icons.Share size="sm" className="text-neutral-500" />
+                  <Icons.Share size="sm" className="text-slate-500" />
                 </button>
               )}
             </div>
@@ -253,7 +253,7 @@ const RecipeCard = React.forwardRef<HTMLDivElement, RecipeCardProps>(
                 variant="glass"
                 size="sm"
                 fullWidth
-                className="group-hover:bg-food-fresh-50 dark:group-hover:bg-food-fresh-900/20"
+                className="group-hover:bg-slate-50"
               >
                 View Recipe
               </Button>

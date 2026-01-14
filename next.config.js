@@ -5,15 +5,15 @@ const nextConfig = {
   compress: true,
   output: 'standalone',
   trailingSlash: false,
-  
-  // Temporarily ignore build errors for deployment
+
+  // Ensure strict build checks for production
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
-  
+
   // Advanced performance features
   experimental: {
     optimizeCss: false, // Disabled due to build issues
@@ -23,12 +23,13 @@ const nextConfig = {
     // Optimize server-side rendering
     serverMinification: true,
   },
-  
+
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
     // Production optimizations
     if (!dev) {
-      // Bundle splitting for better caching
+      // Bundle splitting for better caching - Modified for Next.js 15 compatibility
+      /*
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
@@ -69,6 +70,7 @@ const nextConfig = {
           },
         },
       };
+      */
 
       // Optimize for mobile
       config.optimization.usedExports = true;
@@ -87,7 +89,7 @@ const nextConfig = {
 
     return config;
   },
-  
+
   // Images optimization with modern formats
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -100,7 +102,7 @@ const nextConfig = {
     loader: 'default',
     path: '/_next/image',
   },
-  
+
   // Caching and headers
   async headers() {
     return [
@@ -142,6 +144,9 @@ const nextConfig = {
         ],
       },
       // Cache API routes for 1 hour
+      // Cache API routes - Removed global cache to prevent private data leakage
+      // Individual routes should set their own Cache-Control headers
+      /*
       {
         source: '/api/(.*)',
         headers: [
@@ -151,6 +156,7 @@ const nextConfig = {
           },
         ],
       },
+      */
     ];
   },
 

@@ -279,15 +279,15 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
                     disabled={isUpdating}
                     className={`
                       w-full p-4 rounded-xl border-2 transition-all
-                      ${isActive 
-                        ? 'border-green-500 bg-green-50 dark:bg-green-950' 
-                        : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
+                      ${isActive
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-slate-200 hover:border-slate-300'
                       }
                       ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      <Icon className={`w-5 h-5 mt-0.5 ${isActive ? 'text-green-600' : 'text-gray-500'}`} />
+                      <Icon className={`w-5 h-5 mt-0.5 ${isActive ? 'text-green-600' : 'text-slate-500'}`} />
                       <div className="flex-1 text-left">
                         <div className="font-medium flex items-center gap-2">
                           {label}
@@ -337,15 +337,15 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
                     disabled={isUpdating}
                     className={`
                       w-full p-3 rounded-lg border transition-all
-                      ${isActive 
-                        ? 'border-red-500 bg-red-50 dark:bg-red-950' 
-                        : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
+                      ${isActive
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-slate-200 hover:border-slate-300'
                       }
                       ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`text-sm font-medium ${isActive ? 'text-red-700 dark:text-red-300' : ''}`}>
+                      <span className={`text-sm font-medium ${isActive ? 'text-red-700' : ''}`}>
                         {label}
                       </span>
                       {(isActive || isHouseholdNeed) && (
@@ -392,7 +392,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
                       variant={isActive ? "default" : "outline"}
                       className={`
                         cursor-pointer transition-all
-                        ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}
+                        ${isActive ? 'bg-orange-500 hover:bg-orange-600' : 'hover:bg-slate-100'}
                         ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
                       `}
                       onClick={() => !isUpdating && handleCuisineToggle(cuisine)}
@@ -413,7 +413,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
               >
                 <Badge
                   variant="outline"
-                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="cursor-pointer hover:bg-slate-100"
                   onClick={() => setShowAllCuisines(true)}
                 >
                   +{CUISINE_OPTIONS.length - 8} más
@@ -429,7 +429,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
       <iOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <h4 className="font-medium flex items-center gap-2">
-            <Apple className="w-5 h-5 text-purple-600" />
+            <Apple className="w-5 h-5 text-slate-600" />
             Objetivos Nutricionales
           </h4>
           
@@ -447,7 +447,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
                 <motion.div 
                   key={id}
                   whileHover={{ x: 4 }}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex-1">
                     <Label htmlFor={id} className="font-medium cursor-pointer">

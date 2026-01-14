@@ -2,69 +2,111 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/lib/supabase/client';
 import { fetchJsonWithErrorHandling } from '@/lib/error/ApiErrorHandler';
 import { useErrorReporting } from '@/components/error/FeatureErrorBoundary';
-import { 
-  UserPreferences, 
-  PlanningConstraints, 
+import { triggerPlanReadyNotification } from '@/lib/notifications';
+import {
+  UserPreferences,
+  PlanningConstraints,
   WeeklyPlan,
   MealPlanningResult
 } from '@/lib/types/mealPlanning';
-import { 
-  GeminiPlannerOptions, 
-  GeminiPlanResult 
+import {
+  GeminiPlannerOptions,
+  GeminiPlanResult
 } from '@/lib/services/geminiPlannerService';
 
+import { useMonetization } from '@/features/monetization/MonetizationProvider';
 import { useMealPlanningStore } from '../store/useMealPlanningStore';
+import type { MealType as PlannerMealType } from '../types';
 
 interface UseGeminiMealPlannerResult {
+  // ... existing interface ...
+  // (Omitting for brevity in prompt, but in real editing I will just target the imports section and the success block separately if possible, or use multi_replace. Let's use multi_replace actually to be cleaner)
+
   // State
   isGenerating: boolean;
   error: string | null;
   lastGeneratedPlan: WeeklyPlan | null;
   confidence: number;
-  
+
   // Actions
   generateWeeklyPlan: (
     preferences?: Partial<UserPreferences>,
     constraints?: Partial<PlanningConstraints>,
     options?: Partial<GeminiPlannerOptions>
   ) => Promise<MealPlanningResult<WeeklyPlan>>;
-  
+
   optimizeDailyPlan: (
     date: Date,
     preferences?: Partial<UserPreferences>
   ) => Promise<MealPlanningResult<WeeklyPlan>>;
-  
+
   regenerateWithFeedback: (
     feedback: string,
     currentPlan: WeeklyPlan
   ) => Promise<MealPlanningResult<WeeklyPlan>>;
-  
-  applyGeneratedPlan: (plan: WeeklyPlan) => Promise<void>;
-  
+
+  applyGeneratedPlan: (
+    plan?: WeeklyPlan,
+    options?: {
+      excludedDates?: string[];
+      allowedMealTypes?: PlannerMealType[];
+    }
+  ) => Promise<void>;
+
   generateSingleMeal: (
     dayOfWeek: number,
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'desayuno' | 'almuerzo' | 'cena',
     preferences?: Partial<UserPreferences>
   ) => Promise<MealPlanningResult<any>>;
-  
+
   clearError: () => void;
 }
 
 export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
   const { user } = useAuth();
   const { reportError } = useErrorReporting('MealPlanner');
-  const { 
-    userPreferences, 
-    currentWeekPlan, 
+  const { checkAccess, trackAction } = useMonetization();
+  const {
+    userPreferences,
+    currentWeekPlan,
     loadWeekPlan,
     saveWeekPlan,
-    currentDate 
+    currentDate,
+    addMealToSlot
   } = useMealPlanningStore();
+
+  // Helper to map AI recipe to store recipe
+  const mapAIRecipeToStoreRecipe = (aiRecipe: any, confidence?: number) => ({
+    id: aiRecipe.id,
+    name: aiRecipe.title,
+    description: aiRecipe.description || '',
+    prepTime: aiRecipe.prepTimeMinutes,
+    cookTime: aiRecipe.cookTimeMinutes,
+    servings: aiRecipe.servings,
+    difficulty: aiRecipe.difficulty,
+    ingredients: aiRecipe.ingredients.map((ing: any) => ({
+      id: Math.random().toString(),
+      name: ing.name,
+      amount: ing.quantity,
+      unit: ing.unit,
+      category: ing.category || 'other'
+    })),
+    instructions: aiRecipe.instructions || [],
+    nutrition: aiRecipe.nutrition,
+    dietaryLabels: aiRecipe.dietaryRestrictions || [],
+    tags: aiRecipe.tags || [],
+    cuisine: aiRecipe.cuisine || 'Internacional',
+    rating: confidence || 0,
+    isAiGenerated: true,
+    isFavorite: false,
+    image: aiRecipe.imageUrl
+  });
 
   // Helper function to get request options with credentials
   const getRequestOptions = (body: any): RequestInit => {
@@ -77,7 +119,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
       body: JSON.stringify(body)
     };
   };
-  
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastGeneratedPlan, setLastGeneratedPlan] = useState<WeeklyPlan | null>(null);
@@ -88,6 +130,16 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     customConstraints?: Partial<PlanningConstraints>,
     options: Partial<GeminiPlannerOptions> = {}
   ): Promise<MealPlanningResult<WeeklyPlan>> => {
+    // Check quota
+    const hasAccess = await checkAccess('weekly_plan');
+    if (!hasAccess) {
+      return {
+        success: false,
+        error: 'Quota exceeded',
+        code: 'QUOTA_EXCEEDED'
+      };
+    }
+
     // Temporarily bypass authentication check
     const mockUserId = 'mock-user-' + Date.now();
 
@@ -130,7 +182,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
           ...options
         }
       };
-      
+
       // Updated to use simple endpoint for testing
       const response = await fetchJsonWithErrorHandling<any>('/api/meal-planning/generate-simple', {
         method: 'POST',
@@ -160,6 +212,9 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
       setLastGeneratedPlan(result.plan);
       setConfidence(result.metadata.confidenceScore);
 
+      // Track usage
+      await trackAction('weekly_plan');
+
       toast.success('Plan de comidas generado exitosamente', {
         description: `Confianza: ${Math.round(result.metadata.confidenceScore * 100)}%`
       });
@@ -172,7 +227,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       setError(errorMessage);
-      
+
       toast.error('Error al generar el plan', {
         description: errorMessage
       });
@@ -242,7 +297,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       setError(errorMessage);
-      
+
       toast.error('Error al optimizar el plan diario', {
         description: errorMessage
       });
@@ -301,7 +356,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       setError(errorMessage);
-      
+
       toast.error('Error al regenerar el plan', {
         description: errorMessage
       });
@@ -316,8 +371,15 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     }
   }, [user]);
 
-  const applyGeneratedPlan = useCallback(async (plan: WeeklyPlan) => {
-    if (!plan || !plan.meals || plan.meals.length === 0) {
+  const applyGeneratedPlan = useCallback(async (
+    plan?: WeeklyPlan,
+    options?: {
+      excludedDates?: string[];
+      allowedMealTypes?: PlannerMealType[];
+    }
+  ) => {
+    const planToApply = plan || lastGeneratedPlan;
+    if (!planToApply || !planToApply.meals || planToApply.meals.length === 0) {
       toast.error('Plan inválido', {
         description: 'El plan no contiene comidas válidas'
       });
@@ -326,21 +388,48 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
 
     try {
       // Convert the WeeklyPlan format to the store's WeekPlan format
-      const weekStartDate = plan.weekStartDate;
-      const weekStartDateStr = weekStartDate instanceof Date 
-        ? weekStartDate.toISOString().split('T')[0]
+      const weekStartDate = planToApply.weekStartDate;
+      const weekStartDateStr = weekStartDate instanceof Date
+        ? format(weekStartDate, 'yyyy-MM-dd')
         : weekStartDate;
 
       // Load the week plan for the target date
       await loadWeekPlan(weekStartDateStr);
+      const { currentWeekPlan: loadedWeekPlan } = useMealPlanningStore.getState();
 
       // Apply meals to slots
-      if (currentWeekPlan) {
-        const updatedSlots = currentWeekPlan.slots.map(slot => {
+      if (loadedWeekPlan) {
+        const excludedDates = new Set(options?.excludedDates || []);
+        const allowedMealTypes = options?.allowedMealTypes;
+
+        const updatedSlots = loadedWeekPlan.slots.map(slot => {
+          if (excludedDates.has(slot.date)) {
+            return {
+              ...slot,
+              recipeId: undefined,
+              recipe: undefined,
+              customMealName: undefined,
+              isCompleted: false,
+              updatedAt: new Date().toISOString()
+            };
+          }
+
+          if (allowedMealTypes && !allowedMealTypes.includes(slot.mealType)) {
+            return {
+              ...slot,
+              recipeId: undefined,
+              recipe: undefined,
+              customMealName: undefined,
+              isCompleted: false,
+              updatedAt: new Date().toISOString()
+            };
+          }
+
           // Find matching meal from the generated plan
-          const dayMeal = plan.meals.find(m => {
-            const mealDate = new Date(m.date);
-            const slotDate = new Date(slot.date);
+          // Use 'T00:00:00' suffix to force local timezone interpretation
+          const dayMeal = planToApply.meals.find(m => {
+            const mealDate = new Date(m.date + 'T00:00:00');
+            const slotDate = new Date(slot.date + 'T00:00:00');
             return mealDate.toDateString() === slotDate.toDateString();
           });
 
@@ -352,6 +441,8 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
             meal = dayMeal.breakfast;
           } else if (slot.mealType === 'almuerzo' && dayMeal.lunch) {
             meal = dayMeal.lunch;
+          } else if (slot.mealType === 'merienda' && dayMeal.snacks?.length) {
+            meal = dayMeal.snacks[0];
           } else if (slot.mealType === 'cena' && dayMeal.dinner) {
             meal = dayMeal.dinner;
           }
@@ -361,60 +452,86 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
           return {
             ...slot,
             recipeId: meal.recipe.id,
-            recipe: {
-              id: meal.recipe.id,
-              name: meal.recipe.title,
-              description: meal.recipe.description || '',
-              prepTime: meal.recipe.prepTimeMinutes,
-              cookTime: meal.recipe.cookTimeMinutes,
-              servings: meal.recipe.servings,
-              difficulty: meal.recipe.difficulty,
-              ingredients: meal.recipe.ingredients.map(ing => ({
-                id: Math.random().toString(),
-                name: ing.name,
-                amount: ing.quantity,
-                unit: ing.unit,
-                category: ing.category || 'other'
-              })),
-              instructions: meal.recipe.instructions || [],
-              nutrition: meal.recipe.nutrition,
-              dietaryLabels: meal.recipe.dietaryRestrictions || [],
-              tags: meal.recipe.tags || [],
-              cuisine: meal.recipe.cuisine || 'Internacional',
-              rating: meal.confidence || 0,
-              isAiGenerated: true,
-              isFavorite: false,
-              image: meal.recipe.imageUrl
-            },
+            recipe: mapAIRecipeToStoreRecipe(meal.recipe, meal.confidence),
             updatedAt: new Date().toISOString()
           };
         });
 
         const updatedWeekPlan = {
-          ...currentWeekPlan,
+          ...loadedWeekPlan,
           slots: updatedSlots,
           updatedAt: new Date().toISOString()
         };
 
+        // Log the meals being applied for debugging
+        const mealsApplied = updatedSlots.filter(s => s.recipeId).length;
+        console.log('[applyGeneratedPlan] Applying plan:', {
+          weekStartDate: weekStartDateStr,
+          totalSlots: updatedSlots.length,
+          mealsApplied,
+          sampleMeals: updatedSlots.filter(s => s.recipe).slice(0, 3).map(s => ({
+            date: s.date,
+            mealType: s.mealType,
+            recipeName: s.recipe?.name
+          }))
+        });
+
         await saveWeekPlan(updatedWeekPlan);
 
+        // Force reload to ensure UI updates with fresh data
+        await loadWeekPlan(weekStartDateStr);
+
+        // Trigger notification for plan ready
+        const weekEndDate = new Date(weekStartDateStr);
+        weekEndDate.setDate(weekEndDate.getDate() + 6);
+        const weekEndDateStr = format(weekEndDate, 'dd/MM');
+        const weekStartFormatted = format(new Date(weekStartDateStr), 'dd/MM');
+
+        // Get top 3 recipes as highlights
+        const highlights = updatedSlots
+          .filter(s => s.recipe?.name)
+          .slice(0, 3)
+          .map(s => s.recipe!.name);
+
+        try {
+          await triggerPlanReadyNotification({
+            weekStart: weekStartFormatted,
+            weekEnd: weekEndDateStr,
+            totalMeals: mealsApplied,
+            highlights,
+          });
+        } catch (err) {
+          console.error('Failed to send notification:', err);
+        }
+
         toast.success('Plan aplicado exitosamente', {
-          description: 'Las comidas se han agregado a tu calendario'
+          description: `${mealsApplied} comidas agregadas a tu calendario`
         });
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      console.error('[applyGeneratedPlan] Error:', errorMessage);
       toast.error('Error al aplicar el plan', {
         description: errorMessage
       });
     }
-  }, [currentWeekPlan, loadWeekPlan, saveWeekPlan]);
+  }, [lastGeneratedPlan, loadWeekPlan, saveWeekPlan]);
 
   const generateSingleMeal = useCallback(async (
     dayOfWeek: number,
-    mealType: 'breakfast' | 'lunch' | 'dinner' | 'desayuno' | 'almuerzo' | 'cena',
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'desayuno' | 'almuerzo' | 'merienda' | 'cena',
     customPreferences?: Partial<UserPreferences>
   ): Promise<MealPlanningResult<any>> => {
+    // Check quota
+    const hasAccess = await checkAccess('recipe_gen');
+    if (!hasAccess) {
+      return {
+        success: false,
+        error: 'Quota exceeded',
+        code: 'QUOTA_EXCEEDED'
+      };
+    }
+
     // Temporarily bypass authentication check
     const mockUserId = 'mock-user-' + Date.now();
 
@@ -423,17 +540,19 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
 
     try {
       // Map Spanish meal types to English
-      const mealTypeMap = {
-        'desayuno': 'breakfast',
-        'almuerzo': 'lunch', 
-        'cena': 'dinner',
-        'breakfast': 'breakfast',
-        'lunch': 'lunch',
-        'dinner': 'dinner'
+      const mealTypeMap: Record<string, string> = {
+        desayuno: 'breakfast',
+        almuerzo: 'lunch',
+        merienda: 'snack',
+        cena: 'dinner',
+        breakfast: 'breakfast',
+        lunch: 'lunch',
+        snack: 'snack',
+        dinner: 'dinner'
       };
 
       const englishMealType = mealTypeMap[mealType] || mealType;
-      
+
       // For now, we'll generate a full weekly plan and extract just the requested meal
       // In the future, this could be optimized to generate just a single meal
       const preferences: UserPreferences = {
@@ -444,7 +563,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
 
       const targetDate = new Date(currentDate);
       targetDate.setDate(currentDate.getDate() - currentDate.getDay() + dayOfWeek);
-      
+
       const constraints: PlanningConstraints = {
         startDate: targetDate,
         endDate: targetDate,
@@ -454,21 +573,49 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
       };
 
       const result = await generateWeeklyPlan(preferences, constraints);
-      
+
       if (result.success && result.data) {
         // Extract the specific meal from the generated plan
         const dailyMeal = result.data.meals.find(m => {
-          const mealDate = new Date(m.date);
-          return mealDate.toDateString() === targetDate.toDateString();
+          // Compare dates as YYYY-MM-DD strings to avoid timezone issues
+          const targetDateStr = format(targetDate, 'yyyy-MM-dd');
+          // Handle both 'YYYY-MM-DD' and 'YYYY-MM-DDT...' formats from AI
+          const mealDateStr = m.date.split('T')[0];
+          return mealDateStr === targetDateStr;
         });
-        
+
         if (dailyMeal) {
-          const meal = dailyMeal[englishMealType as keyof typeof dailyMeal];
-          if (meal) {
+          const meal = englishMealType === 'snack'
+            ? dailyMeal.snacks?.[0]
+            : dailyMeal[englishMealType as keyof typeof dailyMeal];
+
+          if (meal && meal.recipe) {
+            // Map and Apply to Store
+            const storeRecipe = mapAIRecipeToStoreRecipe(meal.recipe, meal.confidence);
+
+            // Map mealType back to Spanish for the store
+            const spanishMealTypeMap: Record<string, PlannerMealType> = {
+              breakfast: 'desayuno',
+              lunch: 'almuerzo',
+              snack: 'merienda',
+              dinner: 'cena'
+            };
+
+            const targetMealType = spanishMealTypeMap[englishMealType] || mealType as PlannerMealType;
+
+            await addMealToSlot({
+              dayOfWeek: dayOfWeek,
+              mealType: targetMealType,
+              date: format(targetDate, 'yyyy-MM-dd')
+            }, storeRecipe);
+
+            // Track usage
+            await trackAction('recipe_gen');
+
             toast.success('Comida generada con IA', {
-              description: `${meal.recipe?.title} agregada a tu ${mealType}`
+              description: `${meal.recipe?.title} agregada a tu ${targetMealType}`
             });
-            
+
             return {
               success: true,
               data: meal
@@ -482,7 +629,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       setError(errorMessage);
-      
+
       toast.error('Error al generar la comida', {
         description: errorMessage
       });
@@ -495,7 +642,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     } finally {
       setIsGenerating(false);
     }
-  }, [user, userPreferences, currentDate, generateWeeklyPlan]);
+  }, [user, userPreferences, currentDate, generateWeeklyPlan, addMealToSlot]);
 
   const clearError = useCallback(() => {
     setError(null);

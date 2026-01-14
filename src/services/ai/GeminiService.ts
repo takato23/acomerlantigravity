@@ -19,13 +19,14 @@ export class GeminiService {
   private initialize(): void {
     // Get API key from centralized config
     const apiKey = geminiConfig.getApiKey();
-    
-    if (apiKey && geminiConfig.validate()) {
+    const isClientSide = typeof window !== 'undefined';
+
+    if (!isClientSide && apiKey && geminiConfig.validate()) {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
         // Use default model from config
         const config = geminiConfig.default;
-        this.model = this.genAI.getGenerativeModel({ 
+        this.model = this.genAI.getGenerativeModel({
           model: config.model,
           generationConfig: {
             temperature: config.temperature,
@@ -160,7 +161,7 @@ export class GeminiService {
     try {
       // Use Gemini Pro Vision for image analysis
       const visionModel = this.genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
-      
+
       // Convert image data to required format
       let imageBase64: string;
       if (typeof imageData === 'string') {

@@ -758,7 +758,7 @@ export interface Database {
           created_at?: string
         }
       }
-      price_history: {
+      shopping_item_price_history: {
         Row: {
           id: string
           shopping_item_id: string

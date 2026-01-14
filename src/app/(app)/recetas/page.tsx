@@ -1,156 +1,103 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { logger } from '@/services/logger';
-import { 
-  Search, 
-  Clock, 
-  Users, 
-  Sparkles, 
-  Heart, 
+import {
+  ArrowRight,
+  Clock,
+  Sparkles,
   Star,
+  Heart,
   ChefHat,
   Flame,
-  Zap,
-  Grid3X3,
-  List,
-  SlidersHorizontal,
   Plus,
   Camera,
   Download,
   Share2,
-  BookOpen,
-  TrendingUp,
-  Mic,
-  Volume2
+  Users,
 } from 'lucide-react';
 
-import { GlassCard, GlassButton, GlassInput, GlassModal } from '@/components/ui/GlassCard';
+import { GlassCard, GlassButton, GlassModal } from '@/components/ui/GlassCard';
 import { EnhancedRecipeGrid } from '@/components/recipes/EnhancedRecipeGrid';
 import { EnhancedRecipeCreationModal } from '@/features/recipes/components/EnhancedRecipeCreationModal';
+import { CustomRecipeGenerator } from '@/features/recipes/components/CustomRecipeGenerator';
 import { useNotifications } from '@/services/notifications';
 import { useAnalytics } from '@/services/analytics';
 import { getVoiceService } from '@/services/voice/UnifiedVoiceService';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/store';
+import { RecipeCategoryGrid } from '@/features/recipes/components/RecipeCategoryGrid';
+import { RecipeDetail } from '@/features/recipes/components/RecipeDetail';
+import { Recipe } from '@/features/recipes/types';
 
 // Mock data mejorado
-const mockRecipes = [
+const initialRecipes: Recipe[] = [
   {
     id: '1',
+    user_id: '1',
     title: 'Paella Valenciana Tradicional',
     description: 'La auténtica paella con ingredientes frescos del Mediterráneo',
-    imageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=600',
-    prepTime: 30,
-    cookTime: 45,
+    image_url: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=600',
+    prep_time: 30,
+    cook_time: 45,
+    total_time: 75,
     servings: 6,
-    difficulty: 'hard' as const,
+    difficulty: 'hard',
     rating: 4.9,
-    cuisine: 'Española',
-    tags: ['Arroz', 'Mariscos', 'Tradicional', 'Sin Gluten'],
-    isAIGenerated: false,
-    isFavorite: true,
-    macronutrients: { calories: 420, protein: 28, carbs: 52, fat: 12 },
-    author: 'Chef Carlos Martín',
-    views: 1250,
-    saves: 234
+    cuisine_type: 'spanish',
+    meal_types: ['lunch', 'dinner'],
+    dietary_tags: ['gluten-free'],
+    ai_generated: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ingredients: [
+      { ingredient_id: 'arroz-bomba', name: 'Arroz Bomba', quantity: 500, unit: 'g', optional: false },
+      { ingredient_id: 'azafran', name: 'Azafran', quantity: 1, unit: 'g', notes: 'En hebras', optional: false },
+      { ingredient_id: 'pollo', name: 'Pollo', quantity: 500, unit: 'g', notes: 'Troceado', optional: false },
+      { ingredient_id: 'judias-verdes', name: 'Judias Verdes', quantity: 200, unit: 'g', optional: false }
+    ],
+    instructions: [
+      { step_number: 1, text: 'Sofreír el pollo hasta que esté dorado.', time_minutes: 10 },
+      { step_number: 2, text: 'Añadir las judías verdes y el tomate rallado.', time_minutes: 5 },
+      { step_number: 3, text: 'Incorporar el arroz y el azafrán.', time_minutes: 2 },
+      { step_number: 4, text: 'Añadir el caldo y cocinar a fuego fuerte.', time_minutes: 18 }
+    ],
+    nutritional_info: { calories: 420, protein: 28, carbs: 52, fat: 12, fiber: 4, sugar: 2, sodium: 300 },
+    times_cooked: 125,
+    is_public: true
   },
   {
     id: '2',
+    user_id: 'ai',
     title: 'Bowl de Quinoa y Vegetales Asados',
     description: 'Bowl nutritivo con quinoa orgánica y vegetales de temporada',
-    imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600',
-    prepTime: 15,
-    cookTime: 25,
+    image_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600',
+    prep_time: 15,
+    cook_time: 25,
+    total_time: 40,
     servings: 2,
-    difficulty: 'easy' as const,
+    difficulty: 'easy',
     rating: 4.7,
-    cuisine: 'Internacional',
-    tags: ['Vegano', 'Saludable', 'Sin Gluten', 'Bowl'],
-    isAIGenerated: true,
-    isFavorite: false,
-    macronutrients: { calories: 320, protein: 12, carbs: 48, fat: 8 },
-    author: 'IA Chef Assistant',
-    views: 892,
-    saves: 167
-  },
-  {
-    id: '3',
-    title: 'Tacos de Carnitas con Salsa Verde',
-    description: 'Tacos tradicionales mexicanos con carnitas suculentas',
-    imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600',
-    prepTime: 20,
-    cookTime: 180,
-    servings: 8,
-    difficulty: 'medium' as const,
-    rating: 4.8,
-    cuisine: 'Mexicana',
-    tags: ['Cerdo', 'Picante', 'Tradicional', 'Fiesta'],
-    isAIGenerated: false,
-    isFavorite: true,
-    macronutrients: { calories: 380, protein: 22, carbs: 28, fat: 18 },
-    author: 'Chef Ana García',
-    views: 2100,
-    saves: 445
-  },
-  {
-    id: '4',
-    title: 'Ramen Japonés Casero',
-    description: 'Ramen auténtico con caldo tonkotsu y toppings tradicionales',
-    imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600',
-    prepTime: 45,
-    cookTime: 240,
-    servings: 4,
-    difficulty: 'hard' as const,
-    rating: 4.9,
-    cuisine: 'Japonesa',
-    tags: ['Fideos', 'Cerdo', 'Umami', 'Comfort Food'],
-    isAIGenerated: false,
-    isFavorite: false,
-    macronutrients: { calories: 480, protein: 26, carbs: 58, fat: 16 },
-    author: 'Chef Takeshi Yamamoto',
-    views: 3200,
-    saves: 678
-  },
-  {
-    id: '5',
-    title: 'Ensalada César con Pollo a la Parrilla',
-    description: 'Clásica ensalada césar con pollo jugoso y aderezo casero',
-    imageUrl: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=600',
-    prepTime: 15,
-    cookTime: 15,
-    servings: 2,
-    difficulty: 'easy' as const,
-    rating: 4.6,
-    cuisine: 'Americana',
-    tags: ['Ensalada', 'Pollo', 'Light', 'Proteína'],
-    isAIGenerated: true,
-    isFavorite: false,
-    macronutrients: { calories: 280, protein: 32, carbs: 12, fat: 14 },
-    author: 'IA Chef Assistant',
-    views: 1560,
-    saves: 234
-  },
-  {
-    id: '6',
-    title: 'Curry Verde Tailandés Vegano',
-    description: 'Curry aromático con leche de coco y vegetales frescos',
-    imageUrl: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=600',
-    prepTime: 20,
-    cookTime: 25,
-    servings: 4,
-    difficulty: 'medium' as const,
-    rating: 4.8,
-    cuisine: 'Tailandesa',
-    tags: ['Vegano', 'Picante', 'Curry', 'Sin Gluten'],
-    isAIGenerated: true,
-    isFavorite: true,
-    macronutrients: { calories: 340, protein: 8, carbs: 42, fat: 16 },
-    author: 'IA Chef Assistant',
-    views: 1890,
-    saves: 356
+    cuisine_type: 'mediterranean',
+    meal_types: ['lunch'],
+    dietary_tags: ['vegan', 'gluten-free'],
+    ai_generated: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ingredients: [
+      { ingredient_id: 'quinoa', name: 'Quinoa', quantity: 200, unit: 'g', optional: false },
+      { ingredient_id: 'batata', name: 'Batata', quantity: 1, unit: 'ud', optional: false },
+      { ingredient_id: 'aguacate', name: 'Aguacate', quantity: 1, unit: 'ud', optional: false }
+    ],
+    instructions: [
+      { step_number: 1, text: 'Cocinar la quinoa según instrucciones.' },
+      { step_number: 2, text: 'Asar los vegetales en el horno.' },
+      { step_number: 3, text: 'Montar el bowl y aderezar.' }
+    ],
+    nutritional_info: { calories: 320, protein: 12, carbs: 48, fat: 8, fiber: 10, sugar: 5, sodium: 150 },
+    times_cooked: 89,
+    is_public: true
   }
 ];
 
@@ -159,291 +106,454 @@ export default function RecetasPage() {
   const user = useUser();
   const { notify } = useNotifications();
   const { track } = useAnalytics();
-  
-  const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
+
+  const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [showRecipeModal, setShowRecipeModal] = useState(false);
   const [showCreationModal, setShowCreationModal] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [activeTab, setActiveTab] = useState('all');
+  const [showCustomGenerator, setShowCustomGenerator] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isListening, setIsListening] = useState(false);
+  // States related to search/filter moved to EnhancedRecipeGrid
 
-  const tabs = [
-    { id: 'all', label: 'Todas', icon: Grid3X3, count: 156 },
-    { id: 'favorites', label: 'Favoritas', icon: Heart, count: 48 },
-    { id: 'ai', label: 'Generadas por IA', icon: Sparkles, count: 73 },
-    { id: 'quick', label: 'Rápidas', icon: Zap, count: 89 },
-    { id: 'healthy', label: 'Saludables', icon: Flame, count: 92 }
+  // const featuredCategories = [
+  //   { name: 'Desayunos', icon: '🌅', color: 'from-orange-400 to-amber-400', count: 32 },
+  //   { name: 'Comida Rápida', icon: '⚡', color: 'from-blue-400 to-cyan-400', count: 45 },
+  //   { name: 'Postres', icon: '🍰', color: 'from-pink-400 to-rose-400', count: 28 },
+  //   { name: 'Vegetariano', icon: '🥗', color: 'from-green-400 to-emerald-400', count: 64 },
+  //   { name: 'Sin Gluten', icon: '🌾', color: 'from-purple-400 to-indigo-400', count: 37 },
+  //   { name: 'Bajo en Calorías', icon: '🥤', color: 'from-teal-400 to-cyan-400', count: 51 }
+  // ];
+
+  const normalizeRecipe = (recipe: Recipe) => {
+    const legacyMealType = (recipe as Recipe & { meal_type?: string }).meal_type;
+    return {
+      ...recipe,
+      id: recipe.id || crypto.randomUUID(),
+      user_id: recipe.user_id || user?.id || 'guest',
+      prep_time: recipe.prep_time || 0,
+      cook_time: recipe.cook_time || 0,
+      total_time: recipe.total_time ?? (recipe.prep_time || 0) + (recipe.cook_time || 0),
+      servings: recipe.servings || 2,
+      meal_types: recipe.meal_types && recipe.meal_types.length > 0
+        ? recipe.meal_types
+        : legacyMealType
+          ? [legacyMealType]
+          : ['lunch'],
+      dietary_tags: recipe.dietary_tags || [],
+      nutritional_info: recipe.nutritional_info || {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+        sugar: 0,
+        sodium: 0,
+      },
+      is_public: recipe.is_public ?? true,
+      created_at: recipe.created_at || new Date().toISOString(),
+      updated_at: recipe.updated_at || new Date().toISOString(),
+    };
+  };
+
+  const featuredRecipe = useMemo(() => {
+    if (recipes.length === 0) return null;
+    return [...recipes].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+  }, [recipes]);
+
+  const averageTotalTime = useMemo(() => {
+    if (recipes.length === 0) return 0;
+    const total = recipes.reduce((acc, recipe) => {
+      const totalTime = (recipe.prep_time || 0) + (recipe.cook_time || 0);
+      return acc + totalTime;
+    }, 0);
+    return Math.round(total / recipes.length);
+  }, [recipes]);
+
+  const aiRecipeCount = useMemo(() => {
+    return recipes.filter((recipe) => recipe.ai_generated).length;
+  }, [recipes]);
+
+  const userRecipeCount = useMemo(() => {
+    return recipes.filter((recipe) => recipe.user_id === user?.id).length;
+  }, [recipes, user?.id]);
+
+  const offerings = [
+    {
+      title: 'IA Gemini',
+      description: 'Genera recetas personalizadas con tu despensa y preferencias.',
+      icon: Sparkles,
+      cta: 'Generar',
+      onClick: () => setShowCreationModal(true),
+      accent: 'from-amber-400 to-orange-500'
+    },
+    {
+      title: 'Receta Custom',
+      description: 'Crea recetas desde cero especificando tus ingredientes exactos.',
+      icon: Plus,
+      cta: 'Crear Custom',
+      onClick: () => setShowCustomGenerator(true),
+      accent: 'from-purple-400 to-pink-500'
+    },
+    {
+      title: 'Despensa Inteligente',
+      description: 'Filtra por lo que puedes cocinar ahora mismo.',
+      icon: Flame,
+      cta: 'Ver despensa',
+      onClick: () => router.push('/despensa'),
+      accent: 'from-emerald-400 to-lime-500'
+    },
+    {
+      title: 'Planificador Semanal',
+      description: 'Lleva recetas directo al calendario de comidas.',
+      icon: ChefHat,
+      cta: 'Planificar',
+      onClick: () => router.push('/planificador'),
+      accent: 'from-sky-400 to-indigo-500'
+    },
+    {
+      title: 'Escaneo e Importacion',
+      description: 'Convierte fotos o PDFs en recetas listas.',
+      icon: Camera,
+      cta: 'Escanear',
+      onClick: () => router.push('/scanner'),
+      accent: 'from-pink-400 to-rose-500'
+    }
   ];
 
-  const featuredCategories = [
-    { name: 'Desayunos', icon: '🌅', color: 'from-orange-400 to-amber-400', count: 32 },
-    { name: 'Comida Rápida', icon: '⚡', color: 'from-blue-400 to-cyan-400', count: 45 },
-    { name: 'Postres', icon: '🍰', color: 'from-pink-400 to-rose-400', count: 28 },
-    { name: 'Vegetariano', icon: '🥗', color: 'from-green-400 to-emerald-400', count: 64 },
-    { name: 'Sin Gluten', icon: '🌾', color: 'from-purple-400 to-indigo-400', count: 37 },
-    { name: 'Bajo en Calorías', icon: '🥤', color: 'from-teal-400 to-cyan-400', count: 51 }
+  const stats = [
+    { label: 'Recetas Guardadas', value: recipes.length, icon: Heart, color: 'text-slate-900 dark:text-white' },
+    {
+      label: 'Creadas por Ti',
+      value: userRecipeCount,
+      icon: ChefHat,
+      color: 'text-orange-500'
+    },
+    {
+      label: 'Generadas por IA',
+      value: aiRecipeCount,
+      icon: Sparkles,
+      color: 'text-slate-900 dark:text-white'
+    },
+    { label: 'Compartidas', value: 7, icon: Share2, color: 'text-slate-900 dark:text-white' }
   ];
 
-  const handleRecipeClick = (recipe: any) => {
+  const quickFilters = [
+    { label: 'Desayuno', query: 'breakfast' },
+    { label: 'Almuerzo', query: 'lunch' },
+    { label: 'Cena', query: 'dinner' },
+    { label: 'Postres', query: 'dessert' },
+    { label: 'Vegetariano', query: 'vegetarian' },
+    { label: 'Vegano', query: 'vegan' },
+    { label: 'Sin gluten', query: 'gluten-free' }
+  ];
+
+  const handleRecipeClick = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setShowRecipeModal(true);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-800">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-60 -left-40 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-700" />
-        <div className="absolute bottom-40 right-40 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="relative">
+        {/* Decorative Background Elements */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* Gradient Orbs */}
+          <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gradient-to-br from-orange-300/50 to-amber-200/30 dark:from-orange-500/20 dark:to-amber-500/10 blur-3xl" />
+          <div className="absolute top-40 -left-24 h-80 w-80 rounded-full bg-gradient-to-br from-rose-300/40 to-pink-200/30 dark:from-purple-500/15 dark:to-pink-500/10 blur-3xl" />
+          <div className="absolute bottom-20 right-1/4 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-200/30 to-teal-200/20 dark:from-emerald-500/10 dark:to-teal-500/5 blur-3xl" />
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-8">
+          {/* Decorative Geometric Shapes - Light Mode */}
+          <svg className="absolute top-20 right-10 w-32 h-32 text-orange-200/60 dark:text-orange-500/10" viewBox="0 0 100 100" fill="currentColor">
+            <circle cx="50" cy="50" r="40" opacity="0.5" />
+            <circle cx="50" cy="50" r="25" opacity="0.3" />
+          </svg>
+
+          <svg className="absolute top-1/3 left-10 w-24 h-24 text-rose-200/50 dark:text-purple-500/10 rotate-45" viewBox="0 0 100 100" fill="currentColor">
+            <rect x="20" y="20" width="60" height="60" rx="8" opacity="0.4" />
+          </svg>
+
+          <svg className="absolute bottom-40 right-20 w-20 h-20 text-emerald-200/40 dark:text-emerald-500/10" viewBox="0 0 100 100" fill="currentColor">
+            <polygon points="50,10 90,90 10,90" opacity="0.5" />
+          </svg>
+
+          {/* Decorative Lines */}
+          <div className="absolute top-60 left-1/4 w-px h-40 bg-gradient-to-b from-transparent via-orange-300/30 to-transparent dark:via-orange-500/10" />
+          <div className="absolute top-80 right-1/3 w-px h-32 bg-gradient-to-b from-transparent via-purple-300/30 to-transparent dark:via-purple-500/10" />
+
+          {/* Floating Dots Pattern */}
+          <div className="absolute inset-0 opacity-30 dark:opacity-10" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+          }} />
+        </div>
+        {/* Content */}
+        <div className="relative container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-10"
         >
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 dark:from-orange-400 dark:via-pink-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
-                Explora Recetas
-              </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-300">
-                Descubre {mockRecipes.length}+ recetas adaptadas a tus ingredientes y preferencias
-              </p>
-            </div>
+          <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-6 items-stretch">
+            <GlassCard variant="medium" className="relative overflow-hidden p-6 lg:p-8">
+              <div className="absolute right-0 top-0 h-40 w-40 -translate-y-1/2 translate-x-1/3 rounded-full bg-gradient-to-br from-orange-300/50 to-amber-200/20 blur-3xl" />
+              <div className="relative space-y-6">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                  <span className="rounded-full bg-orange-100/80 dark:bg-orange-500/20 px-3 py-1 text-orange-700 dark:text-orange-200">
+                    Coleccion viva
+                  </span>
+                  <span>IA + despensa + favoritos</span>
+                </div>
+                <div>
+                  <h1 className="text-4xl lg:text-5xl text-slate-900 dark:text-white font-black tracking-tighter mb-2">
+                    Explora Recetas
+                  </h1>
+                  <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">
+                    Descubre {recipes.length}+ recetas adaptadas a tus ingredientes y preferencias
+                  </p>
+                </div>
 
-            <div className="flex flex-wrap gap-3">
-              <GlassButton
-                variant="primary"
-                icon={<Plus className="w-4 h-4" />}
-                onClick={() => setShowCreationModal(true)}
-              >
-                Crear Receta
-              </GlassButton>
-              <GlassButton
-                variant="secondary"
-                icon={<Camera className="w-4 h-4" />}
-              >
-                Escanear
-              </GlassButton>
-              <GlassButton
-                variant="ghost"
-                icon={<Download className="w-4 h-4" />}
-              >
-                Exportar
-              </GlassButton>
-            </div>
-          </div>
+                <div className="flex flex-wrap gap-2">
+                  {quickFilters.map((filter) => {
+                    const isActive = searchQuery === filter.query;
+                    return (
+                      <button
+                        key={filter.label}
+                        onClick={() => setSearchQuery(isActive ? '' : filter.query)}
+                        aria-pressed={isActive}
+                        className={cn(
+                          'px-3 py-1.5 rounded-full text-xs font-semibold transition-all border',
+                          isActive
+                            ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white'
+                            : 'bg-white/80 dark:bg-white/10 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:bg-white hover:text-slate-900 dark:hover:bg-white/20'
+                        )}
+                      >
+                        {filter.label}
+                      </button>
+                    );
+                  })}
+                </div>
 
-          {/* Search Bar */}
-          <GlassCard variant="medium" className="p-4 mb-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 relative">
-                <GlassInput
-                  placeholder="Buscar por nombre, ingrediente o categoría..."
-                  icon={<Search className="w-5 h-5" />}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pr-12"
-                />
-                <button
-                  onClick={async () => {
-                    if (isListening) {
-                      return;
-                    }
-                    
-                    try {
-                      setIsListening(true);
-                      const voiceService = getVoiceService();
-                      const command = await voiceService.startListening({
-                        language: 'es-MX',
-                        continuous: false
-                      });
-                      
-                      if (command.transcript) {
-                        setSearchQuery(command.transcript);
-                        await voiceService.speak(`Buscando: ${command.transcript}`);
-                      }
-                    } catch (error: unknown) {
-                      logger.error('Voice search error:', 'Page:page', error);
-                      notify({
-                        type: 'error',
-                        title: 'Error de Búsqueda por Voz',
-                        message: 'No se pudo activar la búsqueda por voz',
-                        priority: 'medium'
-                      });
-                    } finally {
-                      setIsListening(false);
-                    }
-                  }}
-                  className={cn(
-                    "absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-colors",
-                    isListening 
-                      ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50" 
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  )}
-                  disabled={isListening}
-                >
-                  {isListening ? (
-                    <Volume2 className="w-4 h-4 animate-pulse" />
-                  ) : (
-                    <Mic className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-              <div className="flex gap-3">
-                <GlassButton
-                  variant={showFilters ? 'primary' : 'secondary'}
-                  icon={<SlidersHorizontal className="w-4 h-4" />}
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  Filtros
-                </GlassButton>
-                <div className="flex items-center bg-white/10 rounded-lg p-1">
+                <div className="flex flex-wrap gap-3">
                   <GlassButton
-                    variant={viewMode === 'grid' ? 'primary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    className="p-2"
+                    variant="accent"
+                    icon={<Plus className="w-4 h-4" />}
+                    onClick={() => setShowCreationModal(true)}
                   >
-                    <Grid3X3 className="w-4 h-4" />
+                    Crear Receta
                   </GlassButton>
                   <GlassButton
-                    variant={viewMode === 'list' ? 'primary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className="p-2"
+                    variant="secondary"
+                    icon={<ChefHat className="w-4 h-4" />}
+                    onClick={() => router.push('/planificador')}
                   >
-                    <List className="w-4 h-4" />
+                    Planificar
+                  </GlassButton>
+                  <GlassButton
+                    variant="secondary"
+                    icon={<Camera className="w-4 h-4" />}
+                    onClick={() => router.push('/scanner')}
+                  >
+                    Escanear
+                  </GlassButton>
+                  <GlassButton
+                    variant="ghost"
+                    icon={<Download className="w-4 h-4" />}
+                    onClick={() => notify('Exportar recetas', {
+                      type: 'info',
+                      message: 'La exportacion estara disponible pronto.'
+                    })}
+                  >
+                    Exportar
                   </GlassButton>
                 </div>
-              </div>
-            </div>
-          </GlassCard>
 
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <motion.button
-                  key={tab.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all',
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg'
-                      : 'glass-container glass-subtle hover:bg-white/20'
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                  <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs">
-                    {tab.count}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-300">
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-500" />
+                    {averageTotalTime || 0} min promedio
                   </span>
-                </motion.button>
-              );
-            })}
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+                    {aiRecipeCount} IA
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <ChefHat className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+                    {userRecipeCount} creadas por ti
+                  </span>
+                </div>
+              </div>
+            </GlassCard>
+
+            {featuredRecipe && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="h-full"
+              >
+                <GlassCard variant="subtle" className="relative h-full min-h-[320px] overflow-hidden p-0">
+                  <img
+                    src={featuredRecipe.image_url || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600'}
+                    alt={featuredRecipe.title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/40 to-transparent" />
+                  <div className="relative flex h-full flex-col justify-between p-6 text-white">
+                    <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide">
+                      <span className="rounded-full bg-white/20 px-3 py-1">
+                        Receta destacada
+                      </span>
+                      {featuredRecipe.rating ? (
+                        <span className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-yellow-300" />
+                          {featuredRecipe.rating.toFixed(1)}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div>
+                      <h2 className="text-2xl font-bold">{featuredRecipe.title}</h2>
+                      <p className="mt-2 text-sm text-white/80 line-clamp-2">
+                        {featuredRecipe.description}
+                      </p>
+                      <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-white/80">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" />
+                          {(featuredRecipe.prep_time || 0) + (featuredRecipe.cook_time || 0)} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3.5 w-3.5" />
+                          {featuredRecipe.servings} porciones
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {featuredRecipe.ai_generated ? 'IA' : 'Curada'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <GlassButton
+                        variant="accent"
+                        size="sm"
+                        icon={<ArrowRight className="w-4 h-4" />}
+                        iconPosition="right"
+                        onClick={() => handleRecipeClick(featuredRecipe)}
+                        className="bg-white/20 text-white hover:bg-white/30 border border-white/30"
+                      >
+                        Ver receta
+                      </GlassButton>
+                    </div>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            )}
           </div>
         </motion.div>
 
-        {/* Featured Categories */}
+        {/* Offerings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-10"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                Acciones inteligentes
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Atajos para crear, planificar y aprovechar tu ecosistema de recetas.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {offerings.map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + index * 0.05 }}
+                whileHover={{ y: -4, scale: 1.02 }}
+                className="relative group"
+              >
+                <div className={cn(
+                  'relative p-5 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300',
+                  'bg-white/70 dark:bg-slate-800/50',
+                  'border border-gray-200/50 dark:border-white/10',
+                  'hover:shadow-lg dark:hover:shadow-black/30',
+                  'backdrop-blur-sm'
+                )} onClick={item.onClick}>
+                  {/* Gradient accent line at top */}
+                  <div className={cn(
+                    'absolute top-0 left-0 right-0 h-1 bg-gradient-to-r',
+                    item.accent
+                  )} />
+
+                  {/* Hover gradient overlay */}
+                  <div className={cn(
+                    'absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 bg-gradient-to-br',
+                    item.accent
+                  )} />
+
+                  <div className="relative flex items-start gap-4">
+                    <div
+                      className={cn(
+                        'flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg',
+                        item.accent
+                      )}
+                    >
+                      <item.icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">{item.title}</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{item.description}</p>
+                      </div>
+                      <button className={cn(
+                        'px-3 py-1.5 text-sm font-semibold rounded-lg transition-all',
+                        'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white',
+                        'hover:bg-slate-200 dark:hover:bg-white/20',
+                        'border border-slate-200 dark:border-white/10'
+                      )}>
+                        {item.cta}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Featured Categories - Now using RecipeCategoryGrid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 dark:text-white">
-            <TrendingUp className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-            Categorías Populares
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {featuredCategories.map((category, index) => (
-              <motion.div
-                key={category.name}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + index * 0.05 }}
-                whileHover={{ scale: 1.05 }}
-                className="cursor-pointer"
-              >
-                <GlassCard variant="subtle" className="p-4 text-center group" interactive>
-                  <div className={cn(
-                    "w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br flex items-center justify-center text-3xl",
-                    category.color
-                  )}>
-                    {category.icon}
-                  </div>
-                  <h3 className="font-medium text-sm mb-1 dark:text-white">{category.name}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-300">
-                    {category.count} recetas
-                  </p>
-                </GlassCard>
-              </motion.div>
-            ))}
-          </div>
+          <GlassCard variant="subtle" className="p-4">
+            <RecipeCategoryGrid
+              selectedCategory={searchQuery}
+              onSelectCategory={(id) => {
+                const query = id.toLowerCase();
+                const isActive = searchQuery === query;
+                setSearchQuery(isActive ? '' : query);
+                notify(isActive ? 'Filtros limpiados' : `Filtrando por ${id}`, { type: 'info' });
+              }}
+            />
+          </GlassCard>
         </motion.div>
 
-        {/* Recipe Grid */}
-        <AnimatePresence mode="wait">
-          {showFilters ? (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-6"
-            >
-              <GlassCard variant="medium" className="p-6">
-                <h3 className="text-lg font-semibold mb-4 dark:text-white">Filtros Avanzados</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Tiempo de Preparación</label>
-                    <select className="glass-input w-full dark:bg-gray-800 dark:text-white">
-                      <option>Cualquier duración</option>
-                      <option>Menos de 15 min</option>
-                      <option>15-30 min</option>
-                      <option>30-60 min</option>
-                      <option>Más de 1 hora</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Dificultad</label>
-                    <select className="glass-input w-full dark:bg-gray-800 dark:text-white">
-                      <option>Todas</option>
-                      <option>Fácil</option>
-                      <option>Media</option>
-                      <option>Difícil</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 dark:text-gray-300">Tipo de Cocina</label>
-                    <select className="glass-input w-full dark:bg-gray-800 dark:text-white">
-                      <option>Todas las cocinas</option>
-                      <option>Mexicana</option>
-                      <option>Italiana</option>
-                      <option>Asiática</option>
-                      <option>Mediterránea</option>
-                    </select>
-                  </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-
         {/* Enhanced Recipe Grid Component */}
-        <EnhancedRecipeGrid 
-          recipes={mockRecipes}
+        <EnhancedRecipeGrid
+          recipes={recipes}
           onRecipeClick={handleRecipeClick}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
 
         {/* Quick Stats */}
@@ -453,16 +563,11 @@ export default function RecetasPage() {
           transition={{ delay: 0.4 }}
           className="mt-12 grid grid-cols-2 lg:grid-cols-4 gap-4"
         >
-          {[
-            { label: 'Recetas Guardadas', value: '48', icon: Heart, color: 'text-pink-500' },
-            { label: 'Creadas por Ti', value: '12', icon: ChefHat, color: 'text-orange-500' },
-            { label: 'Vistas Hoy', value: '23', icon: BookOpen, color: 'text-blue-500' },
-            { label: 'Compartidas', value: '7', icon: Share2, color: 'text-purple-500' }
-          ].map((stat) => (
+          {stats.map((stat) => (
             <GlassCard key={stat.label} variant="subtle" className="p-4 text-center">
               <stat.icon className={cn("w-8 h-8 mx-auto mb-2", stat.color)} />
-              <div className="text-2xl font-bold dark:text-white">{stat.value}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">{stat.label}</div>
+              <div className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
             </GlassCard>
           ))}
         </motion.div>
@@ -472,68 +577,19 @@ export default function RecetasPage() {
       <GlassModal
         isOpen={showRecipeModal}
         onClose={() => setShowRecipeModal(false)}
-        title={selectedRecipe?.title}
-        size="xl"
+        title={null} // Title handled by RecipeDetail
+        size="2xl"
+        className="p-0 overflow-hidden max-h-[80vh]"
+        contentClassName="p-0"
       >
         {selectedRecipe && (
-          <div className="space-y-6">
-            <img 
-              src={selectedRecipe.imageUrl} 
-              alt={selectedRecipe.title}
-              className="w-full h-64 object-cover rounded-xl"
+          <div className="max-h-[80vh] overflow-y-auto custom-scrollbar">
+            <RecipeDetail
+              recipe={selectedRecipe}
+              onClose={() => setShowRecipeModal(false)}
+              displayMode="modal"
+              onEdit={() => { }} // Placeholder
             />
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <Clock className="w-6 h-6 mx-auto mb-1 text-gray-500 dark:text-gray-400" />
-                <p className="text-sm font-medium dark:text-white">{selectedRecipe.prepTime + selectedRecipe.cookTime} min</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Tiempo Total</p>
-              </div>
-              <div className="text-center">
-                <Users className="w-6 h-6 mx-auto mb-1 text-gray-500 dark:text-gray-400" />
-                <p className="text-sm font-medium dark:text-white">{selectedRecipe.servings} personas</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Porciones</p>
-              </div>
-              <div className="text-center">
-                <Star className="w-6 h-6 mx-auto mb-1 text-yellow-500 dark:text-yellow-400" />
-                <p className="text-sm font-medium dark:text-white">{selectedRecipe.rating}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Calificación</p>
-              </div>
-              <div className="text-center">
-                <Flame className="w-6 h-6 mx-auto mb-1 text-orange-500 dark:text-orange-400" />
-                <p className="text-sm font-medium dark:text-white">{selectedRecipe.macronutrients?.calories} cal</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Por porción</p>
-              </div>
-            </div>
-
-            <p className="text-gray-600 dark:text-gray-300">
-              {selectedRecipe.description}
-            </p>
-
-            <div className="flex gap-3">
-              {/* <GlassButton
-                variant="primary"
-                className="flex-1"
-                onClick={() => {
-                  setShowRecipeModal(false);
-                  router.push('/planificador');
-                }}
-              >
-                Añadir al Plan
-              </GlassButton> */}
-              <GlassButton
-                variant="secondary"
-                icon={<Heart className="w-4 h-4" />}
-              >
-                Guardar
-              </GlassButton>
-              <GlassButton
-                variant="ghost"
-                icon={<Share2 className="w-4 h-4" />}
-              >
-                Compartir
-              </GlassButton>
-            </div>
           </div>
         )}
       </GlassModal>
@@ -543,43 +599,70 @@ export default function RecetasPage() {
         isOpen={showCreationModal}
         onClose={() => setShowCreationModal(false)}
         onRecipeCreated={(recipe) => {
-          // Add the new recipe to the mock data
-          mockRecipes.unshift({
+          const normalized = normalizeRecipe({
             ...recipe,
-            id: crypto.randomUUID(),
-            imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600',
-            rating: 4.5,
-            views: 0,
-            saves: 0,
-            isFavorite: false,
-            author: user?.name || 'Usuario',
-            macronutrients: recipe.nutritional_info || { calories: 0, protein: 0, carbs: 0, fat: 0 }
+            image_url: recipe.image_url || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600'
           });
-          
+
+          setRecipes((prev) => [normalized, ...prev]);
+
           // Close modal
           setShowCreationModal(false);
-          
+
           // Show success notification
-          notify({
+          notify('Receta Creada', {
             type: 'success',
-            title: 'Receta Creada',
             message: `${recipe.title} se ha guardado exitosamente`,
             priority: 'medium'
           });
-          
+
           // Track analytics
           track('recipe_created', {
             method: recipe.ai_generated ? 'ai' : 'manual',
-            cuisine: recipe.cuisine,
+            cuisine: recipe.cuisine_type,
             difficulty: recipe.difficulty
           });
-          
+
           // Voice feedback
           getVoiceService().speak(`Receta ${recipe.title} creada exitosamente`);
         }}
         userId={user?.id || 'guest'}
         isAdmin={user?.role === 'admin'}
       />
+
+      {/* Custom Recipe Generator Modal */}
+      {showCustomGenerator && (
+        <GlassModal
+          isOpen={showCustomGenerator}
+          onClose={() => setShowCustomGenerator(false)}
+          size="large"
+        >
+          <CustomRecipeGenerator
+            onRecipeGenerated={(recipe) => {
+              const normalized = normalizeRecipe({
+                ...recipe,
+                image_url: recipe.imageUrl || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600',
+                ai_generated: true
+              });
+
+              setRecipes((prev) => [normalized, ...prev]);
+
+              notify('Receta Custom Creada', {
+                type: 'success',
+                message: `${recipe.name} generada con IA`,
+                priority: 'medium'
+              });
+
+              track('custom_recipe_generated', {
+                ingredients_count: recipe.ingredients?.length || 0,
+                difficulty: recipe.difficulty,
+                cuisine: recipe.cuisine
+              });
+            }}
+          />
+        </GlassModal>
+      )}
+      </div>
     </div>
   );
 }

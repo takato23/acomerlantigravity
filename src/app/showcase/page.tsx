@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  ChefHat, Search, Heart, Star, Clock, Utensils, Download, Settings, 
+import {
+  ChefHat, Search, Heart, Star, Clock, Utensils, Download, Settings,
   User, Target, Sparkles, Eye, Gauge, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +26,7 @@ export default function ShowcasePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-800">
+    <div className="min-h-screen bg-white">
       {/* Main Content */}
       <main className="container mx-auto p-4 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
@@ -38,27 +38,27 @@ export default function ShowcasePage() {
             className="text-center space-y-6 py-16"
           >
             <GlassCard variant="strong" className="p-12 mx-auto max-w-4xl" spotlight>
-              <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-6">
+              <h1 className="text-5xl lg:text-7xl font-bold text-slate-700 mb-6">
                 Glassmorphism Design System
               </h1>
-              <p className="text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-                Implementación completa de glassmorphism inspirada en A COMERLA con efectos avanzados, componentes personalizados y optimizaciones de rendimiento
+              <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-8">
+                Implementacion completa de glassmorphism inspirada en A COMERLA con efectos avanzados, componentes personalizados y optimizaciones de rendimiento
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <GlassButton 
-                  variant="primary" 
+                <GlassButton
+                  variant="primary"
                   size="lg"
                   icon={<Eye className="w-5 h-5" />}
                   onClick={() => setShowModal(true)}
                 >
                   Ver Demo Interactivo
                 </GlassButton>
-                <GlassButton 
-                  variant="secondary" 
+                <GlassButton
+                  variant="secondary"
                   size="lg"
                   icon={<Download className="w-5 h-5" />}
                 >
-                  Documentación
+                  Documentacion
                 </GlassButton>
               </div>
             </GlassCard>
@@ -96,25 +96,25 @@ export default function ShowcasePage() {
               {activeTab === 'glassmorphism' && (
                 <div className="space-y-8">
                   <GlassCard variant="medium" className="p-6">
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+                    <h2 className="text-3xl font-bold text-slate-900 mb-6">
                       Sistema de Glassmorphism
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <GlassCard variant="subtle" className="p-6">
                         <h3 className="text-lg font-semibold mb-3">Subtle Glass</h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        <p className="text-slate-600 text-sm">
                           Efecto sutil con 8% de opacidad y blur de 12px
                         </p>
                       </GlassCard>
                       <GlassCard variant="medium" className="p-6">
                         <h3 className="text-lg font-semibold mb-3">Medium Glass</h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        <p className="text-slate-600 text-sm">
                           Efecto medio con 15% de opacidad y blur de 24px
                         </p>
                       </GlassCard>
                       <GlassCard variant="strong" className="p-6">
                         <h3 className="text-lg font-semibold mb-3">Strong Glass</h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        <p className="text-slate-600 text-sm">
                           Efecto fuerte con 20% de opacidad y blur de 32px
                         </p>
                       </GlassCard>
@@ -127,12 +127,12 @@ export default function ShowcasePage() {
                 <div className="space-y-8">
                   {/* Buttons Section */}
                   <GlassCard variant="medium" className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6">
                       Glass Buttons
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Variants</h3>
+                        <h3 className="text-lg font-semibold text-slate-700">Variants</h3>
                         <GlassButton variant="primary" icon={<Heart className="w-4 h-4" />}>
                           Primary
                         </GlassButton>
@@ -143,16 +143,16 @@ export default function ShowcasePage() {
                           Ghost
                         </GlassButton>
                       </div>
-                      
+
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Sizes</h3>
+                        <h3 className="text-lg font-semibold text-slate-700">Sizes</h3>
                         <GlassButton size="sm" variant="primary">Small</GlassButton>
                         <GlassButton size="md" variant="primary">Medium</GlassButton>
                         <GlassButton size="lg" variant="primary">Large</GlassButton>
                       </div>
 
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">States</h3>
+                        <h3 className="text-lg font-semibold text-slate-700">States</h3>
                         <GlassButton variant="primary" loading>
                           Loading
                         </GlassButton>
@@ -168,25 +168,25 @@ export default function ShowcasePage() {
 
                   {/* Inputs Section */}
                   <GlassCard variant="medium" className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6">
                       Glass Inputs
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <GlassInput
                           label="Search Recipes"
-                          placeholder="¿Qué te gustaría cocinar?"
+                          placeholder="Que te gustaria cocinar?"
                           icon={<Search className="h-5 w-5" />}
                           value={searchValue}
                           onChange={(e) => setSearchValue(e.target.value)}
                         />
-                        
+
                         <GlassInput
                           label="Email Address"
                           type="email"
                           placeholder="tu@email.com"
                         />
-                        
+
                         <GlassInput
                           label="With Error"
                           error="Este campo es requerido"
@@ -200,18 +200,18 @@ export default function ShowcasePage() {
                           icon={<Clock className="h-5 w-5" />}
                           placeholder="ej., 30 minutos"
                         />
-                        
+
                         <GlassInput
                           label="Servings"
                           type="number"
                           icon={<Utensils className="h-5 w-5" />}
                           placeholder="4"
                         />
-                        
+
                         <GlassInput
                           label="Password"
                           type="password"
-                          placeholder="Tu contraseña"
+                          placeholder="Tu contrasena"
                         />
                       </div>
                     </div>
@@ -222,11 +222,11 @@ export default function ShowcasePage() {
               {activeTab === 'recipes' && (
                 <div className="space-y-6">
                   <GlassCard variant="medium" className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">
                       Enhanced Recipe Grid
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      Grid de recetas con filtros avanzados, búsqueda inteligente y efectos glassmorphism
+                    <p className="text-slate-600 mb-6">
+                      Grid de recetas con filtros avanzados, busqueda inteligente y efectos glassmorphism
                     </p>
                   </GlassCard>
                   <EnhancedRecipeGrid recipes={[]} />
@@ -238,40 +238,40 @@ export default function ShowcasePage() {
                   <GlassCard variant="medium" className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">
                           Enhanced Profile Settings
                         </h2>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          Sistema de configuración avanzado inspirado en A COMERLA
+                        <p className="text-slate-600">
+                          Sistema de configuracion avanzado inspirado en A COMERLA
                         </p>
                       </div>
-                      <GlassButton 
+                      <GlassButton
                         variant="primary"
                         icon={<Settings className="w-4 h-4" />}
                         onClick={() => setShowProfileModal(true)}
                       >
-                        Abrir Configuración
+                        Abrir Configuracion
                       </GlassButton>
                     </div>
                   </GlassCard>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[
-                      { 
-                        title: 'Preferencias Dietéticas',
+                      {
+                        title: 'Preferencias Dieteticas',
                         description: 'Restricciones, alergias y preferencias alimentarias',
                         icon: Utensils,
                         items: ['Vegetariano', 'Sin Gluten', 'Bajo en Sodio']
                       },
-                      { 
+                      {
                         title: 'Objetivos Nutricionales',
-                        description: 'Metas de calorías y macronutrientes',
+                        description: 'Metas de calorias y macronutrientes',
                         icon: Target,
-                        items: ['2000 cal/día', '25% Proteína', '50% Carbohidratos']
+                        items: ['2000 cal/dia', '25% Proteina', '50% Carbohidratos']
                       },
-                      { 
+                      {
                         title: 'Equipamiento de Cocina',
-                        description: 'Electrodomésticos disponibles',
+                        description: 'Electrodomesticos disponibles',
                         icon: ChefHat,
                         items: ['Horno', 'Microondas', 'Licuadora']
                       }
@@ -282,18 +282,18 @@ export default function ShowcasePage() {
                             <section.icon className="w-5 h-5 text-orange-600" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                            <h3 className="font-semibold text-slate-900">
                               {section.title}
                             </h3>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        <p className="text-sm text-slate-600 mb-3">
                           {section.description}
                         </p>
                         <div className="space-y-1">
                           {section.items.map((item) => (
-                            <div key={item} className="text-xs text-gray-500 dark:text-gray-400">
-                              • {item}
+                            <div key={item} className="text-xs text-slate-500">
+                              {item}
                             </div>
                           ))}
                         </div>
@@ -306,23 +306,23 @@ export default function ShowcasePage() {
               {activeTab === 'performance' && (
                 <div className="space-y-6">
                   <GlassCard variant="medium" className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-6">
                       Performance Metrics
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {[
-                        { label: 'Bundle Size Reduction', value: '35%', description: 'Optimización de componentes', color: 'text-green-500' },
-                        { label: 'Render Performance', value: '60fps', description: 'Animaciones fluidas', color: 'text-blue-500' },
-                        { label: 'Accessibility Score', value: '98%', description: 'WCAG 2.1 AA compliance', color: 'text-purple-500' },
+                        { label: 'Bundle Size Reduction', value: '35%', description: 'Optimizacion de componentes', color: 'text-green-500' },
+                        { label: 'Render Performance', value: '60fps', description: 'Animaciones fluidas', color: 'text-slate-700' },
+                        { label: 'Accessibility Score', value: '98%', description: 'WCAG 2.1 AA compliance', color: 'text-slate-700' },
                       ].map((metric) => (
                         <GlassCard key={metric.label} variant="subtle" className="p-6 text-center">
                           <div className={`text-3xl font-bold ${metric.color} mb-2`}>
                             {metric.value}
                           </div>
-                          <div className="font-semibold text-gray-900 dark:text-white mb-1">
+                          <div className="font-semibold text-slate-900 mb-1">
                             {metric.label}
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className="text-sm text-slate-600">
                             {metric.description}
                           </div>
                         </GlassCard>
@@ -331,7 +331,7 @@ export default function ShowcasePage() {
                   </GlassCard>
 
                   <GlassCard variant="medium" className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    <h3 className="text-xl font-bold text-slate-900 mb-4">
                       Optimizaciones Implementadas
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -341,13 +341,13 @@ export default function ShowcasePage() {
                         'Mobile optimizations',
                         'High DPI display support',
                         'Backdrop-filter fallbacks',
-                        'Lazy loading de imágenes',
+                        'Lazy loading de imagenes',
                         'Efficient CSS variables',
                         'Performance budgets'
                       ].map((optimization) => (
                         <div key={optimization} className="flex items-center space-x-2">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="text-sm text-slate-700">
                             {optimization}
                           </span>
                         </div>
@@ -367,23 +367,23 @@ export default function ShowcasePage() {
             size="lg"
           >
             <div className="space-y-6">
-              <p className="text-gray-600 dark:text-gray-400">
-                Explora todas las funcionalidades del sistema glassmorphism en acción.
+              <p className="text-slate-600">
+                Explora todas las funcionalidades del sistema glassmorphism en accion.
               </p>
-              
+
               <div className="space-y-4">
                 <GlassInput
                   label="Prueba el input glass"
-                  placeholder="Escribe algo aquí..."
+                  placeholder="Escribe algo aqui..."
                   icon={<Search className="w-4 h-4" />}
                 />
-                
+
                 <div className="flex gap-3">
                   <GlassButton variant="primary" size="sm">
                     Primary
                   </GlassButton>
                   <GlassButton variant="secondary" size="sm">
-                    Secondary  
+                    Secondary
                   </GlassButton>
                   <GlassButton variant="ghost" size="sm">
                     Ghost
@@ -393,7 +393,7 @@ export default function ShowcasePage() {
 
               <GlassCard variant="subtle" className="p-4">
                 <h4 className="font-semibold mb-2">Nested Glass Card</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-slate-600">
                   Los componentes glass pueden anidarse para crear efectos de profundidad.
                 </p>
               </GlassCard>

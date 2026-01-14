@@ -9,7 +9,7 @@ import { NextRequest } from 'next/server';
 export const authOptions = {
   providers: [],
   pages: {
-    signIn: '/auth/login',
+    signIn: '/login',
     error: '/auth/error',
   },
   callbacks: {
@@ -35,10 +35,10 @@ export async function getServerSession() {
 export async function requireAuth(request: NextRequest) {
   // Basic auth check - would implement proper auth in production
   const user = await getUser();
-  
+
   if (!session?.user) {
     return new Response('Unauthorized', { status: 401 });
   }
-  
+
   return session;
 }

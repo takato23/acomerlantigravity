@@ -21,7 +21,7 @@ export function ProfileStreaks({
 }: ProfileStreaksProps) {
   // Calculate if streak is still active (last active within 24 hours)
   const isStreakActive = differenceInDays(new Date(), lastActiveDate) <= 1;
-  
+
   // Calculate streak milestones
   const nextMilestone = getNextMilestone(currentStreak);
   const progressToMilestone = (currentStreak / nextMilestone.days) * 100;
@@ -37,11 +37,11 @@ export function ProfileStreaks({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <Flame className={`h-5 w-5 ${isStreakActive ? 'text-orange-500' : 'text-gray-400'}`} />
+              <Flame className={`h-5 w-5 ${isStreakActive ? 'text-orange-500' : 'text-slate-400'}`} />
               Current Streak
             </span>
             {isStreakActive && currentStreak >= 3 && (
-              <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400">
+              <Badge variant="secondary" className="bg-orange-100 text-orange-700">
                 Active
               </Badge>
             )}
@@ -58,7 +58,7 @@ export function ProfileStreaks({
               >
                 {currentStreak}
               </motion.span>
-              <span className="text-lg text-gray-600 dark:text-gray-400">
+              <span className="text-lg text-slate-600">
                 {currentStreak === 1 ? 'day' : 'days'}
               </span>
             </div>
@@ -66,7 +66,7 @@ export function ProfileStreaks({
             {isStreakActive && currentStreak > 0 && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-slate-600">
                     Next milestone: {nextMilestone.name}
                   </span>
                   <span className="font-medium">
@@ -78,16 +78,16 @@ export function ProfileStreaks({
             )}
 
             {isStreakActive && hoursUntilExpiry < 24 && (
-              <div className="rounded-lg bg-orange-100 dark:bg-orange-900/20 p-3">
-                <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+              <div className="rounded-lg bg-orange-100 p-3">
+                <p className="text-sm font-medium text-orange-700">
                   ⚠️ Log in within {Math.round(hoursUntilExpiry)} hours to maintain your streak!
                 </p>
               </div>
             )}
 
             {!isStreakActive && currentStreak > 0 && (
-              <div className="rounded-lg bg-gray-100 dark:bg-gray-800 p-3">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="rounded-lg bg-slate-100 p-3">
+                <p className="text-sm text-slate-600">
                   Streak ended. Start a new one today!
                 </p>
               </div>
@@ -118,7 +118,7 @@ export function ProfileStreaks({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-purple-500" />
+            <Award className="h-5 w-5 text-slate-600" />
             Longest Streak
           </CardTitle>
         </CardHeader>
@@ -126,19 +126,19 @@ export function ProfileStreaks({
           <div className="space-y-4">
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-bold">{longestStreak}</span>
-              <span className="text-lg text-gray-600 dark:text-gray-400">
+              <span className="text-lg text-slate-600">
                 {longestStreak === 1 ? 'day' : 'days'}
               </span>
             </div>
 
             {longestStreak > currentStreak && (
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-slate-600">
                 {longestStreak - currentStreak} days away from your record!
               </p>
             )}
 
             {longestStreak === currentStreak && currentStreak > 0 && (
-              <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+              <Badge className="bg-slate-600 text-white">
                 🎉 New Record!
               </Badge>
             )}
@@ -174,19 +174,19 @@ export function ProfileStreaks({
                 key={index}
                 className={`rounded-lg p-3 ${
                   benefit.unlocked
-                    ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                    : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 opacity-60'
+                    ? 'bg-green-50 border border-green-200'
+                    : 'bg-slate-50 border border-slate-200 opacity-60'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-2xl">{benefit.icon}</span>
                   <span className={`text-sm font-medium ${
-                    benefit.unlocked ? 'text-green-700 dark:text-green-400' : 'text-gray-500'
+                    benefit.unlocked ? 'text-green-700' : 'text-slate-500'
                   }`}>
                     {benefit.days} days
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-slate-600">
                   {benefit.description}
                 </p>
               </div>
@@ -201,15 +201,15 @@ export function ProfileStreaks({
 function StreakCalendar({ currentStreak, lastActiveDate }: { currentStreak: number; lastActiveDate: Date }) {
   const today = new Date();
   const days = [];
-  
+
   // Show last 30 days
   for (let i = 29; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    
+
     const daysSinceLastActive = differenceInDays(lastActiveDate, date);
     const isActive = daysSinceLastActive >= 0 && daysSinceLastActive < currentStreak;
-    
+
     days.push({
       date,
       isActive,
@@ -220,7 +220,7 @@ function StreakCalendar({ currentStreak, lastActiveDate }: { currentStreak: numb
   return (
     <div className="grid grid-cols-7 gap-1">
       {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-        <div key={index} className="text-center text-xs text-gray-500 font-medium py-1">
+        <div key={index} className="text-center text-xs text-slate-500 font-medium py-1">
           {day}
         </div>
       ))}
@@ -232,7 +232,7 @@ function StreakCalendar({ currentStreak, lastActiveDate }: { currentStreak: numb
           transition={{ delay: index * 0.01 }}
           className={`
             aspect-square rounded-md flex items-center justify-center text-xs
-            ${day.isActive ? 'bg-orange-500 text-white font-medium' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}
+            ${day.isActive ? 'bg-orange-500 text-white font-medium' : 'bg-slate-100 text-slate-400'}
             ${day.isToday ? 'ring-2 ring-orange-400 ring-offset-2' : ''}
           `}
         >

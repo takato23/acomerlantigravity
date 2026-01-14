@@ -2,8 +2,8 @@
 ## AI-Powered Meal Planning Platform
 
 **Version**: 2.0  
-**Date**: January 2025  
-**Stack**: Next.js 15 + Supabase + Vercel + Tailwind + Zustand + Claude/Gemini
+**Date**: July 2025  
+**Stack**: Next.js 15.0.0 + Supabase + Vercel + Tailwind + Zustand + Claude/Gemini
 
 ---
 
@@ -123,7 +123,7 @@ graph TB
 
 ### 1. Frontend Architecture
 
-#### Next.js 15 App Structure
+#### Next.js 15.0.0 App Structure
 ```
 app/
 ├── (public)/
@@ -153,6 +153,8 @@ app/
 │       └── grocery/route.ts
 └── layout.tsx               # Root layout with providers
 ```
+
+Note: The recipe browser is served at `/recetas` (Spanish route). `/recipes` redirects to `/recetas` for compatibility.
 
 #### Component Architecture
 ```typescript

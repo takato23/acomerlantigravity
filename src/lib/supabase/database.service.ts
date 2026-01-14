@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+import { createServerSupabaseClient, supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { logger } from '@/lib/logger';
 
@@ -15,7 +15,7 @@ type MealPlan = Tables['meal_plans']['Row'];
  * Complete replacement for Prisma operations
  */
 export class DatabaseService {
-  private supabase = createClient();
+  private supabase = createServerSupabaseClient();
 
   // ============== RECIPES ==============
   async getRecipes(userId: string, limit = 20, offset = 0) {

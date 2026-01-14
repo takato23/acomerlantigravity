@@ -30,7 +30,8 @@ export function VoiceRecorder({
   const [parsedItems, setParsedItems] = useState<ParsedIngredient[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
-  
+  const [mode, setMode] = useState<'continuous' | 'hold'>('continuous');
+
   const {
     isListening,
     isSupported,
@@ -86,14 +87,14 @@ export function VoiceRecorder({
   const setupAudioVisualizer = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
       microphoneRef.current = audioContextRef.current.createMediaStreamSource(stream);
-      
+
       analyserRef.current.fftSize = 256;
       microphoneRef.current.connect(analyserRef.current);
-      
+
       drawVisualizer();
     } catch (error: unknown) {
       logger.error('Error setting up audio visualizer:', 'VoiceRecorder', error);
@@ -104,11 +105,11 @@ export function VoiceRecorder({
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
-    
+
     if (microphoneRef.current) {
       microphoneRef.current.disconnect();
     }
-    
+
     if (audioContextRef.current) {
       audioContextRef.current.close();
     }
@@ -126,30 +127,30 @@ export function VoiceRecorder({
 
     const draw = () => {
       animationFrameRef.current = requestAnimationFrame(draw);
-      
+
       analyserRef.current!.getByteFrequencyData(dataArray);
-      
+
       ctx.fillStyle = 'rgb(249, 250, 251)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       const barWidth = (canvas.width / bufferLength) * 2.5;
       let barHeight;
       let x = 0;
-      
+
       for (let i = 0; i < bufferLength; i++) {
         barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
-        
+
         const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
         gradient.addColorStop(0, 'rgb(59, 130, 246)');
         gradient.addColorStop(1, 'rgb(37, 99, 235)');
-        
+
         ctx.fillStyle = gradient;
         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-        
+
         x += barWidth + 1;
       }
     };
-    
+
     draw();
   };
 
@@ -239,36 +240,76 @@ export function VoiceRecorder({
           </AnimatePresence>
         </div>
 
-        {/* Recording Button */}
-        <div className="flex justify-center mb-6">
-          <Button
-            variant={isListening ? 'secondary' : 'primary'}
-            size="lg"
-            onClick={isListening ? stopListening : startListening}
-            className={`
-              relative overflow-hidden transition-all duration-300
-              ${isListening ? 'bg-red-600 hover:bg-red-700 text-white' : ''}
-            `}
-          >
-            {isListening ? (
-              <>
-                <motion.div
-                  className="absolute inset-0 bg-red-700"
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                />
-                <span className="relative flex items-center gap-2">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                  Detener Grabación
+        {/* Recording Controls */}
+        <div className="flex flex-col items-center gap-4 mb-6">
+
+          {/* Mode Toggle */}
+          <div className="flex bg-gray-100 p-1 rounded-lg mb-2">
+            <button
+              onClick={() => setMode('continuous')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'continuous' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+            >
+              Continuo
+            </button>
+            <button
+              onClick={() => setMode('hold')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'hold' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+            >
+              Mantener
+            </button>
+          </div>
+
+          {mode === 'continuous' ? (
+            <Button
+              variant={isListening ? 'secondary' : 'primary'}
+              size="lg"
+              onClick={isListening ? stopListening : startListening}
+              className={`
+                    relative overflow-hidden transition-all duration-300 w-full max-w-xs
+                    ${isListening ? 'bg-red-600 hover:bg-red-700 text-white' : ''}
+                    `}
+            >
+              {isListening ? (
+                <>
+                  <motion.div
+                    className="absolute inset-0 bg-red-700"
+                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                  />
+                  <span className="relative flex items-center gap-2 justify-center">
+                    <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                    Detener Grabación
+                  </span>
+                </>
+              ) : (
+                <span className="flex items-center gap-2 justify-center">
+                  <Mic className="h-5 w-5" />
+                  Iniciar Grabación
                 </span>
-              </>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Mic className="h-5 w-5" />
-                Iniciar Grabación
-              </span>
-            )}
-          </Button>
+              )}
+            </Button>
+          ) : (
+            <button
+              onPointerDown={() => startListening()}
+              onPointerUp={() => stopListening()}
+              onPointerLeave={() => isListening && stopListening()}
+              className={`
+                        w-24 h-24 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg
+                        ${isListening
+                  ? 'bg-red-500 scale-110 shadow-red-500/50'
+                  : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30'
+                }
+                    `}
+            >
+              <Mic className={`h-10 w-10 text-white ${isListening ? 'animate-pulse' : ''}`} />
+            </button>
+          )}
+
+          {mode === 'hold' && (
+            <Text size="sm" className="text-gray-500">
+              Mantén presionado para hablar
+            </Text>
+          )}
         </div>
 
         {/* Error Message */}
@@ -300,7 +341,7 @@ export function VoiceRecorder({
                 ▼
               </motion.div>
             </button>
-            
+
             <AnimatePresence>
               {showTranscript && (
                 <motion.div

@@ -50,10 +50,10 @@ export const AiRecipeGenerator: React.FC<AiRecipeGeneratorProps> = ({
   } = useRecipeStore();
 
   const [showForm, setShowForm] = useState(false);
-  const [provider, setProvider] = useState<'claude' | 'gemini'>('claude');
+  const [provider, setProvider] = useState<'claude' | 'gemini'>('gemini');
   const [prompt, setPrompt] = useState('');
   const [selectedOptions, setSelectedOptions] = useState<AIRecipeRequest>({
-    provider: 'claude',
+    provider: 'gemini',
     servings: 4,
     difficulty: 'medium',
   });

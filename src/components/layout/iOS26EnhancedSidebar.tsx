@@ -47,11 +47,11 @@ export function iOS26EnhancedSidebar() {
           badge: 'New',
           color: 'from-food-fresh to-food-fresh-dark'
         },
-        { 
-          href: '/meal-plans', 
-          label: 'Meal Plans', 
+        {
+          href: '/meal-plans',
+          label: 'Meal Plans',
           icon: <Calendar className="h-5 w-5" />,
-          color: 'from-purple-500 to-purple-600'
+          color: 'from-slate-500 to-slate-600'
         },
         { 
           href: '/pantry', 
@@ -77,11 +77,11 @@ export function iOS26EnhancedSidebar() {
           icon: <Apple className="h-5 w-5" />,
           color: 'from-green-500 to-green-600'
         },
-        { 
-          href: '/trends', 
-          label: 'Trends', 
+        {
+          href: '/trends',
+          label: 'Trends',
           icon: <TrendingUp className="h-5 w-5" />,
-          color: 'from-pink-500 to-pink-600'
+          color: 'from-slate-500 to-slate-600'
         },
       ],
     },
@@ -140,7 +140,7 @@ export function iOS26EnhancedSidebar() {
             animate={{ rotate: isCollapsed ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            <ChevronLeft className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+            <ChevronLeft className="h-3 w-3 text-slate-600" />
           </motion.div>
         </motion.button>
 
@@ -158,7 +158,7 @@ export function iOS26EnhancedSidebar() {
               "border border-white/10 shadow-sm"
             )}
           >
-            <Search className="h-5 w-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+            <Search className="h-5 w-5 text-slate-500 flex-shrink-0" />
             <AnimatePresence>
               {!isCollapsed && (
                 <motion.span
@@ -166,7 +166,7 @@ export function iOS26EnhancedSidebar() {
                   animate={{ opacity: 1, width: 'auto' }}
                   exit={{ opacity: 0, width: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-sm text-gray-500 dark:text-gray-400 overflow-hidden whitespace-nowrap"
+                  className="text-sm text-slate-500 overflow-hidden whitespace-nowrap"
                 >
                   Search recipes...
                 </motion.span>
@@ -203,7 +203,7 @@ export function iOS26EnhancedSidebar() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.3 }}
-                    className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                    className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider"
                   >
                     {section.title}
                   </motion.h3>
@@ -230,7 +230,7 @@ export function iOS26EnhancedSidebar() {
                           "ios26-liquid-ripple group",
                           active
                             ? "bg-gradient-to-r text-white shadow-lg"
-                            : "hover:bg-glass-medium text-gray-600 dark:text-gray-400"
+                            : "hover:bg-glass-medium text-slate-600"
                         )}
                         style={{
                           backgroundImage: active ? `linear-gradient(to right, var(--tw-gradient-stops))` : undefined,
@@ -323,7 +323,7 @@ export function iOS26EnhancedSidebar() {
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300",
               "ios26-liquid-ripple hover:bg-glass-medium",
-              "text-gray-600 dark:text-gray-400"
+              "text-slate-600"
             )}
           >
             <Settings className="h-5 w-5 flex-shrink-0" />

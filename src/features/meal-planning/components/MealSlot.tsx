@@ -131,8 +131,8 @@ export function MealSlot({
             "relative h-32 cursor-pointer transition-all duration-300",
             "hover:shadow-lg",
             "md:h-32 h-36", // Taller on mobile for better touch targets
-            isToday && "ring-2 ring-blue-400/50",
-            isSelected && "ring-2 ring-purple-400",
+            isToday && "ring-2 ring-slate-400/50",
+            isSelected && "ring-2 ring-slate-400",
             isCompleted && "opacity-75"
           )}
           onClick={() => {
@@ -180,7 +180,7 @@ export function MealSlot({
                   handleRegenerate();
                 }}
                 disabled={isRegenerating || isGeneratingAI}
-                className="w-6 h-6 bg-purple-500/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-purple-600/80 transition-colors disabled:opacity-50"
+                className="w-6 h-6 bg-slate-700/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-slate-800/80 transition-colors disabled:opacity-50"
                 title="Regenerar con IA"
               >
                 {isRegenerating ? (
@@ -219,7 +219,7 @@ export function MealSlot({
                   <div className="absolute inset-0 opacity-20">
                     <img
                       src={slot.recipe.image}
-                      alt={slot.recipe.name}
+                      alt={slot.recipe.name || 'Receta'}
                       className="w-full h-full object-cover rounded-3xl"
                     />
                   </div>
@@ -227,40 +227,86 @@ export function MealSlot({
 
                 {/* Recipe details */}
                 <div className="relative z-10 flex-1">
-                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-2">
-                    {slot.recipe.name}
+                  <h4 className="font-semibold text-sm text-gray-900 line-clamp-2">
+                    {slot.recipe.name || slot.recipe.title || slot.customMealName || 'Receta sin nombre'}
                   </h4>
-                  
+
+                  {/* Nutrition badges */}
+                  {slot.recipe.nutrition && (
+                    <div className="flex flex-wrap items-center gap-1 mt-2">
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center gap-1 text-[10px] font-bold bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded-md">
+                            <Flame className="w-2.5 h-2.5" />
+                            <span>{slot.recipe.nutrition.calories}cal</span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Calorías totales</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {slot.recipe.nutrition.protein > 0 && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="text-[10px] font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-md">
+                              P{slot.recipe.nutrition.protein}g
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Proteína</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+
+                      {slot.recipe.nutrition.carbs > 0 && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="text-[10px] font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-md">
+                              C{slot.recipe.nutrition.carbs}g
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Carbohidratos</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+
+                      {slot.recipe.nutrition.fat > 0 && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="text-[10px] font-bold bg-yellow-100 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-md">
+                              G{slot.recipe.nutrition.fat}g
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Grasas</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  )}
+
                   {/* Recipe meta */}
                   <div className="flex items-center gap-2 mt-1">
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
-                          <Clock className="w-3 h-3" />
-                          <span>{slot.recipe.prepTime + slot.recipe.cookTime}m</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Tiempo total de preparación</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
-                          <Users className="w-3 h-3" />
-                          <span>{slot.servings}</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Porciones</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    {((slot.recipe.prepTime || 0) + (slot.recipe.cookTime || 0)) > 0 && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                            <Clock className="w-3 h-3" />
+                            <span>{(slot.recipe.prepTime || 0) + (slot.recipe.cookTime || 0)}m</span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Tiempo total</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
 
                     {slot.recipe.isAiGenerated && (
                       <Tooltip>
                         <TooltipTrigger>
-                          <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+                          <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
                             <Sparkles className="w-3 h-3" />
                           </div>
                         </TooltipTrigger>
@@ -272,19 +318,21 @@ export function MealSlot({
                   </div>
 
                   {/* Difficulty badge */}
-                  <div className="flex items-center gap-1 mt-2">
-                    <ChefHat className="w-3 h-3 text-gray-500" />
-                    <span className={cn(
-                      "text-xs font-medium px-2 py-0.5 rounded-full",
-                      slot.recipe.difficulty === 'easy' && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                      slot.recipe.difficulty === 'medium' && "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-                      slot.recipe.difficulty === 'hard' && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                    )}>
-                      {slot.recipe.difficulty === 'easy' && 'Fácil'}
-                      {slot.recipe.difficulty === 'medium' && 'Media'}
-                      {slot.recipe.difficulty === 'hard' && 'Difícil'}
-                    </span>
-                  </div>
+                  {slot.recipe.difficulty && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <ChefHat className="w-3 h-3 text-gray-500" />
+                      <span className={cn(
+                        "text-xs font-medium px-2 py-0.5 rounded-full",
+                        slot.recipe.difficulty === 'easy' && "bg-green-100 text-green-700",
+                        slot.recipe.difficulty === 'medium' && "bg-yellow-100 text-yellow-700",
+                        slot.recipe.difficulty === 'hard' && "bg-red-100 text-red-700"
+                      )}>
+                        {slot.recipe.difficulty === 'easy' && 'Fácil'}
+                        {slot.recipe.difficulty === 'medium' && 'Media'}
+                        {slot.recipe.difficulty === 'hard' && 'Difícil'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -296,7 +344,7 @@ export function MealSlot({
                 >
                   <Plus className="w-5 h-5 text-white" />
                 </motion.div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                <p className="text-xs text-gray-600 text-center">
                   Agregar comida
                 </p>
                 
@@ -309,7 +357,7 @@ export function MealSlot({
                     if (onAIGenerate && !isGeneratingAI) onAIGenerate();
                   }}
                   disabled={isGeneratingAI}
-                  className="mt-1 px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded-full hover:from-purple-600 hover:to-pink-600 transition-all font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mt-1 px-2 py-1 bg-black text-white text-xs rounded-full hover:bg-gray-800 transition-all font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGeneratingAI ? (
                     <motion.div
@@ -349,13 +397,13 @@ export function MealSlot({
               initial={{ opacity: 0, scale: 0.9, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -10 }}
-              className="absolute top-10 right-0 z-50 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+              className="absolute top-10 right-0 z-50 w-48 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden"
             >
               <div className="py-1">
                 <button
                   onClick={handleRegenerate}
                   disabled={isRegenerating}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors flex items-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Regenerar con IA
@@ -363,7 +411,7 @@ export function MealSlot({
                 
                 <button
                   onClick={handleLockToggle}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors flex items-center gap-2"
                 >
                   {isLocked ? (
                     <>
@@ -380,7 +428,7 @@ export function MealSlot({
                 
                 <button
                   onClick={handleClear}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-red-600 dark:text-red-400"
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 text-red-600"
                 >
                   <X className="w-4 h-4" />
                   Quitar

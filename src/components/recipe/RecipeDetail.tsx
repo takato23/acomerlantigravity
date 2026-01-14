@@ -122,9 +122,9 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
         key={index}
         className={cn(
           'flex items-center justify-between p-3 rounded-lg border',
-          isAvailable && 'bg-food-fresh-50 border-food-fresh-200 dark:bg-food-fresh-900/20 dark:border-food-fresh-800',
-          isMissing && 'bg-warm-50 border-warm-200 dark:bg-warm-900/20 dark:border-warm-800',
-          !isAvailable && !isMissing && 'bg-neutral-50 border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700'
+          isAvailable && 'bg-food-fresh-50 border-food-fresh-200',
+          isMissing && 'bg-warm-50 border-warm-200',
+          !isAvailable && !isMissing && 'bg-slate-50 border-slate-200'
         )}
       >
         <div className="flex items-center gap-3">
@@ -178,9 +178,9 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
         key={index}
         className={cn(
           'flex gap-4 p-4 rounded-lg border transition-all duration-200',
-          isChecked 
-            ? 'bg-food-fresh-50 border-food-fresh-200 dark:bg-food-fresh-900/20 dark:border-food-fresh-800' 
-            : 'bg-neutral-50 border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700'
+          isChecked
+            ? 'bg-food-fresh-50 border-food-fresh-200'
+            : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
         )}
       >
         <button
@@ -189,7 +189,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
             'flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-200',
             isChecked
               ? 'bg-food-fresh-500 border-food-fresh-500 text-white'
-              : 'border-neutral-300 dark:border-neutral-600 hover:border-food-fresh-300'
+              : 'border-slate-300 hover:border-food-fresh-300'
           )}
         >
           {isChecked ? (
@@ -265,7 +265,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
           <div className="flex items-center gap-4 mb-4">
             <div className={cn(
               'flex items-center gap-2 px-3 py-2 rounded-lg',
-              can_make ? 'bg-food-fresh-100 text-food-fresh-800 dark:bg-food-fresh-900/20' : 'bg-warm-100 text-warm-800 dark:bg-warm-900/20'
+              can_make ? 'bg-food-fresh-100 text-food-fresh-800' : 'bg-warm-100 text-warm-800'
             )}>
               {can_make ? <Icons.CheckCircle size="sm" /> : <Icons.Clock size="sm" />}
               <Text weight="medium">
@@ -309,7 +309,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
         <div className="mb-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
           >
             <Icons.ArrowLeft size="sm" />
             <span>Volver a recetas</span>
@@ -423,14 +423,14 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
               <div className="flex items-center justify-center gap-2 mt-1">
                 <button
                   onClick={() => handleServingsChange(servings - 1)}
-                  className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                  className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"
                 >
                   <Icons.Minus size="xs" />
                 </button>
                 <Text weight="semibold">{servings}</Text>
                 <button
                   onClick={() => handleServingsChange(servings + 1)}
-                  className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                  className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"
                 >
                   <Icons.Plus size="xs" />
                 </button>
@@ -503,7 +503,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
 
       {/* Content Tabs */}
       <div className="mb-6">
-        <div className="flex border-b border-neutral-200 dark:border-neutral-700">
+        <div className="flex border-b border-slate-200">
           {[
             { id: 'overview', label: 'Resumen', icon: Icons.Info },
             { id: 'ingredients', label: 'Ingredientes', icon: Icons.List },
@@ -516,8 +516,8 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
               className={cn(
                 'flex items-center gap-2 px-4 py-3 border-b-2 transition-colors',
                 activeTab === tab.id
-                  ? 'border-food-fresh-500 text-food-fresh-600 dark:text-food-fresh-400'
-                  : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
+                  ? 'border-food-fresh-500 text-food-fresh-600'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
               )}
             >
               <tab.icon size="sm" />
@@ -641,7 +641,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
                       onClick={() => setUserRating(star)}
                       className={cn(
                         'p-1 transition-colors',
-                        star <= userRating ? 'text-food-golden-500' : 'text-neutral-300'
+                        star <= userRating ? 'text-food-golden-500' : 'text-slate-300'
                       )}
                     >
                       <Icons.Star size="lg" className={star <= userRating ? 'fill-current' : ''} />
@@ -656,7 +656,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
                   value={userReview}
                   onChange={(e) => setUserReview(e.target.value)}
                   placeholder="Comparte tu experiencia con esta receta..."
-                  className="w-full p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 resize-none"
+                  className="w-full p-3 rounded-lg border border-slate-200 bg-white resize-none"
                   rows={3}
                 />
               </div>

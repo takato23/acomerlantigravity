@@ -7,7 +7,7 @@
 export type AIProvider = 'openai' | 'anthropic' | 'gemini' | 'auto';
 
 // Model types
-export type AIModel = 
+export type AIModel =
   | 'gpt-4'
   | 'gpt-3.5-turbo'
   | 'claude-3-opus'
@@ -49,6 +49,15 @@ export interface AIImageRequest {
   analysisType?: 'ocr' | 'description' | 'analysis' | 'custom';
 }
 
+export interface AIImageGenerationRequest {
+  prompt: string;
+  n?: number;
+  size?: '256x256' | '512x512' | '1024x1024';
+  quality?: 'standard' | 'hd';
+  style?: 'natural' | 'vivid';
+  provider?: AIProvider;
+}
+
 export interface AIRecipeRequest {
   ingredients?: string[];
   pantryItems?: PantryItem[];
@@ -86,6 +95,12 @@ export interface AITextResponse extends AIResponse<string> {
 export interface AIJSONResponse<T = any> extends AIResponse<T> {
   format: 'json';
   schema?: any;
+}
+
+export interface AIImageGenerationResponse {
+  data: Array<{ url: string; b64_json?: string; revised_prompt?: string }>;
+  provider: AIProvider;
+  model: string;
 }
 
 export interface AIStreamResponse {

@@ -4,9 +4,9 @@ import { POST as regenerateRoute } from '../regenerate/route';
 import { POST as suggestFromPantryRoute } from '../suggest-from-pantry/route';
 import { POST as optimizeDailyRoute } from '../optimize-daily/route';
 import { POST as feedbackRoute } from '../feedback/route';
-import { 
-  mockWeeklyPlan, 
-  mockUserPreferences, 
+import {
+  mockWeeklyPlan,
+  mockUserPreferences,
   mockPantryItems,
   mockRegeneratedMeal,
   mockAlternativeRecipes
@@ -29,7 +29,8 @@ jest.mock('@/lib/supabase/client', () => ({
       eq: jest.fn().mockReturnThis(),
       single: jest.fn().mockResolvedValue({ data: null, error: null }),
     })),
-  }));
+  },
+}));
 
 import { callGeminiWeeklyPlan, callGeminiRegenerateMeal, callGeminiAlternatives } from '@/lib/services/geminiService';
 
@@ -132,7 +133,8 @@ describe('Meal Planning API Integration Tests', () => {
           hasMate: true,
           hasNoquis29: true,
           specialOccasions: ['domingo', 'dia29']
-        });
+        }
+      });
 
       const request = new NextRequest('http://localhost:3000/api/meal-planning/generate', {
         method: 'POST',
@@ -372,7 +374,7 @@ describe('Meal Planning API Integration Tests', () => {
       });
 
       const response = await suggestFromPantryRoute(request);
-      
+
       expect(response.status).toBe(200);
       expect(mockCallGeminiAlternatives).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -463,7 +465,8 @@ describe('Meal Planning API Integration Tests', () => {
               traditionPreservation: 4,
               localIngredients: 3
             }
-          }),
+          }
+        }),
       });
 
       const response = await feedbackRoute(request);
@@ -482,7 +485,8 @@ describe('Meal Planning API Integration Tests', () => {
           feedback: {
             rating: 6, // Invalid: should be 1-5
             likes: 'should be array' // Invalid type
-          }),
+          }
+        }),
       });
 
       const response = await feedbackRoute(request);
@@ -551,8 +555,8 @@ describe('Meal Planning API Integration Tests', () => {
     });
 
     it('should handle Gemini service timeout', async () => {
-      mockCallGeminiWeeklyPlan.mockImplementation(() => 
-        new Promise((_, reject) => 
+      mockCallGeminiWeeklyPlan.mockImplementation(() =>
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Timeout')), 100)
         )
       );
@@ -635,7 +639,7 @@ describe('Meal Planning API Integration Tests', () => {
     it('should handle concurrent requests', async () => {
       mockCallGeminiWeeklyPlan.mockResolvedValue(mockWeeklyPlan);
 
-      const requests = Array.from({ length: 5 }, (_, i) => 
+      const requests = Array.from({ length: 5 }, (_, i) =>
         new NextRequest('http://localhost:3000/api/meal-planning/generate', {
           method: 'POST',
           body: JSON.stringify({

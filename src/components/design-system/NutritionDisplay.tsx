@@ -106,7 +106,7 @@ const NutritionDisplay = React.forwardRef<HTMLDivElement, NutritionDisplayProps>
             </div>
           </div>
           {dailyValue && (
-            <div className="w-16 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full ml-3 overflow-hidden">
+            <div className="w-16 h-2 bg-slate-200 rounded-full ml-3 overflow-hidden">
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-300',
@@ -267,7 +267,7 @@ const NutritionDisplay = React.forwardRef<HTMLDivElement, NutritionDisplayProps>
 
           {/* Additional Nutrients */}
           {(adjustedNutrition.fiber || adjustedNutrition.sugar || adjustedNutrition.sodium) && (
-            <div className="space-y-1 pt-2 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="space-y-1 pt-2 border-t border-slate-200">
               <Text size="sm" weight="semibold" color="default" className="mb-2">
                 Other Nutrients
               </Text>
@@ -305,7 +305,7 @@ const NutritionDisplay = React.forwardRef<HTMLDivElement, NutritionDisplayProps>
           )}
 
           {showPercentages && (
-            <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="pt-2 border-t border-slate-200">
               <Text size="xs" color="muted" className="italic">
                 % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a daily diet.
                 2,000 calories a day is used for general nutrition advice.

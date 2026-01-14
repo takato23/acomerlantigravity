@@ -2,7 +2,7 @@
 
 ## Overview
 
-KeCaraJoComer uses Next.js 15 App Router with API routes for backend functionality. The API is organized into feature-based modules with consistent patterns and error handling.
+KeCaraJoComer uses Next.js 15.0.0 App Router with API routes for backend functionality. The API is organized into feature-based modules with consistent patterns and error handling.
 
 ## Base URL
 

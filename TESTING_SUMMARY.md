@@ -201,32 +201,32 @@ npm run test:meal-planning:update
 
 ### Unit Tests
 1. **Component Tests**
-   - `/Users/santiagobalosky/kecarajocomer/src/features/meal-planning/components/__tests__/MealPlannerPage.test.tsx`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/src/features/meal-planning/components/__tests__/MealPlannerPage.test.tsx`
 
 2. **Store Tests**
-   - `/Users/santiagobalosky/kecarajocomer/src/features/meal-planning/store/__tests__/useMealPlanningStore.test.ts`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/src/features/meal-planning/store/__tests__/useMealPlanningStore.test.ts`
 
 3. **Hook Tests**
-   - `/Users/santiagobalosky/kecarajocomer/src/features/meal-planning/hooks/__tests__/useGeminiMealPlanner.test.ts`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/src/features/meal-planning/hooks/__tests__/useGeminiMealPlanner.test.ts`
 
 4. **API Tests**
-   - `/Users/santiagobalosky/kecarajocomer/src/app/api/meal-planning/__tests__/generate.test.ts`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/src/app/api/meal-planning/__tests__/generate.test.ts`
 
 ### Integration Tests
 5. **Flow Tests**
-   - `/Users/santiagobalosky/kecarajocomer/tests/__tests__/features/meal-planning/integration/MealPlanningFlow.test.tsx`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/tests/__tests__/features/meal-planning/integration/MealPlanningFlow.test.tsx`
 
 ### End-to-End Tests
 6. **Complete User Journey**
-   - `/Users/santiagobalosky/kecarajocomer/e2e/meal-planning/meal-planner-e2e.spec.ts`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/e2e/meal-planning/meal-planner-e2e.spec.ts`
 
 ### Test Infrastructure
 7. **Utilities and Helpers**
-   - `/Users/santiagobalosky/kecarajocomer/src/__tests__/utils/meal-planning-test-utils.ts`
-   - `/Users/santiagobalosky/kecarajocomer/tests/meal-planning/test-config.ts`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/src/__tests__/utils/meal-planning-test-utils.ts`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/tests/meal-planning/test-config.ts`
 
 8. **Test Runner**
-   - `/Users/santiagobalosky/kecarajocomer/scripts/test-meal-planning.js`
+   - `/Users/santiagobalosky/Documents/kecarajocomo/scripts/test-meal-planning.js`
 
 ## 🎯 Implementation Summary
 

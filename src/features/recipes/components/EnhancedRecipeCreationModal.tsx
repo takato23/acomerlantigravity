@@ -82,7 +82,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
   const [mode, setMode] = useState<CreationMode>('selection');
   const [aiState, setAIState] = useState<AIGenerationState>({
     showPrompt: false,
-    provider: 'openai',
+    provider: 'gemini',
     prompt: '',
     ingredients: '',
     cuisine: '',
@@ -102,7 +102,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
     errors: number;
     currentRecipe?: string;
   } | null>(null);
-  
+
   // Manual mode state
   const [manualFormData, setManualFormData] = useState<Partial<Recipe>>({
     title: '',
@@ -116,7 +116,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
   });
   const [currentIngredient, setCurrentIngredient] = useState({ name: '', quantity: '', unit: '' });
   const [currentInstruction, setCurrentInstruction] = useState('');
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const { notify } = useNotifications();
@@ -129,7 +129,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       setImportProgress(null);
       setAIState({
         showPrompt: false,
-        provider: 'openai',
+        provider: 'gemini',
         prompt: '',
         ingredients: '',
         cuisine: '',
@@ -157,7 +157,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
   const handleAIGeneration = async () => {
     setMode('ai-generating');
-    
+
     try {
       // Track AI generation start
       track('ai_recipe_generation_start', {
@@ -168,7 +168,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         difficulty: aiState.difficulty,
         servings: aiState.servings,
       });
-      
+
       const result = await enhancedAIRecipeService.generateRecipe({
         prompt: aiState.prompt,
         ingredients: aiState.ingredients.split(',').map(i => i.trim()).filter(Boolean),
@@ -196,25 +196,23 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         ingredients_count: result.recipe.ingredients.length,
       });
 
-      notify({
+      notify('Receta Generada', {
         type: 'success',
-        title: 'Receta Generada',
         message: `Receta "${result.recipe.title}" creada con ${Math.round(result.confidence * 100)}% de confianza`
       });
 
     } catch (error: unknown) {
       logger.error('Error generating recipe:', 'EnhancedRecipeCreationModal', error);
       setMode('ai');
-      
+
       // Track error
       track('ai_recipe_generation_error', {
         provider: aiState.provider,
         error: error.message,
       });
-      
-      notify({
+
+      notify('Error de Generación', {
         type: 'error',
-        title: 'Error de Generación',
         message: 'No se pudo generar la receta. Intenta de nuevo.'
       });
     }
@@ -222,7 +220,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
   const handlePhotoScan = async (file?: File) => {
     setMode('scan-processing');
-    
+
     try {
       // Track scan start
       track('photo_scan_start', {
@@ -231,8 +229,8 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         use_camera: scanState.useCamera,
         user_id: userId,
       });
-      
-      const result = scanState.useCamera 
+
+      const result = scanState.useCamera
         ? await recipePhotoScanService.scanRecipeFromCamera({ userId })
         : await recipePhotoScanService.scanRecipeFromPhoto(file!, { userId });
 
@@ -244,7 +242,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
           scannedRecipe: result.recipe,
           confidence: result.confidence
         }));
-        
+
         // Track successful scan
         track('photo_scan_success', {
           confidence_score: result.confidence,
@@ -252,20 +250,19 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
           ingredients_found: result.recipe.ingredients.length,
           instructions_found: result.recipe.instructions.length,
         });
-        
+
         setMode('scan');
       } else {
         setMode('scan');
-        
+
         // Track scan failure
         track('photo_scan_failed', {
           error: result.errors?.[0] || 'No recipe extracted',
           confidence_score: result.confidence,
         });
-        
-        notify({
+
+        notify('Error de Escaneo', {
           type: 'error',
-          title: 'Error de Escaneo',
           message: result.errors?.[0] || 'No se pudo extraer la receta de la imagen'
         });
       }
@@ -273,16 +270,15 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
     } catch (error: unknown) {
       logger.error('Error scanning photo:', 'EnhancedRecipeCreationModal', error);
       setMode('scan');
-      
+
       // Track error
       track('photo_scan_error', {
         error: error.message,
         use_camera: scanState.useCamera,
       });
-      
-      notify({
+
+      notify('Error de Escaneo', {
         type: 'error',
-        title: 'Error de Escaneo',
         message: 'No se pudo procesar la imagen'
       });
     }
@@ -290,9 +286,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
   const handleImport = async () => {
     if (!importFile) return;
-    
+
     setMode('import-processing');
-    
+
     try {
       // Track import start
       track('recipe_import_start', {
@@ -302,7 +298,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         user_id: userId,
         is_admin: isAdmin,
       });
-      
+
       // Crear FormData para enviar archivo
       const formData = new FormData();
       formData.append('file', importFile);
@@ -322,7 +318,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       }
 
       const result = await response.json();
-      
+
       // Track import results
       track('recipe_import_success', {
         imported_count: result.imported,
@@ -334,9 +330,8 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         duration: result.report.duration
       });
 
-      notify({
+      notify('Importación Completada', {
         type: result.success ? 'success' : 'warning',
-        title: 'Importación Completada',
         message: `${result.imported} recetas importadas, ${result.updated} actualizadas, ${result.skipped} omitidas, ${result.errors.length} errores`
       });
 
@@ -345,16 +340,15 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
     } catch (error: unknown) {
       logger.error('Error importing recipes:', 'EnhancedRecipeCreationModal', error);
       setMode('import');
-      
+
       // Track error
       track('recipe_import_error', {
         file_name: importFile.name,
         error: error.message,
       });
-      
-      notify({
+
+      notify('Error de Importación', {
         type: 'error',
-        title: 'Error de Importación',
         message: 'No se pudo importar el archivo de recetas'
       });
     }
@@ -366,24 +360,23 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         user_id: userId,
         is_admin: isAdmin,
       });
-      
-      notify({
+
+      notify('Acceso Denegado', {
         type: 'error',
-        title: 'Acceso Denegado',
         message: 'Solo los administradores pueden importar el archivo completo de recetas'
       });
       return;
     }
 
     setMode('import-processing');
-    
+
     try {
       // Track bulk import start
       track('bulk_import_start', {
         user_id: userId,
         is_admin: isAdmin,
       });
-      
+
       // Llamar al endpoint para importar archivo completo
       const response = await fetch('/api/recipes/import?source=full&skipDuplicates=true&updateExisting=false', {
         method: 'GET',
@@ -407,9 +400,8 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         duration: result.report.duration
       });
 
-      notify({
+      notify('Importación Masiva Completada', {
         type: result.success ? 'success' : 'warning',
-        title: 'Importación Masiva Completada',
         message: `${result.imported} recetas importadas, ${result.updated} actualizadas, ${result.skipped} omitidas del archivo oficial`
       });
 
@@ -418,15 +410,14 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
     } catch (error: unknown) {
       logger.error('Error in bulk import:', 'EnhancedRecipeCreationModal', error);
       setMode('import');
-      
+
       // Track error
       track('bulk_import_error', {
         error: error.message,
       });
-      
-      notify({
+
+      notify('Error de Importación', {
         type: 'error',
-        title: 'Error de Importación',
         message: 'No se pudo importar el archivo de recetas completo'
       });
     }
@@ -436,24 +427,22 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
     try {
       // Check if user is authenticated
       if (!userId) {
-        notify({
+        notify('No Autenticado', {
           type: 'error',
-          title: 'No Autenticado',
           message: 'Debes iniciar sesión para guardar recetas'
         });
         return;
       }
 
       // Show saving state
-      notify({
+      notify('Guardando...', {
         type: 'info',
-        title: 'Guardando...',
         message: 'Guardando tu receta en la base de datos'
       });
 
       // Save to Supabase - map fields to match DB schema
       const { supabase } = await import('@/lib/supabase');
-      
+
       // Start with absolute minimum - only required fields
       const dbRecipe: any = {
         name: recipe.title,
@@ -479,7 +468,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       });
 
       logger.debug('Attempting to save recipe:', 'EnhancedRecipeCreationModal', dbRecipe);
-      
+
       // Try direct insert first
       let { data, error } = await supabase
         .from('recipes')
@@ -490,7 +479,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       // If it fails with schema cache error, try RPC function (if available)
       if (error && error.code === 'PGRST204') {
         logger.warn('Schema cache error, trying RPC function', 'EnhancedRecipeCreationModal');
-        
+
         const rpcResult = await supabase.rpc('create_recipe', {
           p_name: recipe.title,
           p_ingredients: dbRecipe.ingredients,
@@ -501,7 +490,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
           p_servings: recipe.servings || null,
           p_difficulty_level: recipe.difficulty || null,
           p_instructions: recipe.instructions || null,
-          p_tags: recipe.tags || null
+          p_tags: recipe.dietary_tags || null
         });
 
         if (rpcResult.error) {
@@ -524,7 +513,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       const savedRecipe: Recipe = {
         id: data.id,
         user_id: data.user_id || userId,
-        title: data.name,
+        title: data.name || recipe.title,
         description: data.description || recipe.description || '',
         ingredients: parsedIngredients || recipe.ingredients,
         instructions: data.instructions || recipe.instructions || [],
@@ -534,11 +523,12 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         servings: data.servings || recipe.servings || 4,
         difficulty: data.difficulty_level || recipe.difficulty || 'medium',
         cuisine_type: data.cuisine_type || recipe.cuisine_type || 'other',
-        meal_type: 'main',
-        dietary_tags: data.tags || recipe.tags || [],
+        meal_types: data.meal_types || recipe.meal_types || ['lunch'],
+        dietary_tags: data.dietary_tags || data.tags || recipe.dietary_tags || [],
         rating: data.rating || 0,
         times_cooked: 0,
         ai_generated: data.is_ai_generated || false,
+        is_public: data.is_public ?? recipe.is_public ?? true,
         nutritional_info: parsedMacros || recipe.nutritional_info || {
           calories: 0,
           protein: 0,
@@ -551,7 +541,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
       };
-      
+
       // Track recipe creation
       track('recipe_created', {
         recipe_id: data.id,
@@ -561,20 +551,19 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         instructions_count: data.instructions?.length || 0,
         user_id: userId,
       });
-      
+
       onRecipeCreated(savedRecipe);
       onClose();
-      
-      notify({
+
+      notify('¡Receta Guardada!', {
         type: 'success',
-        title: '¡Receta Guardada!',
         message: `"${data.name}" ha sido guardada exitosamente`,
-        channels: ['toast'], // Solo mostrar toast, sin voz
-        voice: false // Explícitamente desactivar voz
+        channels: ['toast'],
+        voice: false
       });
     } catch (error: unknown) {
       logger.error('Error saving recipe', 'EnhancedRecipeCreationModal', error);
-      
+
       // Log specific error details
       if (error.message) {
         logger.error(`Supabase error: ${error.message}`, 'EnhancedRecipeCreationModal', {
@@ -583,23 +572,21 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
           hint: error.hint
         });
       }
-      
+
       // Check if it's a schema cache error
       if (error.code === 'PGRST204') {
-        notify({
+        notify('Error de Cache de Esquema', {
           type: 'error',
-          title: 'Error de Cache de Esquema',
           message: 'Hay un problema con el cache de la base de datos. La receta se guardó con campos mínimos. Contacta al administrador para actualizar el cache de PostgREST.'
         });
-        
+
         logger.info('Schema cache issue detected. Admin should:', 'EnhancedRecipeCreationModal');
         logger.info('1. Go to Supabase Dashboard > Settings > API', 'EnhancedRecipeCreationModal');
         logger.info('2. Click "Reload Schema Cache"', 'EnhancedRecipeCreationModal');
         logger.info('3. Or run the SQL function in src/lib/supabase/create-recipe-function.sql', 'EnhancedRecipeCreationModal');
       } else {
-        notify({
+        notify('Error al Guardar', {
           type: 'error',
-          title: 'Error al Guardar',
           message: error.message || 'No se pudo guardar la receta. Por favor intenta de nuevo.'
         });
       }
@@ -622,7 +609,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
         {/* Manual Creation */}
-        <Card 
+        <Card
           className="group cursor-pointer border-2 border-transparent p-4 sm:p-6 transition-all hover:border-blue-500 hover:shadow-lg"
           onClick={() => setMode('manual')}
         >
@@ -638,7 +625,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         </Card>
 
         {/* AI Generation */}
-        <Card 
+        <Card
           className="group cursor-pointer border-2 border-transparent p-4 sm:p-6 transition-all hover:border-purple-500 hover:shadow-lg"
           onClick={() => setMode('ai')}
         >
@@ -654,7 +641,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         </Card>
 
         {/* Photo Scan */}
-        <Card 
+        <Card
           className="group cursor-pointer border-2 border-transparent p-4 sm:p-6 transition-all hover:border-green-500 hover:shadow-lg"
           onClick={() => setMode('scan')}
         >
@@ -670,7 +657,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         </Card>
 
         {/* Import File */}
-        <Card 
+        <Card
           className="group cursor-pointer border-2 border-transparent p-4 sm:p-6 transition-all hover:border-orange-500 hover:shadow-lg"
           onClick={() => setMode('import')}
         >
@@ -736,15 +723,13 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
             <button
               key={provider.id}
               onClick={() => setAIState(prev => ({ ...prev, provider: provider.id }))}
-              className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all ${
-                aiState.provider === provider.id
+              className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all ${aiState.provider === provider.id
                   ? `border-${provider.color}-500 bg-${provider.color}-50`
                   : 'border-gray-200 hover:border-gray-300'
-              }`}
+                }`}
             >
-              <provider.icon className={`h-5 w-5 ${
-                aiState.provider === provider.id ? `text-${provider.color}-600` : 'text-gray-500'
-              }`} />
+              <provider.icon className={`h-5 w-5 ${aiState.provider === provider.id ? `text-${provider.color}-600` : 'text-gray-500'
+                }`} />
               <span className="text-sm font-medium">{provider.name}</span>
             </button>
           ))}
@@ -829,7 +814,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         <Button variant="secondary" onClick={() => setMode('selection')} className="flex-1">
           Cancelar
         </Button>
-        <Button 
+        <Button
           onClick={handleAIGeneration}
           className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
         >
@@ -851,7 +836,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       </div>
       <h3 className="mb-2 text-xl font-semibold text-gray-900">Generando Receta</h3>
       <p className="text-gray-600">La IA está creando tu receta personalizada...</p>
-      
+
       {aiState.showPrompt && aiState.generatedPrompt && (
         <div className="mt-6 max-w-md rounded-lg bg-gray-50 p-4">
           <h4 className="mb-2 text-sm font-medium text-gray-700">Prompt Enviado:</h4>
@@ -968,10 +953,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       {/* Scan Options */}
       <div className="grid gap-3 sm:grid-4 grid-cols-1 sm:grid-cols-2">
         {/* Camera Capture */}
-        <Card 
-          className={`cursor-pointer border-2 p-4 transition-all hover:shadow-md ${
-            scanState.useCamera ? 'border-green-500 bg-green-50' : 'border-gray-200'
-          }`}
+        <Card
+          className={`cursor-pointer border-2 p-4 transition-all hover:shadow-md ${scanState.useCamera ? 'border-green-500 bg-green-50' : 'border-gray-200'
+            }`}
           onClick={() => setScanState(prev => ({ ...prev, useCamera: true }))}
         >
           <div className="flex items-center gap-3">
@@ -984,10 +968,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         </Card>
 
         {/* File Upload */}
-        <Card 
-          className={`cursor-pointer border-2 p-4 transition-all hover:shadow-md ${
-            !scanState.useCamera ? 'border-green-500 bg-green-50' : 'border-gray-200'
-          }`}
+        <Card
+          className={`cursor-pointer border-2 p-4 transition-all hover:shadow-md ${!scanState.useCamera ? 'border-green-500 bg-green-50' : 'border-gray-200'
+            }`}
           onClick={() => setScanState(prev => ({ ...prev, useCamera: false }))}
         >
           <div className="flex items-center gap-3">
@@ -1030,9 +1013,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       {scanState.preview && (
         <div className="rounded-lg border border-gray-200 p-4">
           <h4 className="mb-2 font-medium text-gray-900">Vista Previa</h4>
-          <img 
-            src={scanState.preview} 
-            alt="Preview" 
+          <img
+            src={scanState.preview}
+            alt="Preview"
             className="max-h-48 w-full rounded-lg object-cover"
           />
         </div>
@@ -1064,15 +1047,15 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
           Cancelar
         </Button>
         {scanState.scannedRecipe ? (
-          <Button 
-            onClick={async () => await handleSaveRecipe(scanState.scannedRecipe!)} 
+          <Button
+            onClick={async () => await handleSaveRecipe(scanState.scannedRecipe!)}
             className="flex-1 bg-green-600 hover:bg-green-700"
           >
             <CheckCircle className="mr-2 h-5 w-5" />
             Guardar Receta
           </Button>
         ) : (
-          <Button 
+          <Button
             onClick={() => handlePhotoScan(scanState.selectedFile)}
             disabled={!scanState.selectedFile && !scanState.useCamera}
             className="flex-1 bg-green-600 hover:bg-green-700"
@@ -1155,7 +1138,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         <Button variant="secondary" onClick={() => setMode('selection')} className="flex-1">
           Cancelar
         </Button>
-        <Button 
+        <Button
           onClick={handleImport}
           disabled={!importFile}
           className="flex-1 bg-orange-600 hover:bg-orange-700"
@@ -1259,7 +1242,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-2xl px-6 py-5 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <motion.div 
+              <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg"
               >
@@ -1273,9 +1256,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
                 </p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMode('selection')}
               className="hover:bg-white/80"
             >
@@ -1288,243 +1271,243 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         {/* Scrollable content */}
         <div className="max-h-[calc(70vh-100px)] overflow-y-auto px-6 space-y-6">
 
-        {/* Basic Info */}
-        <motion.div 
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-200"
-        >
-          <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Info className="h-5 w-5 text-blue-500" />
-            Información Básica
-          </h4>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Título de la Receta <span className="text-red-500">*</span>
-              </label>
-              <Input
-                value={manualFormData.title || ''}
-                onChange={(e) => setManualFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Ej: Pasta Carbonara Casera"
-                className="w-full px-4 py-3 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
+          {/* Basic Info */}
+          <motion.div
+            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-200"
+          >
+            <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-500" />
+              Información Básica
+            </h4>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Descripción
-              </label>
-              <textarea
-                value={manualFormData.description || ''}
-                onChange={(e) => setManualFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe tu receta: sabores, origen, ocasión especial..."
-                rows={3}
-                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
+            <div className="space-y-4">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Clock className="h-4 w-4 inline mr-1" />
-                  Preparación
-                </label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    value={manualFormData.prep_time || 15}
-                    onChange={(e) => setManualFormData(prev => ({ ...prev, prep_time: parseInt(e.target.value) || 15 }))}
-                    min="0"
-                    className="text-center pr-8"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">min</span>
-                </div>
-              </div>
-              <div className="text-center">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Flame className="h-4 w-4 inline mr-1" />
-                  Cocción
-                </label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    value={manualFormData.cook_time || 30}
-                    onChange={(e) => setManualFormData(prev => ({ ...prev, cook_time: parseInt(e.target.value) || 30 }))}
-                    min="0"
-                    className="text-center pr-8"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">min</span>
-                </div>
-              </div>
-              <div className="text-center">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Users className="h-4 w-4 inline mr-1" />
-                  Porciones
+                  Título de la Receta <span className="text-red-500">*</span>
                 </label>
                 <Input
-                  type="number"
-                  value={manualFormData.servings || 4}
-                  onChange={(e) => setManualFormData(prev => ({ ...prev, servings: parseInt(e.target.value) || 4 }))}
-                  min="1"
-                  max="12"
-                  className="text-center"
+                  value={manualFormData.title || ''}
+                  onChange={(e) => setManualFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Ej: Pasta Carbonara Casera"
+                  className="w-full px-4 py-3 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 />
               </div>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Ingredients */}
-        <motion.div 
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-200"
-        >
-          <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Utensils className="h-5 w-5 text-green-500" />
-            Ingredientes <span className="text-red-500">*</span>
-          </h4>
-          
-          {/* Add Ingredient */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <div className="grid grid-cols-12 gap-2">
-              <Input
-                placeholder="Cantidad"
-                value={currentIngredient.quantity}
-                onChange={(e) => setCurrentIngredient(prev => ({ ...prev, quantity: e.target.value }))}
-                className="col-span-3 bg-white"
-                onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
-              />
-              <Input
-                placeholder="Unidad"
-                value={currentIngredient.unit}
-                onChange={(e) => setCurrentIngredient(prev => ({ ...prev, unit: e.target.value }))}
-                className="col-span-2 bg-white"
-                onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
-              />
-              <Input
-                placeholder="Ingrediente"
-                value={currentIngredient.name}
-                onChange={(e) => setCurrentIngredient(prev => ({ ...prev, name: e.target.value }))}
-                className="col-span-6 bg-white"
-                onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
-              />
-              <Button 
-                onClick={addIngredient} 
-                size="sm" 
-                className="col-span-1 bg-green-500 hover:bg-green-600 text-white"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Descripción
+                </label>
+                <textarea
+                  value={manualFormData.description || ''}
+                  onChange={(e) => setManualFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe tu receta: sabores, origen, ocasión especial..."
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
+                />
+              </div>
 
-          {/* Ingredients List */}
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {manualFormData.ingredients?.length ? (
-              manualFormData.ingredients.map((ing, idx) => (
-                <motion.div 
-                  key={idx} 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 group"
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Clock className="h-4 w-4 inline mr-1" />
+                    Preparación
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={manualFormData.prep_time || 15}
+                      onChange={(e) => setManualFormData(prev => ({ ...prev, prep_time: parseInt(e.target.value) || 15 }))}
+                      min="0"
+                      className="text-center pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">min</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Flame className="h-4 w-4 inline mr-1" />
+                    Cocción
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={manualFormData.cook_time || 30}
+                      onChange={(e) => setManualFormData(prev => ({ ...prev, cook_time: parseInt(e.target.value) || 30 }))}
+                      min="0"
+                      className="text-center pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">min</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Users className="h-4 w-4 inline mr-1" />
+                    Porciones
+                  </label>
+                  <Input
+                    type="number"
+                    value={manualFormData.servings || 4}
+                    onChange={(e) => setManualFormData(prev => ({ ...prev, servings: parseInt(e.target.value) || 4 }))}
+                    min="1"
+                    max="12"
+                    className="text-center"
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Ingredients */}
+          <motion.div
+            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-200"
+          >
+            <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Utensils className="h-5 w-5 text-green-500" />
+              Ingredientes <span className="text-red-500">*</span>
+            </h4>
+
+            {/* Add Ingredient */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="grid grid-cols-12 gap-2">
+                <Input
+                  placeholder="Cantidad"
+                  value={currentIngredient.quantity}
+                  onChange={(e) => setCurrentIngredient(prev => ({ ...prev, quantity: e.target.value }))}
+                  className="col-span-3 bg-white"
+                  onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
+                />
+                <Input
+                  placeholder="Unidad"
+                  value={currentIngredient.unit}
+                  onChange={(e) => setCurrentIngredient(prev => ({ ...prev, unit: e.target.value }))}
+                  className="col-span-2 bg-white"
+                  onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
+                />
+                <Input
+                  placeholder="Ingrediente"
+                  value={currentIngredient.name}
+                  onChange={(e) => setCurrentIngredient(prev => ({ ...prev, name: e.target.value }))}
+                  className="col-span-6 bg-white"
+                  onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
+                />
+                <Button
+                  onClick={addIngredient}
+                  size="sm"
+                  className="col-span-1 bg-green-500 hover:bg-green-600 text-white"
                 >
-                  <span className="text-sm flex items-center gap-2">
-                    <span className="text-2xl">🥘</span>
-                    <span>
-                      <span className="font-semibold text-green-700">{ing.quantity} {ing.unit}</span>
-                      <span className="text-gray-700 ml-1">{ing.name}</span>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Ingredients List */}
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {manualFormData.ingredients?.length ? (
+                manualFormData.ingredients.map((ing, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 group"
+                  >
+                    <span className="text-sm flex items-center gap-2">
+                      <span className="text-2xl">🥘</span>
+                      <span>
+                        <span className="font-semibold text-green-700">{ing.quantity} {ing.unit}</span>
+                        <span className="text-gray-700 ml-1">{ing.name}</span>
+                      </span>
                     </span>
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeIngredient(idx)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </motion.div>
-              ))
-            ) : (
-              <p className="text-center text-gray-400 py-4">Agrega ingredientes para tu receta</p>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Instructions */}
-        <motion.div 
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-200"
-        >
-          <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <ChefHat className="h-5 w-5 text-orange-500" />
-            Instrucciones <span className="text-red-500">*</span>
-          </h4>
-          
-          {/* Add Instruction */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <div className="flex gap-2">
-              <textarea
-                placeholder="Describe el siguiente paso de la receta..."
-                value={currentInstruction}
-                onChange={(e) => setCurrentInstruction(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    addInstruction();
-                  }
-                }}
-                rows={2}
-                className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none"
-              />
-              <Button 
-                onClick={addInstruction} 
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6"
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeIngredient(idx)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                ))
+              ) : (
+                <p className="text-center text-gray-400 py-4">Agrega ingredientes para tu receta</p>
+              )}
             </div>
-            <p className="text-xs text-gray-500 mt-2">💡 Tip: Presiona Enter para agregar rápidamente</p>
-          </div>
+          </motion.div>
 
-          {/* Instructions List */}
-          <div className="space-y-3 max-h-48 overflow-y-auto">
-            {manualFormData.instructions?.length ? (
-              manualFormData.instructions.map((instruction, idx) => (
-                <motion.div 
-                  key={idx} 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex gap-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 group"
+          {/* Instructions */}
+          <motion.div
+            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-200"
+          >
+            <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <ChefHat className="h-5 w-5 text-orange-500" />
+              Instrucciones <span className="text-red-500">*</span>
+            </h4>
+
+            {/* Add Instruction */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="flex gap-2">
+                <textarea
+                  placeholder="Describe el siguiente paso de la receta..."
+                  value={currentInstruction}
+                  onChange={(e) => setCurrentInstruction(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      addInstruction();
+                    }
+                  }}
+                  rows={2}
+                  className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none"
+                />
+                <Button
+                  onClick={addInstruction}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-6"
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-500 text-white font-bold text-sm shadow-sm">
-                    {idx + 1}
-                  </span>
-                  <p className="flex-1 text-gray-700 leading-relaxed">{instruction}</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeInstruction(idx)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">💡 Tip: Presiona Enter para agregar rápidamente</p>
+            </div>
+
+            {/* Instructions List */}
+            <div className="space-y-3 max-h-48 overflow-y-auto">
+              {manualFormData.instructions?.length ? (
+                manualFormData.instructions.map((instruction, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="flex gap-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 group"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </motion.div>
-              ))
-            ) : (
-              <p className="text-center text-gray-400 py-4">Agrega los pasos para preparar tu receta</p>
-            )}
-          </div>
-        </motion.div>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-500 text-white font-bold text-sm shadow-sm">
+                      {idx + 1}
+                    </span>
+                    <p className="flex-1 text-gray-700 leading-relaxed">{instruction}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeInstruction(idx)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                ))
+              ) : (
+                <p className="text-center text-gray-400 py-4">Agrega los pasos para preparar tu receta</p>
+              )}
+            </div>
+          </motion.div>
 
         </div>
 
         {/* Actions */}
         <div className="sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent pt-6 pb-4 px-6">
           <div className="flex gap-3">
-            <Button 
-              variant="secondary" 
-              onClick={() => setMode('selection')} 
+            <Button
+              variant="secondary"
+              onClick={() => setMode('selection')}
               className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700"
             >
               Cancelar
@@ -1564,11 +1547,10 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         animate={{ opacity: 1 }}
         className="flex flex-col items-center justify-center py-12 text-center"
       >
-        <div className={`mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${
-          isAIGenerating ? 'from-purple-400 to-pink-600' :
-          isScanning ? 'from-green-400 to-blue-600' :
-          'from-orange-400 to-red-600'
-        }`}>
+        <div className={`mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${isAIGenerating ? 'from-purple-400 to-pink-600' :
+            isScanning ? 'from-green-400 to-blue-600' :
+              'from-orange-400 to-red-600'
+          }`}>
           <Loader2 className="h-10 w-10 animate-spin text-white" />
         </div>
         <h3 className="mb-2 text-xl font-semibold text-gray-900">
@@ -1581,7 +1563,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
           {isScanning && 'Extrayendo receta de la imagen con OCR + IA...'}
           {isImporting && 'Procesando archivo y validando recetas...'}
         </p>
-        
+
         {/* Progress bar for import */}
         {isImporting && importProgress && (
           <div className="w-full max-w-md mx-auto">
@@ -1590,7 +1572,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
               <span>{Math.round((importProgress.processed / importProgress.total) * 100)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-              <div 
+              <div
                 className="bg-gradient-to-r from-orange-400 to-red-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(importProgress.processed / importProgress.total) * 100}%` }}
               />

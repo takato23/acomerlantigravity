@@ -44,7 +44,7 @@ export function CompletionStep() {
       title: 'Crea tu Primer Plan',
       description: 'Genera un plan semanal personalizado con IA',
       action: 'Planificar Semana',
-      color: 'from-blue-400 to-cyan-400',
+      color: 'bg-slate-700',
       href: '/meal-planning'
     },
     {
@@ -52,7 +52,7 @@ export function CompletionStep() {
       title: 'Explora Recetas',
       description: 'Descubre miles de recetas adaptadas a tus gustos',
       action: 'Ver Recetas',
-      color: 'from-green-400 to-emerald-400',
+      color: 'bg-green-600',
       href: '/recetas'
     },
     {
@@ -60,7 +60,7 @@ export function CompletionStep() {
       title: 'Lista de Compras',
       description: 'Obtén listas optimizadas basadas en tus planes',
       action: 'Crear Lista',
-      color: 'from-purple-400 to-pink-400',
+      color: 'bg-slate-600',
       href: '/lista-compras'
     },
   ];
@@ -73,13 +73,13 @@ export function CompletionStep() {
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="relative w-16 h-16 mx-auto mb-6"
         >
-          <div className="absolute inset-0 rounded-full border-3 border-white/20"></div>
-          <div className="absolute inset-0 rounded-full border-3 border-purple-400 border-t-transparent"></div>
+          <div className="absolute inset-0 rounded-full border-3 border-slate-200"></div>
+          <div className="absolute inset-0 rounded-full border-3 border-slate-700 border-t-transparent"></div>
         </motion.div>
-        <h2 className="text-2xl font-bold text-white mb-2">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">
           Completando tu configuración...
         </h2>
-        <p className="text-white/60">
+        <p className="text-gray-500">
           Estamos finalizando tu experiencia personalizada
         </p>
       </div>
@@ -95,29 +95,29 @@ export function CompletionStep() {
         transition={{ duration: 0.5 }}
         className="mb-8"
       >
-        <motion.div 
-          animate={{ 
+        <motion.div
+          animate={{
             scale: [1, 1.1, 1],
             rotate: [0, 5, -5, 0]
           }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
+          className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
         >
           <Trophy className="h-12 w-12 text-white" />
         </motion.div>
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-4xl font-bold text-white mb-4"
+          className="text-4xl font-black tracking-tighter text-slate-900 mb-4"
         >
           ¡Bienvenido a Ke Carajo Comer! 🎉
         </motion.h1>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-xl text-white/80 mb-6"
+          className="text-xl text-gray-600 mb-6"
         >
           Tu viaje culinario personalizado comienza ahora
         </motion.p>
@@ -131,12 +131,12 @@ export function CompletionStep() {
       >
         <GlassCard className="p-8 mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Sparkles className="h-8 w-8 text-yellow-400 mr-2" />
-            <h2 className="text-2xl font-bold text-white">
+            <Sparkles className="h-8 w-8 text-amber-500 mr-2" />
+            <h2 className="text-2xl font-bold text-slate-900">
               ¡Todo listo!
             </h2>
           </div>
-          <p className="text-white/80 mb-6">
+          <p className="text-gray-600 mb-6">
             Hemos configurado tu cuenta con tus preferencias, necesidades dietéticas y despensa. 
             Nuestra IA está lista para crear planes de comidas personalizados para ti.
           </p>
@@ -146,31 +146,31 @@ export function CompletionStep() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
-              className="bg-white/10 backdrop-blur-xl rounded-xl p-4 border border-white/20"
+              className="bg-slate-50 rounded-xl p-4 border border-slate-200"
             >
-              <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-2" />
-              <div className="font-semibold text-white mb-1">Perfil Completo</div>
-              <div className="text-white/60">Preferencias y dieta guardadas</div>
+              <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-2" />
+              <div className="font-semibold text-slate-900 mb-1">Perfil Completo</div>
+              <div className="text-gray-500">Preferencias y dieta guardadas</div>
             </motion.div>
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.7 }}
-              className="bg-white/10 backdrop-blur-xl rounded-xl p-4 border border-white/20"
+              className="bg-slate-50 rounded-xl p-4 border border-slate-200"
             >
-              <Package className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-              <div className="font-semibold text-white mb-1">Despensa Lista</div>
-              <div className="text-white/60">Tus ingredientes están registrados</div>
+              <Package className="w-6 h-6 text-slate-600 mx-auto mb-2" />
+              <div className="font-semibold text-slate-900 mb-1">Despensa Lista</div>
+              <div className="text-gray-500">Tus ingredientes están registrados</div>
             </motion.div>
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.8 }}
-              className="bg-white/10 backdrop-blur-xl rounded-xl p-4 border border-white/20"
+              className="bg-slate-50 rounded-xl p-4 border border-slate-200"
             >
-              <Zap className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-              <div className="font-semibold text-white mb-1">IA Activada</div>
-              <div className="text-white/60">Sugerencias personalizadas listas</div>
+              <Zap className="w-6 h-6 text-slate-600 mx-auto mb-2" />
+              <div className="font-semibold text-slate-900 mb-1">IA Activada</div>
+              <div className="text-gray-500">Sugerencias personalizadas listas</div>
             </motion.div>
           </div>
         </GlassCard>
@@ -183,7 +183,7 @@ export function CompletionStep() {
         transition={{ delay: 0.9 }}
         className="mb-8"
       >
-        <h3 className="text-xl font-semibold text-white mb-6">
+        <h3 className="text-xl font-semibold text-slate-900 mb-6">
           Aquí está lo que puedes hacer ahora:
         </h3>
         <div className="grid md:grid-cols-3 gap-6">
@@ -199,13 +199,13 @@ export function CompletionStep() {
                 onClick={() => router.push(step.href)}
                 className="cursor-pointer"
               >
-                <GlassCard className="p-6 h-full hover:bg-white/10 transition-all">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${step.color} rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                <GlassCard className="p-6 h-full hover:bg-slate-50 transition-all">
+                  <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <h4 className="font-semibold text-white mb-2">{step.title}</h4>
-                  <p className="text-white/60 text-sm mb-4">{step.description}</p>
-                  <button className="text-purple-400 hover:text-purple-300 font-medium text-sm flex items-center gap-1 mx-auto transition-colors">
+                  <h4 className="font-semibold text-slate-900 mb-2">{step.title}</h4>
+                  <p className="text-gray-500 text-sm mb-4">{step.description}</p>
+                  <button className="text-slate-700 hover:text-slate-900 font-medium text-sm flex items-center gap-1 mx-auto transition-colors">
                     {step.action} <ArrowRight className="w-4 h-4" />
                   </button>
                 </GlassCard>
@@ -222,11 +222,11 @@ export function CompletionStep() {
         transition={{ delay: 1.3 }}
       >
         <GlassCard variant="highlight" className="p-6 mb-8">
-          <h4 className="font-semibold text-white mb-3 flex items-center justify-center gap-2">
-            <Star className="w-5 h-5 text-yellow-400" />
+          <h4 className="font-semibold text-slate-900 mb-3 flex items-center justify-center gap-2">
+            <Star className="w-5 h-5 text-amber-500" />
             Tips Pro para Empezar
           </h4>
-          <div className="text-left space-y-2 text-sm text-purple-200">
+          <div className="text-left space-y-2 text-sm text-gray-600">
             <p>• Comienza con un plan semanal simple para familiarizarte</p>
             <p>• Califica las comidas para mejorar las sugerencias de la IA</p>
             <p>• Actualiza tu despensa regularmente para recomendaciones precisas</p>
@@ -242,7 +242,7 @@ export function CompletionStep() {
         transition={{ delay: 1.5 }}
         className="text-center"
       >
-        <p className="text-white/60 text-sm mb-4">
+        <p className="text-gray-500 text-sm mb-4">
           Te llevaremos a tu dashboard en un momento...
         </p>
         <GlassButton

@@ -51,7 +51,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
     setHasGenerated(true);
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const apiKey = geminiConfig.getApiKey();
       if (!apiKey) throw new Error('Gemini API key not configured');
@@ -62,7 +62,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
       const dietaryRestrictions = data.preferences?.dietary_restrictions || [];
       const allergies = data.preferences?.allergies || [];
       const pantryItems = data.pantryItems || [];
-      
+
       const prompt = `Genera un plan de comidas personalizado para 5 días basándote en esta información:
       
       Perfil del usuario:
@@ -94,33 +94,33 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
       
       5 días en total, sin markdown ni explicaciones adicionales.`;
 
-      const result = await aiService.generateText({ prompt: prompt);
+      const result = await aiService.generateText({ prompt: prompt });
       const response = await result.response;
       let text = response.text().trim();
-      
+
       // Clean markdown if present
       if (text.startsWith('```json')) text = text.slice(7);
       if (text.startsWith('```')) text = text.slice(3);
       if (text.endsWith('```')) text = text.slice(0, -3);
-      
+
       const generatedPlan = JSON.parse(text.trim());
-      
+
       // Process and calculate totals
       const processedPlan = generatedPlan.map((day: any) => ({
         ...day,
-        totalCalories: Object.values(day.meals).reduce((sum: number, meal: any) => 
+        totalCalories: Object.values(day.meals).reduce((sum: number, meal: any) =>
           sum + (meal?.calories || 0), 0
         ),
-        totalTime: Object.values(day.meals).reduce((sum: number, meal: any) => 
+        totalTime: Object.values(day.meals).reduce((sum: number, meal: any) =>
           sum + (meal?.time || 0), 0
         )
       }));
-      
+
       setMealPlan(processedPlan);
     } catch (error) {
       logger.error('Failed to generate meal plan:', 'MealPlanPreviewStep', error);
       setError('No pudimos generar tu plan de comidas. Por favor, intenta de nuevo.');
-      
+
       // Fallback plan
       setMealPlan([
         {
@@ -191,7 +191,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
 
   return (
     <div className="max-w-4xl mx-auto">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
@@ -216,7 +216,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
               <span className="text-sm font-medium text-purple-300">{persona.label}</span>
             </div>
           </div>
-          
+
           <div className="space-y-3">
             {profile?.display_name && (
               <div className="flex items-center gap-2">
@@ -224,7 +224,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
                 <span className="text-sm text-purple-200">{profile.display_name}</span>
               </div>
             )}
-            
+
             {preferences?.dietary_restrictions && preferences.dietary_restrictions.length > 0 && (
               <div>
                 <span className="text-sm font-medium text-white">Restricciones dietéticas: </span>
@@ -237,7 +237,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
                 </div>
               </div>
             )}
-            
+
             {preferences?.allergies && preferences.allergies.length > 0 && (
               <div>
                 <span className="text-sm font-medium text-white">Alergias: </span>
@@ -250,7 +250,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
                 </div>
               </div>
             )}
-            
+
             {data.pantryItems && data.pantryItems.length > 0 && (
               <div>
                 <span className="text-sm font-medium text-white">Ingredientes en despensa: </span>
@@ -280,14 +280,14 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
 
           <AnimatePresence mode="wait">
             {isLoading && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="text-center py-12"
               >
                 <div className="inline-flex items-center gap-3">
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     className="relative w-8 h-8"
@@ -324,14 +324,14 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
           )}
 
           {mealPlan.length > 0 && !isLoading && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="space-y-4"
             >
               {mealPlan.map((day, index) => (
-                <motion.div 
-                  key={index} 
+                <motion.div
+                  key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -400,8 +400,8 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
                   <p className="text-sm flex items-start gap-2">
                     <Sparkles className="h-4 w-4 text-green-400 flex-shrink-0 mt-0.5" />
                     <span className="text-green-200">
-                      <span className="font-medium">¡Esto es solo una vista previa!</span> Una vez que completes la configuración, 
-                      tendrás acceso a planes completos con recetas detalladas, listas de compras, información nutricional 
+                      <span className="font-medium">¡Esto es solo una vista previa!</span> Una vez que completes la configuración,
+                      tendrás acceso a planes completos con recetas detalladas, listas de compras, información nutricional
                       y la posibilidad de personalizar cada comida según tus gustos.
                     </span>
                   </p>
@@ -465,7 +465,7 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
             <ArrowLeft className="w-4 h-4" />
             Atrás
           </GlassButton>
-          
+
           <GlassButton
             type="submit"
             variant="primary"

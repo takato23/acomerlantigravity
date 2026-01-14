@@ -7,7 +7,7 @@ This document summarizes the comprehensive testing suite implementation for the 
 
 ### 1. End-to-End Testing Framework
 **Technology**: Playwright with TypeScript
-**Configuration**: `/Users/santiagobalosky/kecarajocomer/playwright.config.ts`
+**Configuration**: `/Users/santiagobalosky/Documents/kecarajocomo/playwright.config.ts`
 
 **Key Features**:
 - Multi-browser support (Chrome, Firefox, Safari, Edge)
@@ -29,7 +29,7 @@ This document summarizes the comprehensive testing suite implementation for the 
 
 ### 2. Unit & Integration Testing Framework
 **Technology**: Jest + React Testing Library
-**Configuration**: `/Users/santiagobalosky/kecarajocomer/jest.config.js`
+**Configuration**: `/Users/santiagobalosky/Documents/kecarajocomo/jest.config.js`
 
 **Coverage Targets**:
 - Branches: 85%

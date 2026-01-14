@@ -58,7 +58,7 @@ export function MealPlannerWizardSummary({ data }: MealPlannerWizardSummaryProps
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl"
+          className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl"
         >
           <Check className="w-10 h-10 text-white" />
         </motion.div>
@@ -128,12 +128,12 @@ export function MealPlannerWizardSummary({ data }: MealPlannerWizardSummaryProps
             className="bg-white/10 backdrop-blur-xl rounded-xl p-4 border border-white/20"
           >
             <div className="flex items-start gap-3">
-              <Globe className="w-5 h-5 text-purple-400 mt-0.5" />
+              <Globe className="w-5 h-5 text-orange-400 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm text-white/60 mb-1">Cocinas favoritas</p>
                 <div className="flex flex-wrap gap-2">
                   {data.cuisinePreferences.map(cuisine => (
-                    <span key={cuisine} className="px-3 py-1 bg-purple-500/20 rounded-full text-sm text-purple-200">
+                    <span key={cuisine} className="px-3 py-1 bg-orange-500/20 rounded-full text-sm text-orange-200">
                       {cuisineLabels[cuisine] || cuisine}
                     </span>
                   ))}
@@ -151,7 +151,7 @@ export function MealPlannerWizardSummary({ data }: MealPlannerWizardSummaryProps
           className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
           <div className="bg-white/10 backdrop-blur-xl rounded-xl p-4 border border-white/20">
-            <ChefHat className="w-5 h-5 text-purple-400 mb-2" />
+            <ChefHat className="w-5 h-5 text-orange-400 mb-2" />
             <p className="text-sm text-white/60">Nivel</p>
             <p className="text-white font-medium">{skillLabels[data.cookingSkill]}</p>
           </div>
@@ -174,9 +174,9 @@ export function MealPlannerWizardSummary({ data }: MealPlannerWizardSummaryProps
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-xl rounded-xl p-4 border border-purple-400/20 text-center"
+        className="bg-slate-700/20 backdrop-blur-xl rounded-xl p-4 border border-slate-400/20 text-center"
       >
-        <div className="flex items-center justify-center gap-2 text-purple-300">
+        <div className="flex items-center justify-center gap-2 text-orange-300">
           <Sparkles className="w-5 h-5" />
           <p className="font-medium">¡Todo listo para crear tu plan personalizado!</p>
           <Sparkles className="w-5 h-5" />

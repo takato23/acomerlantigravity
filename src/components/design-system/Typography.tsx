@@ -51,21 +51,21 @@ const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(
 
     const colorClasses = gradient
       ? {
-          default: 'text-gradient-fresh',
-          muted: 'text-gradient-fresh opacity-80',
-          fresh: 'text-gradient-fresh',
-          warm: 'text-gradient-warm',
-          rich: 'text-gradient-rich',
-          golden: 'text-gradient-golden',
-        }
+        default: 'text-gradient-slate',
+        muted: 'text-gradient-slate opacity-80',
+        fresh: 'text-gradient-fresh',
+        warm: 'text-gradient-warm',
+        rich: 'text-gradient-rich',
+        golden: 'text-gradient-golden',
+      }
       : {
-          default: 'text-neutral-900 dark:text-neutral-100',
-          muted: 'text-neutral-600 dark:text-neutral-400',
-          fresh: 'text-food-fresh-700 dark:text-food-fresh-300',
-          warm: 'text-food-warm-700 dark:text-food-warm-300',
-          rich: 'text-food-rich-700 dark:text-food-rich-300',
-          golden: 'text-food-golden-700 dark:text-food-golden-300',
-        };
+        default: 'text-slate-900',
+        muted: 'text-slate-600',
+        fresh: 'text-food-fresh-700',
+        warm: 'text-food-warm-700',
+        rich: 'text-food-rich-700',
+        golden: 'text-food-golden-700',
+      };
 
     const truncateClasses = truncate ? 'truncate' : '';
 
@@ -137,16 +137,16 @@ const Text = React.forwardRef<HTMLElement, TextProps>(
     };
 
     const colorClasses = {
-      default: 'text-neutral-700 dark:text-neutral-300',
-      muted: 'text-neutral-500 dark:text-neutral-400',
-      fresh: 'text-food-fresh-700 dark:text-food-fresh-300',
-      warm: 'text-food-warm-700 dark:text-food-warm-300',
-      rich: 'text-food-rich-700 dark:text-food-rich-300',
-      golden: 'text-food-golden-700 dark:text-food-golden-300',
-      success: 'text-success-700 dark:text-success-300',
-      warning: 'text-warning-700 dark:text-warning-300',
-      error: 'text-error-700 dark:text-error-300',
-      info: 'text-info-700 dark:text-info-300',
+      default: 'text-slate-700',
+      muted: 'text-slate-500',
+      fresh: 'text-food-fresh-700',
+      warm: 'text-food-warm-700',
+      rich: 'text-food-rich-700',
+      golden: 'text-food-golden-700',
+      success: 'text-success-700',
+      warning: 'text-warning-700',
+      error: 'text-error-700',
+      info: 'text-info-700',
     };
 
     const alignClasses = {
@@ -195,8 +195,8 @@ const Code = React.forwardRef<HTMLElement, CodeProps>(
     const baseClasses = [
       'font-mono rounded',
       variant === 'inline'
-        ? 'px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800'
-        : 'p-4 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700',
+        ? 'px-1.5 py-0.5 bg-slate-100'
+        : 'p-4 bg-slate-50 border border-slate-200',
     ];
 
     const sizeClasses = {
@@ -213,7 +213,7 @@ const Code = React.forwardRef<HTMLElement, CodeProps>(
         className={cn(
           baseClasses,
           sizeClasses[size],
-          'text-neutral-800 dark:text-neutral-200',
+          'text-slate-800',
           className
         )}
         {...(props as any)}
@@ -254,24 +254,20 @@ const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
 
     const variantClasses = {
       default: [
-        'text-food-fresh-600 hover:text-food-fresh-700',
-        'dark:text-food-fresh-400 dark:hover:text-food-fresh-300',
-        'focus:ring-food-fresh-300',
+        'text-slate-600 hover:text-slate-700',
+        'focus:ring-slate-300',
       ],
       fresh: [
         'text-food-fresh-600 hover:text-food-fresh-700',
-        'dark:text-food-fresh-400 dark:hover:text-food-fresh-300',
         'focus:ring-food-fresh-300',
       ],
       warm: [
         'text-food-warm-600 hover:text-food-warm-700',
-        'dark:text-food-warm-400 dark:hover:text-food-warm-300',
         'focus:ring-food-warm-300',
       ],
       muted: [
-        'text-neutral-600 hover:text-neutral-700',
-        'dark:text-neutral-400 dark:hover:text-neutral-300',
-        'focus:ring-neutral-300',
+        'text-slate-600 hover:text-slate-700',
+        'focus:ring-slate-300',
       ],
     };
 
@@ -306,4 +302,76 @@ const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
 
 Link.displayName = 'Link';
 
-export { Heading, Text, Code, Link };
+// Caption Component
+export interface CaptionProps extends React.HTMLAttributes<HTMLSpanElement> {
+  color?: 'default' | 'muted' | 'fresh' | 'warm' | 'rich' | 'golden';
+  italic?: boolean;
+}
+
+const Caption = React.forwardRef<HTMLSpanElement, CaptionProps>(
+  ({ color = 'muted', italic = false, className, children, ...props }, ref) => {
+    const colorClasses = {
+      default: 'text-slate-500',
+      muted: 'text-slate-400',
+      fresh: 'text-food-fresh-500',
+      warm: 'text-food-warm-500',
+      rich: 'text-food-rich-500',
+      golden: 'text-food-golden-500',
+    };
+
+    return (
+      <span
+        ref={ref}
+        className={cn(
+          'text-xs font-medium uppercase tracking-wider',
+          colorClasses[color],
+          italic && 'italic',
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </span>
+    );
+  }
+);
+
+Caption.displayName = 'Caption';
+
+// Label Component
+export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  required?: boolean;
+  color?: 'default' | 'muted' | 'fresh' | 'warm' | 'rich' | 'golden';
+}
+
+const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ required = false, color = 'default', className, children, ...props }, ref) => {
+    const colorClasses = {
+      default: 'text-slate-700',
+      muted: 'text-slate-500',
+      fresh: 'text-food-fresh-700',
+      warm: 'text-food-warm-700',
+      rich: 'text-food-rich-700',
+      golden: 'text-food-golden-700',
+    };
+
+    return (
+      <label
+        ref={ref}
+        className={cn(
+          'text-sm font-semibold mb-1 block',
+          colorClasses[color],
+          className
+        )}
+        {...props}
+      >
+        {children}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+    );
+  }
+);
+
+Label.displayName = 'Label';
+
+export { Heading, Text, Code, Link, Caption, Label };

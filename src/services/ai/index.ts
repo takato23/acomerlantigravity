@@ -34,15 +34,15 @@ export const AI_MODELS = {
   GPT4: 'gpt-4',
   GPT35_TURBO: 'gpt-3.5-turbo',
   GPT4_VISION: 'gpt-4-vision-preview',
-  
+
   // Anthropic
   CLAUDE_3_OPUS: 'claude-3-opus-20240229',
   CLAUDE_3_SONNET: 'claude-3-sonnet-20240229',
   CLAUDE_3_HAIKU: 'claude-3-haiku-20240307',
-  
+
   // Gemini
-  GEMINI_PRO: 'gemini-1.5-flash',
-  GEMINI_PRO_VISION: 'gemini-1.5-flash',
+  GEMINI_PRO: 'gemini-2.0-flash',
+  GEMINI_PRO_VISION: 'gemini-2.0-flash',
 } as const;
 
 export const DEFAULT_AI_CONFIG = {

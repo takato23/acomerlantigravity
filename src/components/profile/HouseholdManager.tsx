@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logger } from '@/services/logger';
-import { 
+import {
   Users,
   Edit2,
   Trash2,
@@ -47,7 +47,7 @@ const DIETARY_RESTRICTIONS: { value: DietaryRestriction; label: string }[] = [
   { value: 'vegetarian', label: 'Vegetariano' },
   { value: 'vegan', label: 'Vegano' },
   { value: 'gluten_free', label: 'Sin gluten' },
-  { value: 'dairy_free', label: 'Sin lácteos' },
+  { value: 'dairy_free', label: 'Sin lacteos' },
   { value: 'nut_free', label: 'Sin frutos secos' },
   { value: 'pescatarian', label: 'Pescetariano' }
 ];
@@ -74,10 +74,10 @@ const HouseholdManagerSkeleton = () => (
   </div>
 );
 
-export const HouseholdManager: React.FC<HouseholdManagerProps> = ({ 
-  householdMembers, 
-  preferences, 
-  onUpdatePreferences 
+export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
+  householdMembers,
+  preferences,
+  onUpdatePreferences
 }) => {
   const { addHouseholdMember, updateHouseholdMember, removeHouseholdMember, getHouseholdSize } = useProfile();
   const [isAddingMember, setIsAddingMember] = useState(false);
@@ -85,7 +85,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  
+
   const [memberForm, setMemberForm] = useState<Partial<HouseholdMember>>({
     name: '',
     relationship: 'partner',
@@ -100,20 +100,20 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
     const totalMembers = householdMembers.length + 1; // Include self
     const children = householdMembers.filter(m => m.relationship === 'child').length;
     const adults = totalMembers - children;
-    
+
     const allDietaryRestrictions = new Set<DietaryRestriction>();
     const allAllergies = new Set<Allergy>();
-    
+
     // Add user's own restrictions
     preferences.dietaryRestrictions?.forEach(r => allDietaryRestrictions.add(r));
     preferences.allergies?.forEach(a => allAllergies.add(a));
-    
+
     // Add household members' restrictions
     householdMembers.forEach(member => {
       member.dietaryRestrictions?.forEach(r => allDietaryRestrictions.add(r));
       member.allergies?.forEach(a => allAllergies.add(a));
     });
-    
+
     return {
       totalMembers,
       adults,
@@ -132,7 +132,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       if (editingMember) {
         await updateHouseholdMember(editingMember.id, {
@@ -153,7 +153,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
           preferences: memberForm.preferences
         });
       }
-      
+
       setIsAddingMember(false);
       setEditingMember(null);
       setMemberForm({
@@ -176,7 +176,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   const handleDeleteMember = useCallback(async (memberId: string) => {
     setIsDeleting(memberId);
     setError(null);
-    
+
     try {
       await removeHouseholdMember(memberId);
     } catch (err) {
@@ -274,19 +274,19 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-slate-50 rounded-lg p-3">
               <div className="text-2xl font-bold">{householdStats.totalMembers}</div>
               <div className="text-xs text-muted-foreground">Total personas</div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-slate-50 rounded-lg p-3">
               <div className="text-2xl font-bold">{householdStats.adults}</div>
               <div className="text-xs text-muted-foreground">Adultos</div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-slate-50 rounded-lg p-3">
               <div className="text-2xl font-bold">{householdStats.children}</div>
-              <div className="text-xs text-muted-foreground">Niños</div>
+              <div className="text-xs text-muted-foreground">Ninos</div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="bg-slate-50 rounded-lg p-3">
               <div className="text-2xl font-bold">{householdStats.allergies}</div>
               <div className="text-xs text-muted-foreground">Alergias totales</div>
             </div>
@@ -305,13 +305,13 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                   <User className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-medium">Tú</h4>
+                  <h4 className="font-medium">Tu</h4>
                   <p className="text-sm text-muted-foreground">Cuenta principal</p>
                 </div>
               </div>
               <Badge variant="default">Principal</Badge>
             </div>
-            
+
             {(preferences.dietaryRestrictions?.length > 0 || preferences.allergies?.length > 0) && (
               <div className="space-y-2 pt-2 border-t">
                 {preferences.dietaryRestrictions?.length > 0 && (
@@ -341,8 +341,8 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
         <AnimatePresence mode="popLayout">
           {householdMembers.map((member) => {
             const Icon = getRelationshipIcon(member.relationship);
-            const isDeleting = isDeleting === member.id;
-            
+            const isDeletingMember = isDeleting === member.id;
+
             return (
               <motion.div
                 key={member.id}
@@ -363,17 +363,17 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                           <h4 className="font-medium">{member.name}</h4>
                           <p className="text-sm text-muted-foreground">
                             {RELATIONSHIPS.find(r => r.value === member.relationship)?.label}
-                            {member.age && ` • ${member.age} años`}
+                            {member.age && ` - ${member.age} anos`}
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-1">
                         <Button
                           size="icon"
                           variant="ghost"
                           onClick={() => handleEditMember(member)}
-                          disabled={isDeleting}
+                          disabled={isDeletingMember}
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>
@@ -381,9 +381,9 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                           size="icon"
                           variant="ghost"
                           onClick={() => handleDeleteMember(member.id)}
-                          disabled={isDeleting}
+                          disabled={isDeletingMember}
                         >
-                          {isDeleting ? (
+                          {isDeletingMember ? (
                             <motion.div
                               animate={{ rotate: 360 }}
                               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -396,8 +396,8 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                         </Button>
                       </div>
                     </div>
-                    
-                    {((member.dietaryRestrictions && member.dietaryRestrictions.length > 0) || 
+
+                    {((member.dietaryRestrictions && member.dietaryRestrictions.length > 0) ||
                       (member.allergies && member.allergies.length > 0)) && (
                       <div className="space-y-2 pt-2 border-t">
                         {member.dietaryRestrictions && member.dietaryRestrictions.length > 0 && (
@@ -436,8 +436,8 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
               {editingMember ? 'Editar Miembro del Hogar' : 'Agregar Miembro del Hogar'}
             </DialogTitle>
             <DialogDescription>
-              {editingMember 
-                ? 'Actualiza la información del miembro del hogar'
+              {editingMember
+                ? 'Actualiza la informacion del miembro del hogar'
                 : 'Agrega un nuevo miembro a tu hogar para personalizar las recetas'}
             </DialogDescription>
           </DialogHeader>
@@ -451,12 +451,12 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                   id="name"
                   value={memberForm.name}
                   onChange={(e) => setMemberForm({ ...memberForm, name: e.target.value })}
-                  placeholder="Ej: María"
+                  placeholder="Ej: Maria"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="relationship">Relación</Label>
+                <Label htmlFor="relationship">Relacion</Label>
                 <Select
                   value={memberForm.relationship}
                   onValueChange={(value) => setMemberForm({ ...memberForm, relationship: value as HouseholdMember['relationship'] })}
@@ -499,7 +499,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
 
             {/* Dietary Restrictions */}
             <div className="space-y-2">
-              <Label>Restricciones Dietéticas</Label>
+              <Label>Restricciones Dieteticas</Label>
               <div className="grid grid-cols-2 gap-3">
                 {DIETARY_RESTRICTIONS.map(({ value, label }) => (
                   <div key={value} className="flex items-center space-x-2">
@@ -590,4 +590,3 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
 };
 
 HouseholdManager.displayName = 'HouseholdManager';
-

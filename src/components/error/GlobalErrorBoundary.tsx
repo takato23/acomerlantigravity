@@ -138,44 +138,44 @@ function ErrorFallback({ error, errorId, isReporting, reportSuccess, onReset }: 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-8 text-center">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200 p-8 text-center">
           {/* Icon */}
-          <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="w-10 h-10 text-red-600" />
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
             ¡Oops! Algo salió mal
           </h1>
 
           {/* Description */}
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-slate-600 mb-4">
             Lo sentimos, ha ocurrido un error inesperado. Nuestro equipo ha sido notificado automáticamente.
           </p>
 
           {/* Error ID and Status */}
           {errorId && (
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6">
+            <div className="bg-slate-50 rounded-lg p-4 mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span className="text-sm font-medium text-slate-700">
                   ID del Error:
                 </span>
                 <div className="flex items-center gap-2">
                   {isReporting ? (
-                    <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
-                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-yellow-400 border-t-transparent"></div>
+                    <div className="flex items-center gap-2 text-amber-600">
+                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-amber-400 border-t-transparent"></div>
                       <span className="text-xs">Reportando...</span>
                     </div>
                   ) : reportSuccess ? (
-                    <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <div className="flex items-center gap-1 text-green-600">
                       <CheckCircle className="w-4 h-4" />
                       <span className="text-xs">Reportado</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                    <div className="flex items-center gap-1 text-red-600">
                       <Bug className="w-4 h-4" />
                       <span className="text-xs">No reportado</span>
                     </div>
@@ -183,7 +183,7 @@ function ErrorFallback({ error, errorId, isReporting, reportSuccess, onReset }: 
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs font-mono bg-white dark:bg-gray-900 px-2 py-1 rounded border text-gray-800 dark:text-gray-200">
+                <code className="flex-1 text-xs font-mono bg-white px-2 py-1 rounded border text-slate-800">
                   {errorId}
                 </code>
                 <Button
@@ -204,8 +204,8 @@ function ErrorFallback({ error, errorId, isReporting, reportSuccess, onReset }: 
 
           {/* Error details (development only) */}
           {process.env.NODE_ENV === 'development' && error && (
-            <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 mb-6 text-left">
-              <p className="text-sm font-mono text-gray-700 dark:text-gray-300 break-all">
+            <div className="bg-slate-100 rounded-lg p-4 mb-6 text-left">
+              <p className="text-sm font-mono text-slate-700 break-all">
                 {error.toString()}
               </p>
             </div>

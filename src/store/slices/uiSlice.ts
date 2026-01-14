@@ -66,35 +66,35 @@ export interface UISlice {
       isSearching: boolean;
     };
   };
-  
+
   // Actions
   setTheme: (theme: typeof ui.theme) => void;
   setLanguage: (language: typeof ui.language) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  
+
   showNotification: (notification: Omit<Notification, 'id' | 'createdAt'>) => void;
   hideNotification: (id: string) => void;
   clearNotifications: () => void;
-  
+
   setModalOpen: (modal: Omit<Modal, 'id'>) => void;
   closeModal: (id: string) => void;
   closeAllModals: () => void;
-  
+
   setLoading: (key: string, loading: boolean) => void;
   clearLoading: () => void;
-  
+
   updatePreferences: (preferences: Partial<typeof ui.preferences>) => void;
-  
+
   setCurrentPage: (page: string, title?: string, description?: string) => void;
   setBreadcrumbs: (breadcrumbs: typeof ui.layout.breadcrumbs) => void;
-  
+
   startTour: (tourId: string) => void;
   nextTourStep: () => void;
   prevTourStep: () => void;
   completeTour: (tourId: string) => void;
   skipTour: () => void;
-  
+
   setSearchQuery: (query: string) => void;
   setSearchFilters: (filters: Record<string, any>) => void;
   setSearchResults: (results: any[]) => void;
@@ -114,7 +114,7 @@ const defaultPreferences = {
   confirmActions: true
 };
 
-export const createUISlice: StateCreator<UISlice> = (set, get) => ({
+export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => ({
   ui: {
     theme: 'elegant',
     language: 'es',
@@ -141,15 +141,15 @@ export const createUISlice: StateCreator<UISlice> = (set, get) => ({
       isSearching: false
     }
   },
-  
+
   setTheme: (theme) => set((state) => {
     state.ui.theme = theme;
-    
+
     // Apply theme to document
     if (typeof window !== 'undefined') {
       const root = document.documentElement;
       root.classList.remove('light', 'dark', 'elegant', 'vibrant', 'minimal');
-      
+
       if (theme === 'system') {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         root.classList.add(prefersDark ? 'dark' : 'light');
@@ -158,33 +158,33 @@ export const createUISlice: StateCreator<UISlice> = (set, get) => ({
       }
     }
   }),
-  
+
   setLanguage: (language) => set((state) => {
     state.ui.language = language;
-    
+
     // Update document language
     if (typeof window !== 'undefined') {
       document.documentElement.lang = language;
     }
   }),
-  
+
   toggleSidebar: () => set((state) => {
     state.ui.sidebarOpen = !state.ui.sidebarOpen;
   }),
-  
+
   setSidebarOpen: (open) => set((state) => {
     state.ui.sidebarOpen = open;
   }),
-  
+
   showNotification: (notification) => set((state) => {
     const newNotification: Notification = {
       ...notification,
       id: Date.now().toString() + Math.random(),
       createdAt: new Date()
     };
-    
+
     state.ui.notifications.push(newNotification);
-    
+
     // Auto-remove notification after duration
     if (notification.duration && notification.duration > 0) {
       setTimeout(() => {
@@ -192,32 +192,32 @@ export const createUISlice: StateCreator<UISlice> = (set, get) => ({
       }, notification.duration);
     }
   }),
-  
+
   hideNotification: (id) => set((state) => {
     state.ui.notifications = state.ui.notifications.filter(n => n.id !== id);
   }),
-  
+
   clearNotifications: () => set((state) => {
     state.ui.notifications = [];
   }),
-  
+
   setModalOpen: (modal) => set((state) => {
     const newModal: Modal = {
       ...modal,
       id: Date.now().toString() + Math.random()
     };
-    
+
     state.ui.modals.push(newModal);
   }),
-  
+
   closeModal: (id) => set((state) => {
     state.ui.modals = state.ui.modals.filter(m => m.id !== id);
   }),
-  
+
   closeAllModals: () => set((state) => {
     state.ui.modals = [];
   }),
-  
+
   setLoading: (key, loading) => set((state) => {
     if (loading) {
       state.ui.loading[key] = true;
@@ -225,104 +225,104 @@ export const createUISlice: StateCreator<UISlice> = (set, get) => ({
       delete state.ui.loading[key];
     }
   }),
-  
+
   clearLoading: () => set((state) => {
     state.ui.loading = {};
   }),
-  
+
   updatePreferences: (preferences) => set((state) => {
     Object.assign(state.ui.preferences, preferences);
-    
+
     // Apply preferences to document
     if (typeof window !== 'undefined') {
       const root = document.documentElement;
-      
+
       // Reduced motion
       if (preferences.reducedMotion !== undefined) {
         root.style.setProperty('--motion-reduce', preferences.reducedMotion ? '1' : '0');
       }
-      
+
       // High contrast
       if (preferences.highContrast !== undefined) {
         root.classList.toggle('high-contrast', preferences.highContrast);
       }
-      
+
       // Font size
       if (preferences.fontSize) {
         root.classList.remove('text-sm', 'text-md', 'text-lg');
         root.classList.add(`text-${preferences.fontSize}`);
       }
-      
+
       // Compact mode
       if (preferences.compactMode !== undefined) {
         root.classList.toggle('compact-mode', preferences.compactMode);
       }
     }
   }),
-  
-  setCurrentPage: (page, title, description) => set((state) => {
+
+  setCurrentPage: (page, title, description) => set((state: UISlice) => {
     state.ui.layout.currentPage = page;
     state.ui.layout.pageTitle = title;
     state.ui.layout.pageDescription = description;
-    
+
     // Update document title
     if (title && typeof window !== 'undefined') {
       document.title = `${title} - KeCarajoComér`;
     }
   }),
-  
-  setBreadcrumbs: (breadcrumbs) => set((state) => {
+
+  setBreadcrumbs: (breadcrumbs) => set((state: UISlice) => {
     state.ui.layout.breadcrumbs = breadcrumbs;
   }),
-  
-  startTour: (tourId) => set((state) => {
+
+  startTour: (tourId) => set((state: UISlice) => {
     state.ui.tour.active = true;
     state.ui.tour.currentStep = 0;
   }),
-  
-  nextTourStep: () => set((state) => {
+
+  nextTourStep: () => set((state: UISlice) => {
     if (state.ui.tour.active) {
       state.ui.tour.currentStep += 1;
     }
   }),
-  
-  prevTourStep: () => set((state) => {
+
+  prevTourStep: () => set((state: UISlice) => {
     if (state.ui.tour.active && state.ui.tour.currentStep > 0) {
       state.ui.tour.currentStep -= 1;
     }
   }),
-  
-  completeTour: (tourId) => set((state) => {
+
+  completeTour: (tourId) => set((state: UISlice) => {
     state.ui.tour.active = false;
     state.ui.tour.currentStep = 0;
-    
+
     if (!state.ui.tour.completed.includes(tourId)) {
       state.ui.tour.completed.push(tourId);
     }
   }),
-  
-  skipTour: () => set((state) => {
+
+  skipTour: () => set((state: UISlice) => {
     state.ui.tour.active = false;
     state.ui.tour.currentStep = 0;
   }),
-  
-  setSearchQuery: (query) => set((state) => {
+
+  setSearchQuery: (query) => set((state: UISlice) => {
     state.ui.search.query = query;
   }),
-  
-  setSearchFilters: (filters) => set((state) => {
+
+  setSearchFilters: (filters) => set((state: UISlice) => {
     state.ui.search.filters = filters;
   }),
-  
-  setSearchResults: (results) => set((state) => {
+
+  setSearchResults: (results) => set((state: UISlice) => {
     state.ui.search.results = results;
   }),
-  
-  setSearching: (searching) => set((state) => {
+
+  setSearching: (searching) => set((state: UISlice) => {
     state.ui.search.isSearching = searching;
   }),
-  
-  clearSearch: () => set((state) => {
+
+  clearSearch: () => set((state: UISlice) => {
     state.ui.search.query = '';
     state.ui.search.filters = {};
     state.ui.search.results = [];

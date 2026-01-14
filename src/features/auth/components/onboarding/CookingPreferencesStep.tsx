@@ -20,28 +20,28 @@ const SKILL_LEVELS = [
     label: 'Principiante',
     description: 'Puedo seguir recetas simples',
     icon: '👶',
-    color: 'from-green-400 to-emerald-400'
+    color: 'bg-green-600'
   },
   {
     value: CookingSkillLevel.INTERMEDIATE,
     label: 'Intermedio',
     description: 'Me siento cómodo con la mayoría de recetas',
     icon: '👨‍🍳',
-    color: 'from-blue-400 to-cyan-400'
+    color: 'bg-slate-600'
   },
   {
     value: CookingSkillLevel.ADVANCED,
     label: 'Avanzado',
     description: 'Disfruto técnicas de cocina complejas',
     icon: '🧑‍🍳',
-    color: 'from-purple-400 to-pink-400'
+    color: 'bg-slate-700'
   },
   {
     value: CookingSkillLevel.EXPERT,
     label: 'Experto',
     description: 'Puedo improvisar y crear recetas',
     icon: '⭐',
-    color: 'from-yellow-400 to-orange-400'
+    color: 'bg-amber-500'
   }
 ];
 
@@ -51,21 +51,21 @@ const TIME_PREFERENCES = [
     label: 'Rápido y Fácil',
     description: 'Menos de 30 minutos',
     icon: '⚡',
-    color: 'from-yellow-400 to-orange-400'
+    color: 'bg-amber-500'
   },
   {
     value: CookingTimePreference.MODERATE,
     label: 'Moderado',
     description: '30-60 minutos',
     icon: '⏱️',
-    color: 'from-blue-400 to-cyan-400'
+    color: 'bg-slate-600'
   },
   {
     value: CookingTimePreference.LEISURELY,
     label: 'Sin Prisa',
     description: 'Disfruto pasar tiempo cocinando',
     icon: '🍲',
-    color: 'from-purple-400 to-pink-400'
+    color: 'bg-slate-700'
   }
 ];
 
@@ -135,10 +135,10 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <h2 className="text-3xl font-bold text-white mb-2">
+        <h2 className="text-3xl font-black tracking-tighter text-slate-900 mb-2">
           Preferencias de Cocina
         </h2>
-        <p className="text-white/60">
+        <p className="text-gray-600">
           Ayúdanos a entender tu estilo y preferencias en la cocina
         </p>
       </motion.div>
@@ -146,8 +146,8 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Skill Level */}
         <div>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <ChefHat className="h-5 w-5 text-purple-400" />
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <ChefHat className="h-5 w-5 text-slate-600" />
             Nivel de Habilidad Culinaria
           </h3>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -159,24 +159,24 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
                 transition={{ duration: 0.3, delay: 0.05 * index }}
                 type="button"
                 onClick={() => setSkillLevel(level.value)}
-                className={`p-4 rounded-xl border-2 transition-all text-left backdrop-blur-xl ${
+                className={`p-4 rounded-xl border-2 transition-all text-left backdrop-blur-sm ${
                   skillLevel === level.value
-                    ? 'border-purple-400 bg-purple-500/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                    ? 'border-slate-700 bg-slate-50'
+                    : 'border-gray-200 bg-white hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${level.color} flex items-center justify-center text-2xl`}>
+                  <div className={`w-12 h-12 rounded-lg ${level.color} flex items-center justify-center text-2xl`}>
                     {level.icon}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-white flex items-center gap-2">
+                    <div className="font-medium text-slate-900 flex items-center gap-2">
                       {level.label}
                       {skillLevel === level.value && (
-                        <Check className="h-4 w-4 text-purple-400" />
+                        <Check className="h-4 w-4 text-slate-700" />
                       )}
                     </div>
-                    <div className="text-sm text-white/60 mt-1">
+                    <div className="text-sm text-gray-600 mt-1">
                       {level.description}
                     </div>
                   </div>
@@ -188,8 +188,8 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
 
         {/* Time Preference */}
         <div>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-purple-400" />
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-slate-600" />
             Preferencia de Tiempo de Cocina
           </h3>
           <div className="grid sm:grid-cols-3 gap-3">
@@ -201,19 +201,19 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
                 transition={{ duration: 0.3, delay: 0.05 * index }}
                 type="button"
                 onClick={() => setTimePreference(pref.value)}
-                className={`p-4 rounded-xl border-2 transition-all text-center backdrop-blur-xl ${
+                className={`p-4 rounded-xl border-2 transition-all text-center backdrop-blur-sm ${
                   timePreference === pref.value
-                    ? 'border-purple-400 bg-purple-500/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                    ? 'border-slate-700 bg-slate-50'
+                    : 'border-gray-200 bg-white hover:bg-gray-50'
                 }`}
               >
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${pref.color} flex items-center justify-center text-2xl mx-auto mb-3`}>
+                <div className={`w-12 h-12 rounded-lg ${pref.color} flex items-center justify-center text-2xl mx-auto mb-3`}>
                   {pref.icon}
                 </div>
-                <div className="font-medium text-white">
+                <div className="font-medium text-slate-900">
                   {pref.label}
                 </div>
-                <div className="text-sm text-white/60 mt-1">
+                <div className="text-sm text-gray-600 mt-1">
                   {pref.description}
                 </div>
               </motion.button>
@@ -223,8 +223,8 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
 
         {/* Household Size */}
         <GlassCard>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-purple-400" />
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5 text-slate-600" />
             Tamaño del Hogar
           </h3>
           <div className="flex items-center justify-center gap-6">
@@ -233,20 +233,20 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
               whileTap={{ scale: 0.9 }}
               type="button"
               onClick={() => setHouseholdSize(Math.max(1, householdSize - 1))}
-              className="w-12 h-12 rounded-full bg-white/10 border-2 border-white/20 hover:border-purple-400 hover:bg-purple-500/20 flex items-center justify-center text-white transition-all"
+              className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 hover:border-slate-700 hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-all"
             >
               <Minus className="w-5 h-5" />
             </motion.button>
-            <motion.div 
+            <motion.div
               key={householdSize}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="text-center"
             >
-              <div className="text-4xl font-bold text-white bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <div className="text-4xl font-bold text-slate-900">
                 {householdSize}
               </div>
-              <div className="text-sm text-white/60">
+              <div className="text-sm text-gray-600">
                 {householdSize === 1 ? 'persona' : 'personas'}
               </div>
             </motion.div>
@@ -255,22 +255,22 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
               whileTap={{ scale: 0.9 }}
               type="button"
               onClick={() => setHouseholdSize(householdSize + 1)}
-              className="w-12 h-12 rounded-full bg-white/10 border-2 border-white/20 hover:border-purple-400 hover:bg-purple-500/20 flex items-center justify-center text-white transition-all"
+              className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 hover:border-slate-700 hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-all"
             >
               <Plus className="w-5 h-5" />
             </motion.button>
           </div>
-          <p className="text-sm text-white/60 mt-4 text-center">
+          <p className="text-sm text-gray-600 mt-4 text-center">
             Ajustaremos el tamaño de las porciones según tu hogar
           </p>
         </GlassCard>
 
         {/* Cuisine Preferences */}
         <div>
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">
             Cocinas Favoritas
           </h3>
-          <p className="text-sm text-white/60 mb-4">
+          <p className="text-sm text-gray-600 mb-4">
             Selecciona todas las que te gusten (¡las mezclaremos!)
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -284,27 +284,27 @@ export function CookingPreferencesStep({ onNext, onBack }: CookingPreferencesSte
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => toggleCuisine(cuisine.value)}
-                className={`p-3 rounded-xl border-2 transition-all text-center backdrop-blur-xl ${
+                className={`p-3 rounded-xl border-2 transition-all text-center backdrop-blur-sm ${
                   cuisinePreferences.includes(cuisine.value)
-                    ? 'border-purple-400 bg-purple-500/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                    ? 'border-slate-700 bg-slate-50'
+                    : 'border-gray-200 bg-white hover:bg-gray-50'
                 }`}
               >
                 <span className="text-2xl mb-1 block">{cuisine.icon}</span>
-                <div className="text-xs font-medium text-white">
+                <div className="text-xs font-medium text-slate-900">
                   {cuisine.label}
                 </div>
               </motion.button>
             ))}
           </div>
           {cuisinePreferences.length > 0 && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="mt-4 flex items-center gap-2"
             >
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <p className="text-sm text-purple-300">
+              <Sparkles className="w-4 h-4 text-slate-600" />
+              <p className="text-sm text-slate-600">
                 {cuisinePreferences.length} cocina{cuisinePreferences.length !== 1 ? 's' : ''} seleccionada{cuisinePreferences.length !== 1 ? 's' : ''}
               </p>
             </motion.div>

@@ -5,7 +5,8 @@
 
 import { logger } from '@/lib/logger';
 import { db } from '@/lib/supabase/database.service';
-import { GeminiService } from '@/services/ai/GeminiService';
+import { UnifiedAIService } from '@/services/ai/UnifiedAIService';
+import { WeeklyPantryPlan, PantryAwareMealPlan } from '../types/mealPlanning';
 
 interface PantryIngredient {
   name: string;
@@ -57,10 +58,10 @@ interface WeeklyPantryPlan {
 }
 
 export class PantryMealPlanningService {
-  private gemini: GeminiService;
+  private aiService: UnifiedAIService;
 
   constructor() {
-    this.gemini = new GeminiService();
+    this.aiService = UnifiedAIService.getInstance();
   }
 
   /**
@@ -83,7 +84,7 @@ export class PantryMealPlanningService {
     try {
       // Get user's pantry items
       const pantryItems = await db.getPantryItems(userId);
-      
+
       // Transform pantry items for AI processing
       const pantryInventory: PantryIngredient[] = pantryItems.map(item => ({
         name: item.ingredient?.name || '',
@@ -96,8 +97,8 @@ export class PantryMealPlanningService {
       // Identify expiring items (within 7 days)
       const now = new Date();
       const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const expiringItems = pantryInventory.filter(item => 
-        item.expiration_date && 
+      const expiringItems = pantryInventory.filter(item =>
+        item.expiration_date &&
         new Date(item.expiration_date) <= oneWeekFromNow &&
         new Date(item.expiration_date) >= now
       );
@@ -116,8 +117,11 @@ export class PantryMealPlanningService {
         expiringItemsCount: expiringItems.length
       });
 
-      const response = await this.gemini.generateContent(prompt);
-      const mealPlan = JSON.parse(response) as WeeklyPantryPlan;
+      const response = await this.aiService.generateJSON<WeeklyPantryPlan>({
+        prompt,
+        systemPrompt: 'You are an Argentine-aligned meal planning expert that optimizes for pantry usage and waste reduction.'
+      });
+      const mealPlan = response.data;
 
       // Validate and enhance the response
       const validatedPlan = this.validateAndEnhancePlan(mealPlan, dateRange);
@@ -139,13 +143,13 @@ export class PantryMealPlanningService {
   ): Promise<PantryAwareMealPlan[]> {
     try {
       const pantryItems = await db.getPantryItems(userId);
-      
+
       // Find items expiring within the specified days
       const now = new Date();
       const targetDate = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
-      
-      const expiringItems = pantryItems.filter(item => 
-        item.expiration_date && 
+
+      const expiringItems = pantryItems.filter(item =>
+        item.expiration_date &&
         new Date(item.expiration_date) <= targetDate &&
         new Date(item.expiration_date) >= now
       );
@@ -167,9 +171,9 @@ export class PantryMealPlanningService {
 Based on these expiring pantry ingredients, suggest 3-5 recipes that use them effectively:
 
 Expiring Ingredients:
-${expiringIngredients.map(ing => 
-  `- ${ing.name} (${ing.quantity} ${ing.unit}) - expires in ${ing.days_until_expiry} days`
-).join('\n')}
+${expiringIngredients.map(ing =>
+        `- ${ing.name} (${ing.quantity} ${ing.unit}) - expires in ${ing.days_until_expiry} days`
+      ).join('\n')}
 
 For each recipe, provide:
 1. Recipe name and description
@@ -208,8 +212,11 @@ Return as JSON array of recipe objects with this structure:
 }
 `;
 
-      const response = await this.gemini.generateContent(prompt);
-      const suggestions = JSON.parse(response) as PantryAwareMealPlan[];
+      const response = await this.aiService.generateJSON<PantryAwareMealPlan[]>({
+        prompt,
+        systemPrompt: 'You are an Argentine-aligned chef that specializes in using expiring ingredients.'
+      });
+      const suggestions = response.data;
 
       logger.info('Generated expiring ingredient recipes', 'PantryMealPlanningService', {
         userId,
@@ -243,7 +250,7 @@ Return as JSON array of recipe objects with this structure:
     try {
       // Get pantry items
       const pantryItems = await db.getPantryItems(userId);
-      const availableIngredients = pantryItems.map(item => 
+      const availableIngredients = pantryItems.map(item =>
         item.ingredient?.name?.toLowerCase() || ''
       ).filter(Boolean);
 
@@ -283,8 +290,11 @@ Return as JSON with:
 }
 `;
 
-      const response = await this.gemini.generateContent(prompt);
-      const optimization = JSON.parse(response);
+      const response = await this.aiService.generateJSON<any>({
+        prompt,
+        systemPrompt: 'You are an Argentine-aligned meal plan optimizer.'
+      });
+      const optimization = response.data;
 
       logger.info('Optimized meal plan with pantry', 'PantryMealPlanningService', {
         userId,

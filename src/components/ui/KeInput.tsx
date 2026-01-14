@@ -47,8 +47,7 @@ const KeInput = forwardRef<HTMLInputElement, KeInputProps>(({
   
   const baseStyles = `
     w-full px-4 py-3 text-base rounded-xl border transition-all duration-200
-    bg-white/80 backdrop-blur-sm placeholder:text-gray-500
-    dark:bg-gray-900/80 dark:text-white dark:placeholder:text-gray-400
+    bg-white/80 backdrop-blur-sm placeholder:text-slate-500
     focus:outline-none focus:ring-2 focus:ring-offset-1
     disabled:opacity-50 disabled:cursor-not-allowed
     min-h-[44px] touch-manipulation
@@ -56,17 +55,14 @@ const KeInput = forwardRef<HTMLInputElement, KeInputProps>(({
 
   const variants = {
     default: `
-      border-gray-300/60 focus:border-green-500 focus:ring-green-500/20
-      dark:border-gray-600/60 dark:focus:border-green-400
+      border-slate-300/60 focus:border-green-500 focus:ring-green-500/20
     `,
     search: `
-      border-gray-300/60 focus:border-blue-500 focus:ring-blue-500/20
-      dark:border-gray-600/60 dark:focus:border-blue-400
+      border-slate-300/60 focus:border-slate-500 focus:ring-slate-500/20
       rounded-full px-5
     `,
     numeric: `
-      border-gray-300/60 focus:border-purple-500 focus:ring-purple-500/20
-      dark:border-gray-600/60 dark:focus:border-purple-400
+      border-slate-300/60 focus:border-slate-500 focus:ring-slate-500/20
       text-right font-mono
     `
   };
@@ -83,7 +79,7 @@ const KeInput = forwardRef<HTMLInputElement, KeInputProps>(({
       {label && (
         <label 
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-sm font-medium text-slate-700"
         >
           {label}
           {props.required && <span className="text-red-500 ml-1">*</span>}
@@ -139,7 +135,7 @@ const KeInput = forwardRef<HTMLInputElement, KeInputProps>(({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="text-slate-400 hover:text-slate-600 transition-colors"
             >
               {showPassword ? (
                 <EyeOff className="w-5 h-5" />
@@ -151,7 +147,7 @@ const KeInput = forwardRef<HTMLInputElement, KeInputProps>(({
           
           {/* Custom Right Icon */}
           {rightIcon && !error && !success && (
-            <div className="text-gray-400">
+            <div className="text-slate-400">
               <div className="w-5 h-5">
                 {rightIcon}
               </div>
@@ -168,21 +164,21 @@ const KeInput = forwardRef<HTMLInputElement, KeInputProps>(({
           className="space-y-1"
         >
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 flex items-center">
+            <p className="text-sm text-red-600 flex items-center">
               <AlertCircle className="w-4 h-4 mr-1" />
               {error}
             </p>
           )}
-          
+
           {success && !error && (
-            <p className="text-sm text-green-600 dark:text-green-400 flex items-center">
+            <p className="text-sm text-green-600 flex items-center">
               <CheckCircle2 className="w-4 h-4 mr-1" />
               {success}
             </p>
           )}
-          
+
           {hint && !error && !success && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-slate-500">
               {hint}
             </p>
           )}

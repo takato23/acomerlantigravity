@@ -10,9 +10,8 @@ export type DbMealPlan = Database['public']['Tables']['meal_plans']['Row'];
 export type DbMealPlanInsert = Database['public']['Tables']['meal_plans']['Insert'];
 export type DbMealPlanUpdate = Database['public']['Tables']['meal_plans']['Update'];
 
-export type DbMealPlanItem = Database['public']['Tables']['meal_plan_items']['Row'];
-export type DbMealPlanItemInsert = Database['public']['Tables']['meal_plan_items']['Insert'];
-export type DbMealPlanItemUpdate = Database['public']['Tables']['meal_plan_items']['Update'];
+// Note: meal_plan_items are handled by the MealPlanItem interface below,
+// which provides a richer client-side representation than the DB schema.
 
 // =============================================
 // CORE ENUMS & CONSTANTS
@@ -317,17 +316,17 @@ export interface MealPlanningState {
   activePlan: MealPlan | null;
   plans: Record<string, MealPlan>;
   recipes: Record<string, Recipe>;
-  
+
   // UI state
   selectedDate: string | null;
   selectedMealType: MealType | null;
   selectedItemId: string | null;
   isGenerating: boolean;
   isSyncing: boolean;
-  
+
   // Error handling
   errors: Record<string, string>;
-  
+
   // Actions
   loadActivePlan: () => Promise<void>;
   loadPlan: (planId: string) => Promise<void>;
@@ -336,12 +335,12 @@ export interface MealPlanningState {
   deletePlanItem: (itemId: string) => Promise<void>;
   regenerateMeal: (itemId: string) => Promise<void>;
   generateShoppingList: (planId: string) => Promise<ShoppingList>;
-  
+
   // UI actions
   selectDate: (date: string | null) => void;
   selectMealType: (mealType: MealType | null) => void;
   selectItem: (itemId: string | null) => void;
-  
+
   // Selectors
   getItemsForDate: (date: string) => MealPlanItem[];
   getStatistics: () => MealPlanStatistics | null;

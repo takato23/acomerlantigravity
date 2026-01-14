@@ -66,15 +66,15 @@ export function StatusModal({
   const getValueColor = (status?: string) => {
     switch (status) {
       case 'success':
-        return 'text-green-600 dark:text-green-400';
+        return 'text-green-600';
       case 'error':
-        return 'text-red-600 dark:text-red-400';
+        return 'text-red-600';
       case 'warning':
-        return 'text-yellow-600 dark:text-yellow-400';
+        return 'text-amber-600';
       case 'info':
-        return 'text-blue-600 dark:text-blue-400';
+        return 'text-slate-600';
       default:
-        return 'dark:text-white';
+        return 'text-slate-900';
     }
   };
 
@@ -87,11 +87,11 @@ export function StatusModal({
     >
       <GlassCard variant="strong" className="p-6">
         {/* Header */}
-        <h3 className="text-lg font-semibold mb-1 dark:text-white">
+        <h3 className="text-lg font-semibold mb-1 text-slate-900">
           {title}
         </h3>
         {subtitle && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-sm text-slate-600 mb-4">
             {subtitle}
           </p>
         )}
@@ -109,7 +109,7 @@ export function StatusModal({
               >
                 <div className="flex items-center gap-2">
                   {getStatusIcon(item.status, item.done)}
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="text-sm text-slate-700">
                     {item.label}
                   </span>
                 </div>
@@ -125,7 +125,7 @@ export function StatusModal({
 
         {/* Footer opcional */}
         {footer && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-slate-200">
             {footer}
           </div>
         )}
@@ -149,7 +149,7 @@ export function StatusModal({
   ]}
   position="bottom-right"
   footer={
-    <p className="text-xs text-gray-500 dark:text-gray-400">
+    <p className="text-xs text-slate-500">
       Última actualización: hace 2 min
     </p>
   }
@@ -177,19 +177,19 @@ export function ProgressStatusModal({
       className={`fixed ${positions[position]} z-40 w-80`}
     >
       <GlassCard variant="strong" className="p-6">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">
+        <h3 className="text-lg font-semibold mb-4 text-slate-900">
           {title}
         </h3>
 
         {/* Barra de progreso animada */}
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-gray-400">Progreso</span>
-            <span className="font-medium dark:text-white">{progress}%</span>
+            <span className="text-slate-600">Progreso</span>
+            <span className="font-medium text-slate-900">{progress}%</span>
           </div>
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+              className="h-full bg-slate-700"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -210,9 +210,9 @@ export function ProgressStatusModal({
               {item.done ? (
                 <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
               ) : (
-                <div className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0" />
+                <div className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
               )}
-              <span className={`text-sm ${item.done ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
+              <span className={`text-sm ${item.done ? 'text-slate-700' : 'text-slate-400'}`}>
                 {item.label}
               </span>
             </motion.div>

@@ -78,7 +78,7 @@ const DayNavigationHeader = memo(({
   currentDay: Date;
   onDayChange: (index: number) => void;
 }) => (
-  <KeCard variant="default" className="sticky top-0 z-10 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
+  <KeCard variant="default" className="sticky top-0 z-10 backdrop-blur-sm bg-white/95">
     <KeCardHeader>
       <div className="flex items-center justify-between">
         <KeButton
@@ -96,7 +96,7 @@ const DayNavigationHeader = memo(({
           <KeCardTitle className="text-lg">
             {DAYS[selectedDayIndex]}
           </KeCardTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-slate-600">
             {format(currentDay, "d 'de' MMMM", { locale: es })}
           </p>
         </div>
@@ -124,8 +124,8 @@ const DayNavigationHeader = memo(({
             className={cn(
               "w-2 h-2 rounded-full transition-all duration-200",
               index === selectedDayIndex 
-                ? "bg-green-500 w-6" 
-                : "bg-gray-300 dark:bg-gray-600"
+                ? "bg-green-500 w-6"
+                : "bg-slate-300"
             )}
             aria-label={`Ir a ${DAYS[index]}`}
           />
@@ -145,9 +145,9 @@ const DayStatsCard = memo(({ stats }: { stats: ReturnType<typeof useDayStats> })
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <TrendingUp className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Kcal</span>
+            <span className="text-sm font-medium text-slate-600">Kcal</span>
           </div>
-          <p className="text-lg font-bold text-gray-900 dark:text-white">
+          <p className="text-lg font-bold text-slate-900">
             {stats.totalKcal}
           </p>
         </div>
@@ -155,9 +155,9 @@ const DayStatsCard = memo(({ stats }: { stats: ReturnType<typeof useDayStats> })
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Sparkles className="w-4 h-4 text-red-500" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Proteína</span>
+            <span className="text-sm font-medium text-slate-600">Proteina</span>
           </div>
-          <p className="text-lg font-bold text-gray-900 dark:text-white">
+          <p className="text-lg font-bold text-slate-900">
             {stats.totalProtein.toFixed(0)}g
           </p>
         </div>
@@ -165,9 +165,9 @@ const DayStatsCard = memo(({ stats }: { stats: ReturnType<typeof useDayStats> })
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <DollarSign className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Costo</span>
+            <span className="text-sm font-medium text-slate-600">Costo</span>
           </div>
-          <p className="text-lg font-bold text-gray-900 dark:text-white">
+          <p className="text-lg font-bold text-slate-900">
             ${(stats.totalCost / 1000).toFixed(1)}k
           </p>
         </div>
@@ -175,9 +175,9 @@ const DayStatsCard = memo(({ stats }: { stats: ReturnType<typeof useDayStats> })
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Calendar className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Comidas</span>
+            <span className="text-sm font-medium text-slate-600">Comidas</span>
           </div>
-          <p className="text-lg font-bold text-gray-900 dark:text-white">
+          <p className="text-lg font-bold text-slate-900">
             {stats.mealsPlanned}/4
           </p>
         </div>
@@ -186,16 +186,16 @@ const DayStatsCard = memo(({ stats }: { stats: ReturnType<typeof useDayStats> })
       {/* Progress bar */}
       <div className="mt-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            Planificación del día
+          <span className="text-xs text-slate-500">
+            Planificacion del dia
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-slate-500">
             {Math.round((stats.mealsPlanned / 4) * 100)}%
           </span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <motion.div 
-            className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full"
+        <div className="w-full bg-slate-200 rounded-full h-2">
+          <motion.div
+            className="bg-green-500 h-2 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${(stats.mealsPlanned / 4) * 100}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -399,11 +399,11 @@ export function OptimizedMobileGrid({
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl max-w-sm mx-4"
+            className="bg-white rounded-xl p-6 shadow-xl max-w-sm mx-4"
           >
             <div className="flex items-center gap-3">
               <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
-              <p className="text-gray-600 dark:text-gray-300">Cargando plan...</p>
+              <p className="text-slate-600">Cargando plan...</p>
             </div>
           </motion.div>
         </motion.div>

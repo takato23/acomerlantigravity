@@ -1,6 +1,6 @@
 # Pantry Management System
 
-A comprehensive pantry management system for the kecarajocomer meal planning application, built with Next.js 15, TypeScript, and Zustand.
+A comprehensive pantry management system for the kecarajocomer meal planning application, built with Next.js 15.0.0, TypeScript, and Zustand.
 
 ## Features
 
@@ -391,7 +391,7 @@ When contributing to the pantry system:
 
 ### Core Dependencies
 - React 18+ (UI framework)
-- Next.js 15+ (Full-stack framework)
+- Next.js 15.0.0 (Full-stack framework)
 - TypeScript (Type safety)
 - Zustand (State management)
 - Tailwind CSS (Styling)

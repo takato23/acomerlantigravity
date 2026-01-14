@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Settings, 
-  Users, 
-  DollarSign, 
-  Utensils, 
-  ChefHat, 
-  Calendar, 
+import {
+  User,
+  Settings,
+  Users,
+  DollarSign,
+  Utensils,
+  ChefHat,
+  Calendar,
   Heart,
   TrendingUp,
   Trophy,
@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 // Simple collapsible implementation
 const Collapsible = ({ children, ...props }: any) => <div {...props}>{children}</div>;
-const CollapsibleContent = ({ children, className = '', ...props }: any) => 
+const CollapsibleContent = ({ children, className = '', ...props }: any) =>
   <div className={`overflow-hidden ${className}`} {...props}>{children}</div>;
 const CollapsibleTrigger = ({ children, ...props }: any) => <div {...props}>{children}</div>;
 import type { CompletionMetrics } from '@/services/profile/ProfileCompletionService';
@@ -37,10 +37,10 @@ interface ProfileProgressProps {
   onSectionClick?: (section: string) => void;
 }
 
-export function ProfileProgress({ 
-  metrics, 
-  suggestions, 
-  onSectionClick 
+export function ProfileProgress({
+  metrics,
+  suggestions,
+  onSectionClick
 }: ProfileProgressProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
@@ -75,16 +75,16 @@ export function ProfileProgress({
   };
 
   const getStatusColor = (completion: number) => {
-    if (completion === 100) return 'text-green-600 dark:text-green-400';
-    if (completion >= 75) return 'text-blue-600 dark:text-blue-400';
-    if (completion >= 50) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (completion === 100) return 'text-green-600';
+    if (completion >= 75) return 'text-blue-600';
+    if (completion >= 50) return 'text-amber-600';
+    return 'text-red-600';
   };
 
   const getStatusIcon = (completion: number) => {
     if (completion === 100) return <CheckCircle2 className="h-4 w-4 text-green-600" />;
     if (completion >= 75) return <Star className="h-4 w-4 text-blue-600" />;
-    if (completion >= 50) return <Target className="h-4 w-4 text-yellow-600" />;
+    if (completion >= 50) return <Target className="h-4 w-4 text-amber-600" />;
     return <AlertCircle className="h-4 w-4 text-red-600" />;
   };
 
@@ -116,7 +116,7 @@ export function ProfileProgress({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Overall Progress</span>
-                <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-slate-600">
                   {metrics.overall}% complete
                 </span>
               </div>
@@ -129,13 +129,13 @@ export function ProfileProgress({
                 <span className="font-medium">
                   Level {metrics.level} Progress
                 </span>
-                <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-slate-600">
                   {metrics.totalPoints} / {metrics.nextLevelPoints === Infinity ? '∞' : metrics.nextLevelPoints} points
                 </span>
               </div>
               <Progress value={levelProgress} className="h-2" />
               {metrics.nextLevelPoints !== Infinity && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-500">
                   {metrics.nextLevelPoints - metrics.totalPoints} points to next level
                 </p>
               )}
@@ -145,21 +145,21 @@ export function ProfileProgress({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{metrics.totalPoints}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Total Points</div>
+                <div className="text-sm text-slate-600">Total Points</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {metrics.achievements.filter(a => a.unlockedAt).length}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Achievements</div>
+                <div className="text-sm text-slate-600">Achievements</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-orange-600">{metrics.currentStreak}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Day Streak</div>
+                <div className="text-sm text-slate-600">Day Streak</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{metrics.level}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Current Level</div>
+                <div className="text-2xl font-bold text-slate-600">{metrics.level}</div>
+                <div className="text-sm text-slate-600">Current Level</div>
               </div>
             </div>
           </div>
@@ -178,7 +178,7 @@ export function ProfileProgress({
                 repeatType: "reverse",
               }}
             >
-              <Trophy className="h-8 w-8 text-yellow-500" />
+              <Trophy className="h-8 w-8 text-amber-500" />
             </motion.div>
           )}
         </CardContent>
@@ -204,11 +204,11 @@ export function ProfileProgress({
                   >
                     <div className="flex items-center gap-3 flex-1">
                       <div className={`p-2 rounded-lg ${
-                        completion === 100 
-                          ? 'bg-green-100 dark:bg-green-900/20'
+                        completion === 100
+                          ? 'bg-green-100'
                           : completion >= 50
-                          ? 'bg-blue-100 dark:bg-blue-900/20'
-                          : 'bg-gray-100 dark:bg-gray-900'
+                          ? 'bg-blue-100'
+                          : 'bg-slate-100'
                       }`}>
                         {sectionIcons[section]}
                       </div>
@@ -233,8 +233,8 @@ export function ProfileProgress({
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-2 ml-14">
-                  <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  <div className="p-3 bg-slate-50 rounded-lg">
+                    <p className="text-sm text-slate-600 mb-2">
                       {getSectionDescription(section, completion)}
                     </p>
                     {completion < 100 && (
@@ -274,12 +274,12 @@ export function ProfileProgress({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+                    className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg"
                   >
                     <div className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
                       {index + 1}
                     </div>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 flex-1">
+                    <p className="text-sm text-blue-700 flex-1">
                       {suggestion}
                     </p>
                   </motion.div>
@@ -291,19 +291,19 @@ export function ProfileProgress({
       )}
 
       {/* Personalized Tips */}
-      <ProfileTips 
+      <ProfileTips
         metrics={metrics}
         onSectionClick={onSectionClick}
       />
 
       {/* Motivational Card */}
-      <Card className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-purple-200 dark:border-purple-800">
+      <Card className="bg-slate-100 border-slate-200">
         <CardContent className="p-6">
           <div className="text-center space-y-2">
-            <h3 className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+            <h3 className="text-lg font-semibold text-slate-700">
               {getMotivationalMessage(metrics.overall)}
             </h3>
-            <p className="text-purple-600 dark:text-purple-400">
+            <p className="text-slate-600">
               {getMotivationalSubtext(metrics.overall, metrics.currentStreak)}
             </p>
           </div>

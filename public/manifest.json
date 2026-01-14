@@ -8,7 +8,11 @@
   "theme_color": "#10b981",
   "orientation": "portrait",
   "scope": "/",
-  "categories": ["food", "lifestyle", "productivity"],
+  "categories": [
+    "food",
+    "lifestyle",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -17,7 +21,7 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png", 
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -29,21 +33,36 @@
       "short_name": "Plan",
       "description": "Ver mi planificación semanal",
       "url": "/planificador",
-      "icons": [{"src": "/icon-192.png", "sizes": "192x192"}]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Lista de Compras",
-      "short_name": "Lista", 
+      "short_name": "Lista",
       "description": "Usar en el supermercado",
       "url": "/lista-compras",
-      "icons": [{"src": "/icon-192.png", "sizes": "192x192"}]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Mi Despensa",
       "short_name": "Despensa",
       "description": "Administrar inventario",
-      "url": "/despensa", 
-      "icons": [{"src": "/icon-192.png", "sizes": "192x192"}]
+      "url": "/despensa",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "prefer_related_applications": false

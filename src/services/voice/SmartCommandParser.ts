@@ -85,6 +85,86 @@ export class SmartCommandParser {
             ingredients: match[5] || 'pantry'
           }
         })
+      },
+      // Cooking-specific voice commands (KeCarajo pattern)
+      {
+        pattern: /^(?:kecarajo|ke carajo|que carajo)?\s*,?\s*(siguiente\s+paso|próximo\s+paso|next)$/i,
+        action: 'cooking',
+        extract: () => ({
+          target: 'recipe_step',
+          parameters: {
+            action: 'cooking',
+            command: 'next_step'
+          }
+        })
+      },
+      {
+        pattern: /^(?:kecarajo|ke carajo|que carajo)?\s*,?\s*(repetir|repite|otra\s+vez|repeat)$/i,
+        action: 'cooking',
+        extract: () => ({
+          target: 'recipe_step',
+          parameters: {
+            action: 'cooking',
+            command: 'repeat'
+          }
+        })
+      },
+      {
+        pattern: /^(?:kecarajo|ke carajo|que carajo)?\s*,?\s*(?:pon|poner|set)?\s*(?:un\s+)?timer\s+(?:de\s+)?(\d+)\s*(minutos?|segundos?|min|seg|s)$/i,
+        action: 'cooking',
+        extract: (match) => ({
+          target: 'timer',
+          parameters: {
+            action: 'cooking',
+            command: 'timer',
+            duration: parseInt(match[1]),
+            unit: match[2].startsWith('min') ? 'minutes' : 'seconds'
+          }
+        })
+      },
+      {
+        pattern: /^(?:kecarajo|ke carajo|que carajo)?\s*,?\s*(?:qué|que|cuáles|cuales)\s+ingredientes\s*(?:necesito|faltan|lleva)?$/i,
+        action: 'cooking',
+        extract: () => ({
+          target: 'ingredients',
+          parameters: {
+            action: 'cooking',
+            command: 'list_ingredients'
+          }
+        })
+      },
+      {
+        pattern: /^(?:kecarajo|ke carajo|que carajo)?\s*,?\s*(listo|terminé|finalizar|done|finished)$/i,
+        action: 'cooking',
+        extract: () => ({
+          target: 'recipe_complete',
+          parameters: {
+            action: 'cooking',
+            command: 'complete'
+          }
+        })
+      },
+      {
+        pattern: /^(?:kecarajo|ke carajo|que carajo)?\s*,?\s*(pausar|pausa|pause)$/i,
+        action: 'cooking',
+        extract: () => ({
+          target: 'recipe_control',
+          parameters: {
+            action: 'cooking',
+            command: 'pause'
+          }
+        })
+      },
+      {
+        pattern: /^(?:kecarajo|ke carajo|que carajo)?\s*,?\s*(continuar|sigue|continue|resume)$/i,
+        action: 'cooking',
+        extract: () => ({
+          target: 'recipe_control',
+          parameters: {
+            action: 'cooking',
+            command: 'resume'
+          }
+        })
       }
     ];
 
@@ -129,8 +209,8 @@ export class SmartCommandParser {
     ];
 
     // Select patterns based on language
-    this.commandPatterns = this.config.language.startsWith('es') 
-      ? spanishPatterns 
+    this.commandPatterns = this.config.language.startsWith('es')
+      ? spanishPatterns
       : englishPatterns;
   }
 
@@ -178,7 +258,7 @@ export class SmartCommandParser {
 
   async parse(transcript: string, options: VoiceParserOptions = {}): Promise<ParsedCommand> {
     const normalizedTranscript = this.normalizeTranscript(transcript);
-    
+
     // Try to match command patterns
     for (const pattern of this.commandPatterns) {
       const match = normalizedTranscript.match(pattern.pattern);
@@ -192,7 +272,7 @@ export class SmartCommandParser {
           confidence: this.calculateConfidence(transcript, match),
           context: options.context
         }, normalizedTranscript);
-        
+
         return command;
       }
     }
@@ -210,7 +290,7 @@ export class SmartCommandParser {
   }
 
   private async enrichCommand(
-    command: ParsedCommand, 
+    command: ParsedCommand,
     transcript: string
   ): Promise<ParsedCommand> {
     // Extract entities based on command action
@@ -236,13 +316,13 @@ export class SmartCommandParser {
 
   private extractIngredients(text: string): Array<{ name: string; quantity?: number; unit?: string }> {
     const ingredients: Array<{ name: string; quantity?: number; unit?: string }> = [];
-    
+
     // Split by common separators
     const items = text.split(/\s*(?:,|y|e)\s*/i);
-    
+
     for (const item of items) {
       let matched = false;
-      
+
       // Try each pattern
       for (const pattern of this.ingredientPatterns) {
         const match = item.match(pattern);
@@ -250,24 +330,24 @@ export class SmartCommandParser {
           const quantity = this.parseQuantity(match[1]);
           const unit = match[2] ? this.normalizeUnit(match[2]) : undefined;
           const name = match[3] || match[2];
-          
+
           ingredients.push({
             name: name.trim(),
             quantity,
             unit
           });
-          
+
           matched = true;
           break;
         }
       }
-      
+
       // If no pattern matched, add as simple ingredient
       if (!matched && item.trim()) {
         ingredients.push({ name: item.trim() });
       }
     }
-    
+
     return ingredients;
   }
 
@@ -287,7 +367,7 @@ export class SmartCommandParser {
       'medio': 0.5,
       'media': 0.5,
     };
-    
+
     return numbers[quantityStr.toLowerCase()] || parseFloat(quantityStr) || 1;
   }
 
@@ -311,34 +391,34 @@ export class SmartCommandParser {
       'inicio': ['home', 'inicio'],
       'home': ['home', 'inicio'],
     };
-    
+
     const words = text.toLowerCase().split(/\s+/);
     const found: string[] = [];
-    
+
     for (const word of words) {
       if (locations[word]) {
         found.push(locations[word][0]); // Return English key
       }
     }
-    
+
     return found.length > 0 ? found : [text];
   }
 
   private calculateConfidence(transcript: string, match: RegExpMatchArray): number {
     // Base confidence from transcript length and match quality
     const baseConfidence = 0.7;
-    
+
     // Bonus for exact matches
     const exactMatchBonus = match[0] === transcript ? 0.2 : 0;
-    
+
     // Penalty for very short transcripts
     const lengthPenalty = transcript.length < 5 ? -0.1 : 0;
-    
+
     return Math.min(1, Math.max(0, baseConfidence + exactMatchBonus + lengthPenalty));
   }
 
   private async inferIntent(
-    transcript: string, 
+    transcript: string,
     options: VoiceParserOptions
   ): Promise<ParsedCommand> {
     // Keywords for intent inference
@@ -347,12 +427,13 @@ export class SmartCommandParser {
       search: ['busca', 'encuentra', 'dónde', 'donde', 'buscar', 'encontrar'],
       navigate: ['ir', 've', 'abre', 'muestra', 'llévame', 'abrir', 'mostrar'],
       recipe: ['receta', 'cocinar', 'preparar', 'hacer', 'comer'],
-      timer: ['timer', 'temporizador', 'alarma', 'tiempo'],
+      timer: ['timer', 'temporizador', 'alarma', 'tiempo', 'minutos', 'segundos'],
+      cooking: ['siguiente', 'paso', 'repetir', 'ingredientes', 'listo', 'terminé', 'pausar', 'continuar', 'kecarajo'],
     };
-    
+
     let bestIntent = 'unknown';
     let bestScore = 0;
-    
+
     for (const [intent, keywords] of Object.entries(intentKeywords)) {
       const score = keywords.filter(kw => transcript.includes(kw)).length;
       if (score > bestScore) {
@@ -360,7 +441,7 @@ export class SmartCommandParser {
         bestIntent = intent;
       }
     }
-    
+
     return {
       action: bestIntent,
       target: transcript,

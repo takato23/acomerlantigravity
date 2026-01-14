@@ -33,7 +33,7 @@ const mockUsers: LeaderboardUser[] = [
   {
     id: '1',
     username: 'masterchef_maria',
-    fullName: 'María González',
+    fullName: 'Maria Gonzalez',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=maria',
     totalPoints: 2850,
     level: 8,
@@ -56,7 +56,7 @@ const mockUsers: LeaderboardUser[] = [
   {
     id: '3',
     username: 'veggie_ana',
-    fullName: 'Ana López',
+    fullName: 'Ana Lopez',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=ana',
     totalPoints: 2400,
     level: 7,
@@ -67,7 +67,7 @@ const mockUsers: LeaderboardUser[] = [
   {
     id: '4',
     username: 'budget_foodie',
-    fullName: 'Juan Pérez',
+    fullName: 'Juan Perez',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=juan',
     totalPoints: 2200,
     level: 6,
@@ -78,7 +78,7 @@ const mockUsers: LeaderboardUser[] = [
   {
     id: '5',
     username: 'recipe_queen',
-    fullName: 'Sofia Martín',
+    fullName: 'Sofia Martin',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sofia',
     totalPoints: 2000,
     level: 6,
@@ -119,13 +119,13 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return <Crown className="h-6 w-6 text-yellow-500" />;
+        return <Crown className="h-6 w-6 text-amber-500" />;
       case 2:
-        return <Trophy className="h-6 w-6 text-gray-400" />;
+        return <Trophy className="h-6 w-6 text-slate-400" />;
       case 3:
         return <Medal className="h-6 w-6 text-amber-600" />;
       default:
-        return <span className="text-lg font-bold text-gray-500">#{rank}</span>;
+        return <span className="text-lg font-bold text-slate-500">#{rank}</span>;
     }
   };
 
@@ -202,19 +202,19 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
           <TabsContent value="global" className="mt-6">
             {/* Current User Position */}
             {currentUserRank > 0 && (
-              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Star className="h-5 w-5 text-blue-500" />
-                    <span className="font-medium text-blue-700 dark:text-blue-300">
+                    <span className="font-medium text-blue-700">
                       Your Position
                     </span>
                   </div>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                     #{currentUserRank} of {sortedUsers.length}
                   </Badge>
                 </div>
-                <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-sm text-blue-600 mt-1">
                   {getCategoryLabel()}: {getCategoryValue(sortedUsers.find(u => u.isCurrentUser)!)}
                 </p>
               </div>
@@ -235,11 +235,11 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
                     }`}
                   >
                     <div className={`relative p-4 rounded-lg ${
-                      rank === 1 
-                        ? 'bg-gradient-to-b from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20'
+                      rank === 1
+                        ? 'bg-amber-50'
                         : rank === 2
-                        ? 'bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900'
-                        : 'bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20'
+                        ? 'bg-slate-100'
+                        : 'bg-amber-100'
                     }`}>
                       <div className="flex justify-center mb-3">
                         {getRankIcon(rank)}
@@ -251,7 +251,7 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
                         </AvatarFallback>
                       </Avatar>
                       <h3 className="font-semibold text-sm mb-1">{user.fullName}</h3>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      <p className="text-xs text-slate-600 mb-2">
                         @{user.username}
                       </p>
                       <Badge variant="secondary" className="text-xs">
@@ -281,9 +281,9 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                      user.isCurrentUser 
-                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                        : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      user.isCurrentUser
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     <div className="flex items-center gap-4">
@@ -303,14 +303,14 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
                             <Badge variant="secondary" size="sm">You</Badge>
                           )}
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-slate-600">
                           @{user.username} • Level {user.level}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{getCategoryValue(user)}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-slate-600">
                         {user.achievementsCount} achievements
                       </p>
                     </div>
@@ -322,11 +322,11 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
 
           <TabsContent value="friends" className="mt-6">
             <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
+              <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-600 mb-2">
                 Connect with Friends
               </h3>
-              <p className="text-gray-500 dark:text-gray-500">
+              <p className="text-slate-500">
                 Follow other users to see how you stack up against your friends!
               </p>
             </div>

@@ -7,22 +7,22 @@
 
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Clock, 
-  DollarSign, 
-  Zap, 
-  Beef, 
+import {
+  Clock,
+  DollarSign,
+  Zap,
+  Beef,
   MoreVertical,
   Edit,
   Trash2,
   Copy
 } from 'lucide-react';
 
-import { 
-  KeCard, 
-  KeCardHeader, 
-  KeCardTitle, 
-  KeCardContent, 
+import {
+  KeCard,
+  KeCardHeader,
+  KeCardTitle,
+  KeCardContent,
   KeCardFooter,
   KeBadge,
   KeButton
@@ -61,6 +61,7 @@ interface MealCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
+  onAddToShoppingList?: () => void;
   className?: string;
 }
 
@@ -68,26 +69,26 @@ const mealTypeConfig = {
   desayuno: {
     label: 'Desayuno',
     emoji: '☕',
-    color: 'from-amber-400 to-orange-500',
-    bgColor: 'bg-amber-50 dark:bg-amber-900/20'
+    color: 'bg-slate-900',
+    bgColor: 'bg-slate-50'
   },
   almuerzo: {
-    label: 'Almuerzo', 
+    label: 'Almuerzo',
     emoji: '☀️',
-    color: 'from-blue-400 to-cyan-500',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20'
+    color: 'bg-slate-700',
+    bgColor: 'bg-slate-50'
   },
   merienda: {
     label: 'Merienda',
-    emoji: '🍎', 
-    color: 'from-green-400 to-emerald-500',
-    bgColor: 'bg-green-50 dark:bg-green-900/20'
+    emoji: '🍎',
+    color: 'bg-slate-500',
+    bgColor: 'bg-slate-50'
   },
   cena: {
     label: 'Cena',
     emoji: '🌙',
-    color: 'from-purple-400 to-pink-500', 
-    bgColor: 'bg-purple-50 dark:bg-purple-900/20'
+    color: 'bg-slate-800',
+    bgColor: 'bg-slate-50'
   }
 };
 
@@ -102,6 +103,7 @@ export const MealCard = memo<MealCardProps>(({
   onEdit,
   onDelete,
   onDuplicate,
+  onAddToShoppingList,
   className
 }) => {
   const config = mealTypeConfig[mealType];
@@ -113,8 +115,8 @@ export const MealCard = memo<MealCardProps>(({
         variant="outline"
         className={cn(
           "min-h-[120px] cursor-pointer transition-all duration-200",
-          "border-dashed border-2 hover:border-green-300 dark:hover:border-green-600",
-          isDropTarget && "border-green-400 bg-green-50/50 dark:bg-green-900/20 scale-105",
+          "border-dashed border-2 hover:border-slate-300",
+          isDropTarget && "border-slate-400 bg-slate-50/50 scale-105",
           config.bgColor,
           className
         )}
@@ -124,10 +126,10 @@ export const MealCard = memo<MealCardProps>(({
           <div className="text-4xl mb-2 opacity-60">
             {config.emoji}
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+          <p className="text-sm text-gray-500 text-center">
             Agregar {config.label.toLowerCase()}
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-xs text-gray-400 mt-1">
             Tap para elegir receta
           </p>
         </KeCardContent>
@@ -139,7 +141,7 @@ export const MealCard = memo<MealCardProps>(({
     <motion.div
       layout
       initial={false}
-      animate={{ 
+      animate={{
         scale: isDragging ? 0.95 : 1,
         opacity: isDragging ? 0.8 : 1,
         rotate: isDragging ? 5 : 0
@@ -153,8 +155,8 @@ export const MealCard = memo<MealCardProps>(({
         clickable
         className={cn(
           "relative overflow-hidden cursor-pointer transition-all duration-200",
-          isDragging && "shadow-xl shadow-green-500/20 z-50",
-          isDropTarget && "ring-2 ring-green-400 ring-offset-2"
+          isDragging && "shadow-xl shadow-gray-500/10 z-50",
+          isDropTarget && "ring-2 ring-slate-400 ring-offset-2"
         )}
         onClick={onClick}
       >
@@ -164,10 +166,10 @@ export const MealCard = memo<MealCardProps>(({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">{config.emoji}</span>
-                <KeBadge 
-                  variant="secondary" 
+                <KeBadge
+                  variant="secondary"
                   size="sm"
-                  className={cn("bg-gradient-to-r text-white", config.color)}
+                  className={cn("text-white", config.color)}
                 >
                   {config.label}
                 </KeBadge>
@@ -198,11 +200,11 @@ export const MealCard = memo<MealCardProps>(({
           {meal.macros && (
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-orange-500" />
+                <Zap className="w-3 h-3 text-slate-600" />
                 <span className="font-medium">{meal.macros.kcal} kcal</span>
               </div>
               <div className="flex items-center gap-1">
-                <Beef className="w-3 h-3 text-red-500" />
+                <Beef className="w-3 h-3 text-slate-600" />
                 <span className="font-medium">{meal.macros.protein_g}g prot</span>
               </div>
             </div>
@@ -211,12 +213,12 @@ export const MealCard = memo<MealCardProps>(({
           {/* Time and cost row */}
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-blue-500" />
+              <Clock className="w-3 h-3 text-slate-600" />
               <span>{meal.time_minutes} min</span>
             </div>
             {meal.cost_estimate_ars && (
               <div className="flex items-center gap-1">
-                <DollarSign className="w-3 h-3 text-green-500" />
+                <DollarSign className="w-3 h-3 text-slate-600" />
                 <span>${(meal.cost_estimate_ars / 1000).toFixed(1)}k</span>
               </div>
             )}
@@ -226,9 +228,9 @@ export const MealCard = memo<MealCardProps>(({
           {meal.tags && meal.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {meal.tags.slice(0, 2).map((tag, index) => (
-                <KeBadge 
-                  key={index} 
-                  variant="default" 
+                <KeBadge
+                  key={index}
+                  variant="default"
                   size="sm"
                   className="text-xs"
                 >
@@ -245,7 +247,7 @@ export const MealCard = memo<MealCardProps>(({
 
           {/* Ingredients preview */}
           {meal.ingredients && meal.ingredients.length > 0 && (
-            <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-xs text-gray-600">
               <p className="truncate">
                 {meal.ingredients.slice(0, 3).map(ing => ing.name).join(', ')}
                 {meal.ingredients.length > 3 && '...'}
@@ -270,7 +272,7 @@ export const MealCard = memo<MealCardProps>(({
               Editar
             </KeButton>
             <KeButton
-              variant="ghost" 
+              variant="ghost"
               size="sm"
               leftIcon={<Copy className="w-3 h-3" />}
               className="flex-1 text-xs"
@@ -281,11 +283,25 @@ export const MealCard = memo<MealCardProps>(({
             >
               Copiar
             </KeButton>
+            {onAddToShoppingList && (
+              <KeButton
+                variant="ghost"
+                size="sm"
+                leftIcon={<ShoppingCart className="w-3 h-3" />}
+                className="flex-1 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToShoppingList();
+                }}
+              >
+                Comprar
+              </KeButton>
+            )}
           </div>
         </KeCardFooter>
 
         {/* Hover overlay (desktop) */}
-        <div className="absolute inset-0 bg-green-500/10 opacity-0 hover:opacity-100 transition-opacity duration-200 hidden md:flex items-center justify-center">
+        <div className="absolute inset-0 bg-slate-500/10 opacity-0 hover:opacity-100 transition-opacity duration-200 hidden md:flex items-center justify-center">
           <div className="flex gap-2">
             <KeButton
               variant="secondary"
@@ -309,12 +325,25 @@ export const MealCard = memo<MealCardProps>(({
             >
               Copiar
             </KeButton>
+            {onAddToShoppingList && (
+              <KeButton
+                variant="outline"
+                size="sm"
+                leftIcon={<ShoppingCart className="w-4 h-4" />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToShoppingList();
+                }}
+              >
+                Comprar
+              </KeButton>
+            )}
           </div>
         </div>
 
         {/* Drag handle indicator */}
         {isDragging && (
-          <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <div className="absolute top-2 right-2 w-2 h-2 bg-slate-500 rounded-full animate-pulse" />
         )}
       </KeCard>
     </motion.div>

@@ -68,9 +68,9 @@ export default function MisRecetasPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'draft': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'published': return 'bg-green-100 text-green-800';
+      case 'draft': return 'bg-amber-100 text-amber-800';
+      default: return 'bg-slate-100 text-slate-800';
     }
   };
 
@@ -88,14 +88,14 @@ export default function MisRecetasPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl">
-              <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 bg-slate-100 rounded-xl">
+              <User className="w-8 h-8 text-slate-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-bold text-slate-900">
                 Mis Recetas
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-slate-600">
                 Gestiona y organiza tus creaciones culinarias
               </p>
             </div>
@@ -109,60 +109,60 @@ export default function MisRecetasPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total recetas</p>
+          <div className="bg-white rounded-xl p-4 border border-slate-200">
+            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+            <p className="text-sm text-slate-600">Total recetas</p>
           </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.published}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Publicadas</p>
+
+          <div className="bg-white rounded-xl p-4 border border-slate-200">
+            <p className="text-2xl font-bold text-green-600">{stats.published}</p>
+            <p className="text-sm text-slate-600">Publicadas</p>
           </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.drafts}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Borradores</p>
+
+          <div className="bg-white rounded-xl p-4 border border-slate-200">
+            <p className="text-2xl font-bold text-amber-600">{stats.drafts}</p>
+            <p className="text-sm text-slate-600">Borradores</p>
           </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.totalViews}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Visualizaciones</p>
+
+          <div className="bg-white rounded-xl p-4 border border-slate-200">
+            <p className="text-2xl font-bold text-slate-700">{stats.totalViews}</p>
+            <p className="text-sm text-slate-600">Visualizaciones</p>
           </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+
+          <div className="bg-white rounded-xl p-4 border border-slate-200">
+            <p className="text-2xl font-bold text-slate-700">
               {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Rating promedio</p>
+            <p className="text-sm text-slate-600">Rating promedio</p>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
+      <div className="bg-white rounded-xl p-6 border border-slate-200 mb-8">
         <div className="flex flex-col lg:flex-row gap-4 items-center">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Buscar en mis recetas..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-slate-300 focus:border-transparent"
             />
           </div>
-          
+
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
               <Filter className="w-4 h-4" />
               Filtrar
             </button>
-            
-            <select className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+
+            <select className="px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900">
               <option>Todas</option>
               <option>Publicadas</option>
               <option>Borradores</option>
             </select>
-            
-            <select className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+
+            <select className="px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900">
               <option>Más recientes</option>
               <option>Más antiguas</option>
               <option>Más vistas</option>
@@ -177,16 +177,16 @@ export default function MisRecetasPage() {
         {myRecipes.map((recipe) => (
           <div
             key={recipe.id}
-            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all group"
+            className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group"
           >
             {/* Recipe Image */}
-            <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
+            <div className="relative h-48 bg-slate-200">
               <div className="absolute top-3 right-3 z-10">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(recipe.status)}`}>
                   {getStatusText(recipe.status)}
                 </span>
               </div>
-              
+
               {recipe.status === 'published' && (
                 <div className="absolute bottom-3 left-3 z-10 flex gap-2 text-white text-xs">
                   <span className="flex items-center gap-1 bg-black/70 px-2 py-1 rounded-full">
@@ -199,24 +199,24 @@ export default function MisRecetasPage() {
                   </span>
                 </div>
               )}
-              
-              <div className="w-full h-full bg-gradient-to-br from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 flex items-center justify-center">
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Imagen</span>
+
+              <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                <span className="text-slate-500 text-sm">Imagen</span>
               </div>
             </div>
 
             {/* Recipe Info */}
             <div className="p-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
                 {recipe.title}
               </h3>
-              
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+
+              <p className="text-sm text-slate-600 mb-3 line-clamp-2">
                 {recipe.description}
               </p>
 
               {/* Meta Info */}
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   {recipe.prepTime}
@@ -229,16 +229,16 @@ export default function MisRecetasPage() {
 
               {/* Category and Difficulty */}
               <div className="flex gap-2 mb-4">
-                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full">
+                <span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full">
                   {recipe.category}
                 </span>
-                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full">
+                <span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full">
                   {recipe.difficulty}
                 </span>
               </div>
 
               {/* Dates */}
-              <div className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+              <div className="text-xs text-slate-500 mb-4">
                 <p>Creada: {new Date(recipe.createdAt).toLocaleDateString()}</p>
                 {recipe.createdAt !== recipe.updatedAt && (
                   <p>Actualizada: {new Date(recipe.updatedAt).toLocaleDateString()}</p>
@@ -247,14 +247,14 @@ export default function MisRecetasPage() {
 
               {/* Actions */}
               <div className="flex gap-2">
-                <button className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                <button className="flex-1 px-3 py-2 bg-black hover:bg-gray-800 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                   <Eye className="w-4 h-4" />
                   Ver
                 </button>
-                <button className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <button className="px-3 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
                   <Edit className="w-4 h-4" />
                 </button>
-                <button className="px-3 py-2 border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button className="px-3 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -266,16 +266,16 @@ export default function MisRecetasPage() {
       {/* Empty State */}
       {myRecipes.length === 0 && (
         <div className="text-center py-12">
-          <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-            <User className="w-10 h-10 text-gray-400" />
+          <div className="p-4 bg-slate-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+            <User className="w-10 h-10 text-slate-400" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-semibold text-slate-900 mb-2">
             Aún no has creado recetas
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-slate-600 mb-6">
             ¡Empieza a compartir tus creaciones culinarias con la comunidad!
           </p>
-          <button className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors">
+          <button className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors">
             Crear mi primera receta
           </button>
         </div>

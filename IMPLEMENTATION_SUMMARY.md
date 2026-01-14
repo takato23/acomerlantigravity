@@ -2,7 +2,7 @@
 
 ## 🚀 Overview
 
-Successfully implemented a comprehensive backend system for Argentine meal planning following the zenith.md architecture with Next.js 14 App Router and optimized AI/database integrations.
+Successfully implemented a comprehensive backend system for Argentine meal planning following the zenith.md architecture with Next.js 15.0.0 App Router and optimized AI/database integrations.
 
 ## 📁 Implemented Components
 
@@ -187,7 +187,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 ## 🚀 Deployment Considerations
 
-### Next.js 14 App Router
+### Next.js 15.0.0 App Router
 - **Server Components**: Optimized for SSR and data fetching
 - **Edge Functions**: Geographic distribution for low latency
 - **API Routes**: RESTful endpoints with proper caching

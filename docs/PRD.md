@@ -479,7 +479,7 @@ Create an intelligent system that learns user preferences, adapts to their lifes
 ## Technical Architecture Overview
 
 ### Frontend
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 15.0.0 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **State**: Zustand with persistence

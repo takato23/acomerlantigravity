@@ -14,7 +14,7 @@ Hola GPT-5! Necesitamos tu ayuda para crear un sistema de planificación de comi
 ## 🏗️ Arquitectura Técnica Actual
 
 ### Stack:
-- **Frontend**: Next.js 14 (App Router), React 18, TypeScript
+- **Frontend**: Next.js 15.0.0 (App Router), React 18, TypeScript
 - **Estado**: Zustand con persistencia
 - **Base de datos**: Supabase (PostgreSQL)
 - **IA**: Google Gemini API
@@ -220,7 +220,7 @@ Necesitamos que nos proporciones:
 ## 📌 Notas Finales para GPT-5
 
 1. **IMPORTANTE**: El código debe ser 100% funcional, no pseudocódigo
-2. **Usar las mejores prácticas** de React 18, Next.js 14, TypeScript 5
+2. **Usar las mejores prácticas** de React 18, Next.js 15.0.0, TypeScript 5
 3. **Optimizado para móviles** (mobile-first)
 4. **Accesible** (WCAG 2.1 AA)
 5. **Performante** (<3s de carga en 3G)

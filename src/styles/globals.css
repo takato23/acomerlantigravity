@@ -9,53 +9,127 @@
   /* Light mode design tokens */
   --glass-bg: rgba(255, 255, 255, 0.65);
   --glass-border: rgba(255, 255, 255, 0.25);
-  --glass-bg-dark: rgba(24, 24, 27, 0.55);
   --glass-blur: 14px;
   --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
   
-  /* Meal type gradients */
+  /* Meal type gradients - slate/orange based */
   --meal-breakfast-from: #fde68a;
   --meal-breakfast-to: #fbcf5d;
-  --meal-lunch-from: #7dd3fc;
-  --meal-lunch-to: #5eead4;
-  --meal-snack-from: #6ee7b7;
-  --meal-snack-to: #a7f3d0;
-  --meal-dinner-from: #e879f9;
-  --meal-dinner-to: #fda4af;
+  --meal-lunch-from: #fb923c;
+  --meal-lunch-to: #f97316;
+  --meal-snack-from: #94a3b8;
+  --meal-snack-to: #cbd5e1;
+  --meal-dinner-from: #f97316;
+  --meal-dinner-to: #ea580c;
   
-  /* Light mode colors */
+  /* Light mode colors - slate based */
   --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-tertiary: #f3f4f6;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-tertiary: #6b7280;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
 }
 
-.dark {
-  /* Dark mode design tokens */
-  --glass-bg: rgba(24, 24, 27, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-blur: 20px;
-  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  
-  /* Dark mode colors */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #171717;
-  --bg-tertiary: #262626;
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-tertiary: #9ca3af;
-  
-  /* Adjusted meal gradients for dark mode */
-  --meal-breakfast-from: #fde68a;
-  --meal-breakfast-to: #fbcf5d;
-  --meal-lunch-from: #7dd3fc;
-  --meal-lunch-to: #5eead4;
-  --meal-snack-from: #6ee7b7;
-  --meal-snack-to: #a7f3d0;
-  --meal-dinner-from: #e879f9;
-  --meal-dinner-to: #fda4af;
+
+/* iOS26 Premium Design System */
+.ios26-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+
+.ios26-aurora {
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.15),
+    rgba(234, 88, 12, 0.15),
+    rgba(148, 163, 184, 0.10)
+  );
+}
+
+.ios26-button {
+  @apply rounded-2xl px-6 py-3 font-medium;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios26-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.ios26-button:active {
+  transform: scale(0.98);
+}
+
+
+.ios26-card {
+  @apply rounded-3xl p-6;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios26-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+
+.ios26-input {
+  @apply rounded-xl px-4 py-3;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.ios26-input:focus {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(249, 115, 22, 0.5);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+  outline: none;
+}
+
+/* iOS26 Animations */
+@keyframes ios26-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes ios26-pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+  }
+}
+
+.ios26-float {
+  animation: ios26-float 4s ease-in-out infinite;
+}
+
+.ios26-pulse-glow {
+  animation: ios26-pulse-glow 2s ease-in-out infinite;
 }
 
 /* Global reset and base styles */
@@ -66,7 +140,7 @@
   }
 
   body {
-    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    @apply bg-white text-slate-900;
     @apply transition-colors duration-300;
   }
 
@@ -76,15 +150,15 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-gray-800;
+    @apply bg-slate-100;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+    @apply bg-slate-300 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-500;
+    @apply bg-slate-400;
   }
 
   /* Focus styles */
@@ -93,7 +167,7 @@
   }
 
   *:focus-visible {
-    @apply ring-2 ring-food-fresh ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900;
+    @apply ring-2 ring-slate-300 ring-offset-2 ring-offset-white;
   }
 
   /* Selection styles */
@@ -110,19 +184,12 @@
     @apply shadow-glass;
   }
   
-  .dark .glass {
-    @apply bg-black/20 backdrop-blur-lg border-white/10;
-    @apply shadow-lg shadow-black/20;
-  }
 
   .glass-interactive {
     @apply glass hover:bg-white/15 hover:border-white/30;
     @apply transition-all duration-300 cursor-pointer;
   }
   
-  .dark .glass-interactive {
-    @apply hover:bg-black/30 hover:border-white/20;
-  }
 
   .glass-fresh {
     @apply bg-gradient-to-br from-food-fresh/10 via-food-fresh/5 to-transparent;
@@ -209,10 +276,10 @@
   /* Week navigation */
   .week-nav-button {
     @apply p-2 rounded-lg glass-interactive;
-    @apply text-gray-600 dark:text-gray-400;
-    @apply hover:text-gray-900 dark:hover:text-white;
+    @apply text-slate-600;
+    @apply hover:text-slate-900;
     @apply transition-all duration-200;
-    @apply focus:ring-2 focus:ring-meal-desayuno focus:ring-offset-2;
+    @apply focus:ring-2 focus:ring-slate-300 focus:ring-offset-2;
   }
 
   /* Text gradients */
@@ -250,9 +317,9 @@
   }
 
   .btn-secondary {
-    @apply glass-interactive text-gray-700 dark:text-gray-300;
+    @apply glass-interactive text-slate-700;
     @apply px-6 py-3 rounded-xl font-semibold;
-    @apply hover:text-gray-900 dark:hover:text-white;
+    @apply hover:text-slate-900;
   }
 
   .btn-outline {
@@ -275,15 +342,15 @@
   /* Input styles */
   .input {
     @apply glass rounded-lg px-4 py-3;
-    @apply border-gray-300 dark:border-gray-600;
-    @apply focus:border-food-fresh focus:ring-food-fresh;
+    @apply border-slate-300;
+    @apply focus:border-slate-500 focus:ring-slate-300;
     @apply transition-all duration-300;
   }
 
   /* Navigation styles */
   .nav-link {
-    @apply text-gray-600 dark:text-gray-400;
-    @apply hover:text-gray-900 dark:hover:text-white;
+    @apply text-slate-600;
+    @apply hover:text-slate-900;
     @apply transition-colors duration-300;
     @apply relative;
   }
@@ -305,7 +372,7 @@
 
   /* Loading states */
   .skeleton {
-    @apply bg-gray-200 dark:bg-gray-700 animate-pulse rounded;
+    @apply bg-slate-200 animate-pulse rounded;
   }
 
   .shimmer {
@@ -340,11 +407,11 @@
     @apply z-50;
   }
 
-  /* Dark mode utilities */
-  .dark-mode-toggle {
+  /* Theme toggle utilities */
+  .theme-toggle {
     @apply p-2 rounded-lg glass-interactive;
-    @apply text-gray-600 dark:text-gray-400;
-    @apply hover:text-gray-900 dark:hover:text-white;
+    @apply text-slate-600;
+    @apply hover:text-slate-900;
   }
 }
 
@@ -404,8 +471,8 @@
   /* High contrast mode */
   @media (prefers-contrast: high) {
     .glass {
-      @apply bg-white/90 dark:bg-gray-900/90;
-      @apply border-gray-900 dark:border-gray-100;
+      @apply bg-white/90;
+      @apply border-slate-900;
     }
   }
 

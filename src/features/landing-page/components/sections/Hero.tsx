@@ -8,10 +8,10 @@ import { GlassHeroCard } from '../ui/GlassCard';
 import { CTAButton, SecondaryButton } from '../ui/GradientButton';
 import { HeroIllustration } from '../ui/FlatIllustrations';
 
-const limePurpleColors = {
-  primary: '#84cc16',
-  secondary: '#a855f7',
-  accent: '#22d3ee'
+const slateColors = {
+  primary: '#1e293b',
+  secondary: '#334155',
+  accent: '#f97316'
 };
 
 export function Hero({
@@ -29,8 +29,7 @@ export function Hero({
     <section
       className={cn(
         'relative min-h-screen flex items-center justify-center',
-        'bg-gradient-to-br from-lime-50 via-purple-50 to-cyan-50',
-        'dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900',
+        'bg-slate-900',
         'overflow-hidden',
         className
       )}
@@ -41,12 +40,12 @@ export function Hero({
         {/* Gradient Overlay */}
         <div className={cn(
           'absolute inset-0',
-          background.gradient || 'bg-gradient-to-br from-lime-400/20 via-purple-500/20 to-cyan-400/20'
+          background.gradient || 'bg-slate-800/50'
         )} />
         
         {/* Animated Background Orbs */}
         <motion.div
-          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-lime-400/10 blur-3xl"
+          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-slate-700/30 blur-3xl"
           animate={{
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -59,7 +58,7 @@ export function Hero({
           }}
         />
         <motion.div
-          className="absolute top-3/4 right-1/4 w-80 h-80 rounded-full bg-purple-500/10 blur-3xl"
+          className="absolute top-3/4 right-1/4 w-80 h-80 rounded-full bg-slate-600/20 blur-3xl"
           animate={{
             x: [0, -80, 0],
             y: [0, 60, 0],
@@ -72,7 +71,7 @@ export function Hero({
           }}
         />
         <motion.div
-          className="absolute top-1/2 left-3/4 w-72 h-72 rounded-full bg-cyan-400/10 blur-3xl"
+          className="absolute top-1/2 left-3/4 w-72 h-72 rounded-full bg-slate-700/20 blur-3xl"
           animate={{
             x: [0, -60, 0],
             y: [0, 40, 0],
@@ -104,8 +103,8 @@ export function Hero({
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-6"
             >
-              <span className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-lime-400/20 to-purple-500/20 border border-lime-400/30 text-lime-700 dark:text-lime-300 text-sm font-medium">
-                ✨ {subtitle}
+              <span className="inline-flex items-center px-4 py-2 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-sm font-medium">
+                {subtitle}
               </span>
             </motion.div>
 
@@ -116,7 +115,7 @@ export function Hero({
               transition={{ duration: 0.8, delay: 0.3 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
             >
-              <span className="bg-gradient-to-r from-lime-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+              <span className="text-white">
                 {title}
               </span>
             </motion.h1>
@@ -126,7 +125,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0"
+              className="text-lg sm:text-xl text-slate-400 mb-8 max-w-2xl mx-auto lg:mx-0"
             >
               {description}
             </motion.p>
@@ -184,14 +183,11 @@ export function Hero({
                     transition={{ duration: 0.6, delay: 0.7 + index * 0.1 }}
                     className="text-center"
                   >
-                    <div className={cn(
-                      'text-2xl sm:text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent',
-                      stat.gradient || 'from-lime-600 to-purple-600'
-                    )}>
+                    <div className="text-2xl sm:text-3xl font-bold text-white">
                       {stat.value}
                       {stat.suffix && <span className="text-sm">{stat.suffix}</span>}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <div className="text-sm text-slate-400 mt-1">
                       {stat.label}
                     </div>
                   </motion.div>
@@ -209,13 +205,13 @@ export function Hero({
           >
             <GlassHeroCard
               className="max-w-md lg:max-w-lg xl:max-w-xl"
-              gradient="bg-gradient-to-br from-lime-400/10 via-purple-500/10 to-cyan-400/10"
+              gradient="bg-slate-800/50"
               hover={true}
             >
               <div className="p-8">
                 {illustration || (
                   <HeroIllustration
-                    colors={limePurpleColors}
+                    colors={slateColors}
                     size="xl"
                     animated={true}
                   />
@@ -236,7 +232,7 @@ export function Hero({
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400"
+          className="flex flex-col items-center space-y-2 text-slate-400"
         >
           <span className="text-sm font-medium">Scroll to explore</span>
           <svg
@@ -276,14 +272,14 @@ export function ProductHero({
       stats={stats}
       illustration={
         <HeroIllustration
-          colors={limePurpleColors}
+          colors={slateColors}
           size="xl"
           animated={true}
         />
       }
       background={{
-        gradient: 'bg-gradient-to-br from-lime-400/20 via-purple-500/20 to-cyan-400/20',
-        overlay: 'bg-white/5'
+        gradient: 'bg-slate-800/50',
+        overlay: 'bg-black/10'
       }}
       {...props}
     />
@@ -304,21 +300,21 @@ export function AppHero({
       description={description}
       cta={cta}
       stats={[
-        { label: 'Happy Users', value: '50K+', gradient: 'from-lime-600 to-purple-600' },
-        { label: 'Recipes Created', value: '1M+', gradient: 'from-purple-600 to-cyan-600' },
-        { label: 'Time Saved', value: '2hrs', suffix: '/week', gradient: 'from-cyan-600 to-lime-600' },
-        { label: 'Food Waste', value: '40%', suffix: ' less', gradient: 'from-lime-600 to-purple-600' }
+        { label: 'Happy Users', value: '50K+' },
+        { label: 'Recipes Created', value: '1M+' },
+        { label: 'Time Saved', value: '2hrs', suffix: '/week' },
+        { label: 'Food Waste', value: '40%', suffix: ' less' }
       ]}
       illustration={
         <HeroIllustration
-          colors={limePurpleColors}
+          colors={slateColors}
           size="xl"
           animated={true}
         />
       }
       background={{
-        gradient: 'bg-gradient-to-br from-lime-400/20 via-purple-500/20 to-cyan-400/20',
-        overlay: 'bg-white/5'
+        gradient: 'bg-slate-800/50',
+        overlay: 'bg-black/10'
       }}
       {...props}
     />

@@ -131,7 +131,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
       <FadeIn>
         <div className="glass-interactive rounded-xl p-6 md:p-8">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h3 className="text-2xl font-bold text-slate-900">
               {generatedRecipe.name}
             </h3>
             <Button
@@ -152,11 +152,11 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
                 className="rounded-lg mb-4"
               />
               
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-slate-600 mb-4">
                 {generatedRecipe.description}
               </p>
 
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-sm text-slate-500">
                 <span className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
                   {generatedRecipe.cookTime} min
@@ -172,22 +172,22 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Ingredients</h4>
+              <h4 className="font-semibold text-slate-900 mb-3">Ingredients</h4>
               <ul className="space-y-2 mb-6">
                 {generatedRecipe.ingredients.map((ing: any, index: number) => (
-                  <li key={index} className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <li key={index} className="flex items-center gap-2 text-slate-600">
                     <div className="w-2 h-2 bg-food-fresh rounded-full" />
                     {ing.amount} {ing.unit} {ing.name}
                   </li>
                 ))}
               </ul>
 
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Nutrition per serving</h4>
+              <h4 className="font-semibold text-slate-900 mb-3">Nutrition per serving</h4>
               <div className="grid grid-cols-2 gap-3">
                 {Object.entries(generatedRecipe.nutrition).map(([key, value]) => (
                   <div key={key} className="glass rounded-lg p-3">
-                    <div className="text-sm text-gray-500 capitalize">{key}</div>
-                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="text-sm text-slate-500 capitalize">{key}</div>
+                    <div className="text-lg font-semibold text-slate-900">
                       {value}{key === 'calories' ? '' : 'g'}
                     </div>
                   </div>
@@ -216,10 +216,10 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-food-fresh to-food-fresh-dark mb-4">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
             AI Recipe Generator
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-slate-600">
             Tell us what you have, and we&apos;ll create something delicious
           </p>
         </div>
@@ -231,7 +231,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
 
       <SlideIn direction="up" delay={0.1}>
         <div className="glass-interactive rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <Filter className="h-5 w-5" />
             Ingredients
           </h3>
@@ -259,7 +259,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
                 {ingredient}
                 <button
                   onClick={() => handleRemoveIngredient(ingredient)}
-                  className="ml-1 p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="ml-1 p-0.5 rounded hover:bg-slate-200"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -268,7 +268,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
           </div>
 
           {ingredients.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-sm text-slate-500 mt-2">
               Start by adding ingredients you have available
             </p>
           )}
@@ -277,14 +277,14 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
 
       <SlideIn direction="up" delay={0.2}>
         <div className="glass-interactive rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <ChefHat className="h-5 w-5" />
             Preferences
           </h3>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Cuisine Type
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -296,7 +296,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
                       'glass rounded-lg px-3 py-2 text-sm transition-all',
                       preferences.cuisine === cuisine
                         ? 'bg-food-fresh/20 border-food-fresh text-food-fresh-dark'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                        : 'hover:bg-slate-100'
                     )}
                   >
                     {cuisine}
@@ -306,7 +306,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Dietary Restrictions
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -318,7 +318,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
                       'glass rounded-lg px-3 py-2 text-sm transition-all flex items-center gap-2',
                       preferences.dietary.includes(option)
                         ? 'bg-food-fresh/20 border-food-fresh text-food-fresh-dark'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                        : 'hover:bg-slate-100'
                     )}
                   >
                     <Leaf className="h-3 w-3" />
@@ -330,7 +330,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
 
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Cooking Time
                 </label>
                 <div className="flex items-center gap-2">
@@ -350,20 +350,20 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Servings
                 </label>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPreferences(prev => ({ ...prev, servings: Math.max(1, prev.servings - 1) }))}
-                    className="glass w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="glass w-8 h-8 rounded flex items-center justify-center hover:bg-slate-100"
                   >
                     -
                   </button>
                   <span className="w-12 text-center font-medium">{preferences.servings}</span>
                   <button
                     onClick={() => setPreferences(prev => ({ ...prev, servings: prev.servings + 1 }))}
-                    className="glass w-8 h-8 rounded flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="glass w-8 h-8 rounded flex items-center justify-center hover:bg-slate-100"
                   >
                     +
                   </button>
@@ -371,7 +371,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Difficulty
                 </label>
                 <div className="flex gap-2">
@@ -383,7 +383,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
                         'glass rounded-lg px-3 py-1 text-sm capitalize transition-all flex-1',
                         preferences.difficulty === level
                           ? 'bg-food-fresh/20 border-food-fresh text-food-fresh-dark'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                          : 'hover:bg-slate-100'
                       )}
                     >
                       {level}

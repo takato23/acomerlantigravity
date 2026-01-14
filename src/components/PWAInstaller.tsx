@@ -96,27 +96,27 @@ export default function PWAInstaller() {
       {/* PWA Install Prompt */}
       {showInstaller && appInfo.isInstallable && (
         <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:w-96">
-          <Card className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg">
+          <Card className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg border-none">
             <div className="p-4">
               <div className="flex items-start gap-3">
                 <div className="rounded-lg bg-white/20 p-2">
-                  <Download className="h-5 w-5" />
+                  <Smartphone className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
                   <Heading as="h4" size="lg" className="font-semibold text-white mb-1">
-                    Install KeCarajoComer
+                    Instalar KeCarajoComer
                   </Heading>
-                  <Text size="sm" className="text-blue-100 mb-3">
-                    Get faster access and work offline with our app
+                  <Text size="sm" className="text-emerald-50 mb-3">
+                    Acceso más rápido y funciona sin conexión
                   </Text>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="primary"
                       size="sm"
                       onClick={handleInstall}
-                      className="bg-white text-blue-600 hover:bg-blue-50"
+                      className="bg-white text-emerald-600 hover:bg-emerald-50"
                     >
-                      Install App
+                      Instalar App
                     </Button>
                     <Button
                       variant="ghost"
@@ -124,7 +124,7 @@ export default function PWAInstaller() {
                       onClick={dismissInstaller}
                       className="text-white hover:bg-white/10"
                     >
-                      Not now
+                      Ahora no
                     </Button>
                   </div>
                 </div>
@@ -145,16 +145,16 @@ export default function PWAInstaller() {
       {/* Offline Notice */}
       {showOfflineNotice && (
         <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:w-96">
-          <Card className="bg-orange-500 text-white shadow-lg">
+          <Card className="bg-orange-500 text-white shadow-lg border-none">
             <div className="p-4">
               <div className="flex items-start gap-3">
                 <WifiOff className="h-5 w-5 mt-0.5" />
                 <div className="flex-1">
                   <Heading as="h4" size="lg" className="font-semibold text-white mb-1">
-                    You're Offline
+                    Sin Conexión
                   </Heading>
                   <Text size="sm" className="text-orange-100">
-                    Some features may be limited, but you can still browse cached content
+                    Algunas funciones están limitadas, pero puedes seguir navegando el contenido guardado
                   </Text>
                 </div>
                 <Button
@@ -190,13 +190,13 @@ export default function PWAInstaller() {
       {/* Mobile-specific install guidance */}
       {!appInfo.isInstallable && !appInfo.isRunningAsPWA && showMobileGuide && (
         <div className="fixed bottom-20 left-4 right-4 z-40 md:hidden">
-          <Card className="bg-gray-800 text-white shadow-lg">
+          <Card className="bg-gray-800/95 backdrop-blur-lg text-white shadow-lg border-gray-700">
             <div className="p-3">
               <div className="flex items-center gap-3">
-                <Smartphone className="h-5 w-5 text-blue-400" />
+                <Smartphone className="h-5 w-5 text-emerald-400" />
                 <div className="flex-1">
-                  <Text size="xs" className="text-gray-300">
-                    Add to home screen for a better experience
+                  <Text size="xs" className="text-gray-200">
+                    Agrega la app a tu pantalla de inicio para una mejor experiencia
                   </Text>
                 </div>
                 <div className="flex items-center gap-2">
@@ -208,9 +208,9 @@ export default function PWAInstaller() {
                       setShowMobileGuide(false);
                       localStorage.setItem('pwa-mobile-guide-dismissed', 'true');
                     }}
-                    className="text-blue-400 hover:bg-gray-700 text-xs px-2"
+                    className="text-emerald-400 hover:bg-gray-700 text-xs px-2"
                   >
-                    How?
+                    ¿Cómo?
                   </Button>
                   <Button
                     variant="ghost"

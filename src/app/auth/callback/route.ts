@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import { logger } from '@/services/logger';
 
 export async function GET(request: NextRequest) {
@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
 
   // Si hay un error del auth, redirigir al login con mensaje de error
   if (error) {
-    logger.error('Auth callback error', 'AuthCallback', { 
-      error, 
+    logger.error('Auth callback error', 'AuthCallback', {
+      error,
       errorDescription,
-      url: request.url 
+      url: request.url
     });
-    
+
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('error', errorDescription || error);
     return NextResponse.redirect(redirectUrl);
@@ -25,28 +25,38 @@ export async function GET(request: NextRequest) {
   // Si no hay código, es una solicitud inválida
   if (!code) {
     logger.warn('Auth callback without code', 'AuthCallback', { url: request.url });
-    
+
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('error', 'Link inválido o expirado');
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Crear response para redirect
+  const redirectUrl = new URL(next, request.url);
+  let response = NextResponse.redirect(redirectUrl);
+
   try {
-    // Crear un cliente Supabase específico para este callback
-    const supabase = createClient(
+    // Crear cliente SSR con manejo de cookies
+    const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
         },
       }
     );
 
     // Intercambiar el código por una sesión
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-    
+
     if (exchangeError) {
       throw exchangeError;
     }
@@ -55,39 +65,18 @@ export async function GET(request: NextRequest) {
       throw new Error('No se pudo crear la sesión');
     }
 
-    logger.info('Magic link auth successful', 'AuthCallback', { 
+    logger.info('Magic link auth successful', 'AuthCallback', {
       userId: data.user?.id,
-      email: data.user?.email 
-    });
-
-    // Crear response con redirección
-    const redirectUrl = new URL(next, request.url);
-    const response = NextResponse.redirect(redirectUrl);
-
-    // Configurar cookies de sesión
-    response.cookies.set('sb-access-token', data.session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: data.session.expires_in || 3600,
-      path: '/'
-    });
-
-    response.cookies.set('sb-refresh-token', data.session.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 días
-      path: '/'
+      email: data.user?.email
     });
 
     return response;
 
   } catch (error: any) {
     logger.error('Magic link exchange failed', 'AuthCallback', error);
-    
+
     let errorMessage = 'Error al procesar el link de acceso';
-    
+
     if (error.message?.includes('expired')) {
       errorMessage = 'El link ha expirado. Solicitá uno nuevo.';
     } else if (error.message?.includes('invalid')) {
@@ -96,8 +85,8 @@ export async function GET(request: NextRequest) {
       errorMessage = 'Este link ya fue usado. Solicitá uno nuevo.';
     }
 
-    const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('error', errorMessage);
-    return NextResponse.redirect(redirectUrl);
+    const errorRedirectUrl = new URL('/login', request.url);
+    errorRedirectUrl.searchParams.set('error', errorMessage);
+    return NextResponse.redirect(errorRedirectUrl);
   }
 }

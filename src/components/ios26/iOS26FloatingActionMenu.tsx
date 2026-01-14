@@ -12,6 +12,7 @@ import { Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { useIOS26 } from './iOS26Provider';
+import { iOS26LiquidButton } from './iOS26LiquidButton';
 
 export interface FloatingMenuItem {
   id: string;
@@ -38,18 +39,18 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
 }) => {
   const { reduceMotion, theme } = useIOS26();
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const positionClasses = {
     'bottom-right': 'bottom-6 right-6',
     'bottom-left': 'bottom-6 left-6',
     'top-right': 'top-6 right-6',
     'top-left': 'top-6 left-6'
   };
-  
+
   const getItemPosition = (index: number) => {
     const spacing = 70; // pixels between items
     const radialAngle = (Math.PI / 2) / (items.length - 1); // 90 degrees spread
-    
+
     switch (direction) {
       case 'up':
         return { x: 0, y: -(index + 1) * spacing };
@@ -69,7 +70,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
         return { x: 0, y: 0 };
     }
   };
-  
+
   const containerVariants = {
     open: {
       transition: {
@@ -84,7 +85,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
       }
     }
   };
-  
+
   const itemVariants = {
     open: (position: { x: number; y: number }) => ({
       x: position.x,
@@ -109,7 +110,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
       }
     }
   };
-  
+
   return (
     <>
       {/* Backdrop */}
@@ -124,7 +125,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
           />
         )}
       </AnimatePresence>
-      
+
       {/* Menu Container */}
       <div className={cn(
         'fixed z-50',
@@ -141,7 +142,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
           <AnimatePresence>
             {isOpen && items.map((item, index) => {
               const position = getItemPosition(index);
-              
+
               return (
                 <motion.div
                   key={item.id}
@@ -174,7 +175,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
               );
             })}
           </AnimatePresence>
-          
+
           {/* Main Button */}
           <motion.div
             animate={{ rotate: isOpen ? 45 : 0 }}

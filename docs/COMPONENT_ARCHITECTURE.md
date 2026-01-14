@@ -2,7 +2,7 @@
 
 ## Overview
 
-A modular, type-safe component architecture built with Next.js 15, TypeScript, and Tailwind CSS. Emphasizes reusability, performance, and exceptional user experience.
+A modular, type-safe component architecture built with Next.js 15.0.0, TypeScript, and Tailwind CSS. Emphasizes reusability, performance, and exceptional user experience.
 
 ## Design Principles
 

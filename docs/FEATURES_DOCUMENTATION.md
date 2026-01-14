@@ -1,7 +1,7 @@
 # Features Documentation - KeCarajoComer
 
 **Version**: 1.0  
-**Last Updated**: January 2025
+**Last Updated**: July 2025
 
 ## Table of Contents
 
@@ -26,6 +26,7 @@ Secure authentication system using Supabase Auth with social login support and c
 ### Features
 
 #### User Registration
+- **Magic Link**: Passwordless authentication via email link (default)
 - **Email/Password**: Traditional registration with email verification
 - **Social Auth**: Google, GitHub integration ready
 - **Onboarding Flow**: Multi-step profile setup for new users
@@ -64,11 +65,19 @@ Secure authentication system using Supabase Auth with social login support and c
 ```
 
 ### API Endpoints
+- `POST /api/auth/signin` - Send magic link to email
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/profile` - Get user profile
 - `PATCH /api/profile` - Update profile
 - `POST /api/profile/avatar` - Upload avatar
+
+### Route Protection
+Protected routes require authentication (middleware handles redirects):
+- `/planificador`, `/dashboard`, `/historial`, `/settings`, `/perfil`, `/despensa`, `/lista-compras`
+
+Public routes accessible without auth:
+- `/`, `/recetas`, `/shared/*`
 
 ---
 
@@ -76,6 +85,12 @@ Secure authentication system using Supabase Auth with social login support and c
 
 ### Overview
 Comprehensive recipe system with AI generation, search, filtering, and management capabilities.
+
+**Entry Point**
+- Main route: `/recetas` (with redirect from `/recipes` for compatibility)
+
+**AI Default**
+- Gemini is the default provider in the recipe creation flow, with optional provider switching.
 
 ### Features
 

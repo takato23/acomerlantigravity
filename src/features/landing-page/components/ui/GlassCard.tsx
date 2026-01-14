@@ -80,13 +80,13 @@ export function GlassCard({
 
   const baseClasses = cn(
     'relative overflow-hidden',
-    'bg-white/10 dark:bg-white/5',
+    'bg-white/10',
     blurClass,
     radiusClass,
     {
       [glassConfig.border]: border,
       [glassConfig.shadow]: shadow,
-      'hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300': hover,
+      'hover:bg-white/20 transition-all duration-300': hover,
       'cursor-pointer': onClick
     }
   );
@@ -108,7 +108,7 @@ export function GlassCard({
       
       {/* Border highlight */}
       {border && (
-        <div className="absolute inset-0 rounded-[inherit] border border-white/20 dark:border-white/10" />
+        <div className="absolute inset-0 rounded-[inherit] border border-white/20" />
       )}
       
       {/* Content */}

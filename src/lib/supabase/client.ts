@@ -1,38 +1,52 @@
 import { createClient } from '@supabase/supabase-js';
-
 import type { Database } from './database.types';
+import { mockSupabaseClient } from './mock-client';
 
 // Client-side Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
+// Helper to check if we have valid Supabase credentials
+const isValidSupabaseConfig = (url?: string, key?: string): boolean => {
+  if (!url || !key) return false;
+  // Check for placeholder values
+  if (url.includes('your_') || key.includes('your_')) return false;
+  // Check if it's a valid URL format
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
+export const supabase = isValidSupabaseConfig(supabaseUrl, supabaseAnonKey)
+  ? createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  })
+  : mockSupabaseClient;
 
 // Server-side Supabase client (for API routes)
 export const createServerSupabaseClient = () => {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  if (!supabaseServiceKey) {
-    throw new Error('Missing Supabase service role key');
+
+  if (!isValidSupabaseConfig(supabaseUrl, supabaseServiceKey)) {
+    console.warn('Missing or invalid Supabase credentials. Using mock client for offline development.');
+    return mockSupabaseClient;
   }
-  
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
+
+  return createClient<Database>(supabaseUrl!, supabaseServiceKey!, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
   });
 };
+
 
 // Auth helpers
 export const getCurrentUser = async () => {
@@ -103,15 +117,15 @@ export const subscribeToTable = <T = any>(
 ) => {
   const channel = filter
     ? supabase.channel(`${table}:${filter}`).on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table, filter },
-        callback
-      )
+      'postgres_changes',
+      { event: '*', schema: 'public', table, filter },
+      callback
+    )
     : supabase.channel(table).on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        callback
-      );
+      'postgres_changes',
+      { event: '*', schema: 'public', table },
+      callback
+    );
 
   channel.subscribe();
 

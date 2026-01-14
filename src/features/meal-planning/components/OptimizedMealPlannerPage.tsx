@@ -42,9 +42,9 @@ const LoadingSpinner = memo(() => (
 
 const ModalLoadingFallback = memo(() => (
   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl">
+    <div className="bg-white rounded-xl p-6 shadow-xl">
       <LoadingSpinner />
-      <p className="text-gray-600 dark:text-gray-300 mt-2">Cargando...</p>
+      <p className="text-slate-600 mt-2">Cargando...</p>
     </div>
   </div>
 ));
@@ -52,10 +52,10 @@ const ModalLoadingFallback = memo(() => (
 const GridLoadingFallback = memo(() => (
   <div className="space-y-6">
     <div className="animate-pulse">
-      <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg mb-6"></div>
+      <div className="h-32 bg-slate-200 rounded-lg mb-6"></div>
       <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         {Array.from({ length: 28 }).map((_, i) => (
-          <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+          <div key={i} className="h-24 bg-slate-200 rounded-lg"></div>
         ))}
       </div>
     </div>

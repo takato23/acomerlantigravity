@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Trophy, 
-  Star, 
-  Target, 
-  TrendingUp, 
-  Flame, 
-  CheckCircle, 
+import {
+  Trophy,
+  Star,
+  Target,
+  TrendingUp,
+  Flame,
+  CheckCircle,
   X,
   Bell,
   Gift
@@ -45,7 +45,7 @@ export function ProfileNotifications() {
 
     // Check for recent achievements
     const recentAchievements = metrics.achievements.filter(
-      achievement => achievement.unlockedAt && 
+      achievement => achievement.unlockedAt &&
       new Date(achievement.unlockedAt).getTime() > Date.now() - 5000
     );
 
@@ -55,7 +55,7 @@ export function ProfileNotifications() {
         type: 'achievement',
         title: 'Achievement Unlocked!',
         message: `You earned "${achievement.name}" and gained ${achievement.points} points!`,
-        icon: <Trophy className="h-5 w-5 text-yellow-500" />,
+        icon: <Trophy className="h-5 w-5 text-amber-500" />,
         timestamp: new Date(achievement.unlockedAt!),
         priority: 'high',
         points: achievement.points,
@@ -71,7 +71,7 @@ export function ProfileNotifications() {
           type: 'level_up',
           title: 'Level Up!',
           message: `Congratulations! You reached Level ${metrics.level}!`,
-          icon: <Star className="h-5 w-5 text-purple-500" />,
+          icon: <Star className="h-5 w-5 text-slate-600" />,
           timestamp: new Date(),
           priority: 'high',
         });
@@ -80,8 +80,8 @@ export function ProfileNotifications() {
 
     // Check for completion milestones
     const milestones = [25, 50, 75, 90, 100];
-    const reachedMilestone = milestones.find(milestone => 
-      metrics.overall >= milestone && 
+    const reachedMilestone = milestones.find(milestone =>
+      metrics.overall >= milestone &&
       metrics.overall < milestone + 5
     );
 
@@ -101,7 +101,7 @@ export function ProfileNotifications() {
 
     // Check for streak milestones
     const streakMilestones = [3, 7, 14, 30, 60, 90];
-    const streakMilestone = streakMilestones.find(milestone => 
+    const streakMilestone = streakMilestones.find(milestone =>
       metrics.currentStreak === milestone
     );
 
@@ -172,13 +172,13 @@ export function ProfileNotifications() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20';
+        return 'border-red-200 bg-red-50';
       case 'medium':
-        return 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20';
+        return 'border-amber-200 bg-amber-50';
       case 'low':
-        return 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20';
+        return 'border-blue-200 bg-blue-50';
       default:
-        return 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900';
+        return 'border-slate-200 bg-slate-50';
     }
   };
 
@@ -190,7 +190,7 @@ export function ProfileNotifications() {
     <div className="fixed top-4 right-4 z-50 w-96 max-w-[calc(100vw-2rem)]">
       <div className="space-y-2 max-h-96 overflow-y-auto">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <h3 className="text-sm font-medium text-slate-700">
             Notifications ({notifications.length})
           </h3>
           {notifications.length > 1 && (
@@ -223,7 +223,7 @@ export function ProfileNotifications() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                          <h4 className="font-semibold text-sm text-slate-900">
                             {notification.title}
                           </h4>
                           {notification.points && (
@@ -232,11 +232,11 @@ export function ProfileNotifications() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <p className="text-sm text-slate-700 mb-2">
                           {notification.message}
                         </p>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="text-xs text-slate-500">
                             {notification.timestamp.toLocaleTimeString()}
                           </span>
                           {notification.actionLabel && (
@@ -251,7 +251,7 @@ export function ProfileNotifications() {
                       variant="ghost"
                       size="sm"
                       onClick={() => dismissNotification(notification.id)}
-                      className="flex-shrink-0 h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      className="flex-shrink-0 h-6 w-6 p-0 hover:bg-slate-200"
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -263,9 +263,9 @@ export function ProfileNotifications() {
         </AnimatePresence>
 
         {notifications.length > 5 && (
-          <Card className="border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+          <Card className="border-slate-200 bg-slate-50">
             <CardContent className="p-3 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-slate-600">
                 +{notifications.length - 5} more notifications
               </p>
               <Button
@@ -293,9 +293,9 @@ export function useProfileNotifications() {
     if (!metrics) return;
 
     // Check for new achievements, level ups, etc.
-    const hasRecentActivity = 
-      metrics.achievements.some(a => 
-        a.unlockedAt && 
+    const hasRecentActivity =
+      metrics.achievements.some(a =>
+        a.unlockedAt &&
         new Date(a.unlockedAt).getTime() > Date.now() - 10000
       ) ||
       metrics.totalPoints > 0;

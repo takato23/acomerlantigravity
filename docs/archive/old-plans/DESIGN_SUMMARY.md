@@ -21,7 +21,7 @@ An AI-powered cooking assistant that transforms meal planning from a chore into 
 ## 🏗️ Architecture Overview
 
 ```
-Frontend (Next.js 15)  →  Edge Functions  →  Claude AI
+Frontend (Next.js 15.0.0)  →  Edge Functions  →  Claude AI
          ↓                      ↓                ↓
      Zustand Store         Supabase DB      AI Services
          ↓                      ↓                ↓
@@ -29,7 +29,7 @@ Frontend (Next.js 15)  →  Edge Functions  →  Claude AI
 ```
 
 ### Tech Stack
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, Framer Motion
+- **Frontend**: Next.js 15.0.0, TypeScript, Tailwind CSS, Framer Motion
 - **State**: Zustand with persistence
 - **Backend**: Supabase (PostgreSQL, Auth, Realtime)
 - **AI**: Claude API via Vercel Edge Functions

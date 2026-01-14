@@ -66,9 +66,9 @@ export function ThemeSwitcher({
   const buttonClasses = cn(
     'relative inline-flex items-center justify-center rounded-lg transition-all duration-300',
     {
-      'default': 'p-2 hover:bg-gray-100 dark:hover:bg-gray-800',
-      'minimal': 'p-1.5 hover:bg-gray-100/50 dark:hover:bg-gray-800/50',
-      'glass': 'p-2 backdrop-blur-md bg-white/10 hover:bg-white/20 dark:bg-black/10 dark:hover:bg-black/20 border border-white/20 dark:border-white/10'
+      'default': 'p-2 hover:bg-slate-100',
+      'minimal': 'p-1.5 hover:bg-slate-100/50',
+      'glass': 'p-2 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/20'
     }[variant],
     className
   );
@@ -87,10 +87,10 @@ export function ThemeSwitcher({
           exit={{ scale: 0.8, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {currentIcon && <currentIcon className="h-5 w-5 text-gray-700 dark:text-gray-300" />}
+          {currentIcon && <currentIcon className="h-5 w-5 text-slate-700" />}
         </motion.div>
         {showLabel && (
-          <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="ml-2 text-sm font-medium text-slate-700">
             {themes.find(t => t.value === theme)?.label}
           </span>
         )}
@@ -105,9 +105,9 @@ export function ThemeSwitcher({
             transition={{ duration: 0.2 }}
             className={cn(
               "absolute right-0 mt-2 w-36 origin-top-right rounded-xl shadow-lg ring-1 ring-black/5 z-50",
-              variant === 'glass' 
-                ? "backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border border-white/20 dark:border-white/10"
-                : "bg-white dark:bg-gray-900"
+              variant === 'glass'
+                ? "backdrop-blur-md bg-white/80 border border-white/20"
+                : "bg-white"
             )}
           >
             <div className="p-1.5">
@@ -122,8 +122,8 @@ export function ThemeSwitcher({
                     className={cn(
                       "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200",
                       isActive
-                        ? "bg-primary/10 text-primary dark:bg-primary/20"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-primary/10 text-primary"
+                        : "text-slate-700 hover:bg-slate-100"
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -139,11 +139,11 @@ export function ThemeSwitcher({
                 );
               })}
 
-              <div className="my-1.5 h-px bg-gray-200 dark:bg-gray-700" />
-              
+              <div className="my-1.5 h-px bg-slate-200" />
+
               <button
                 onClick={() => setIsOpen(false)}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
               >
                 <Palette className="h-4 w-4" />
                 <span className="font-medium">Customize</span>

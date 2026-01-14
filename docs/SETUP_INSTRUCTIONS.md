@@ -105,7 +105,7 @@ npm run test
 
 ```
 kecarajocomer/
-├── app/                    # Next.js 15 App Router
+├── app/                    # Next.js 15.0.0 App Router
 │   ├── (auth)/            # Authentication pages
 │   ├── (app)/             # Protected app pages
 │   ├── api/               # API routes

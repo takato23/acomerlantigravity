@@ -52,13 +52,13 @@ export const GlassCheckbox = forwardRef<HTMLInputElement, GlassCheckboxProps>(
               <div
                 className={cn(
                   "w-5 h-5 rounded-lg",
-                  "bg-white/10 dark:bg-gray-900/10",
+                  "bg-white/80 dark:bg-white/10",
                   "backdrop-blur-md",
-                  "border-2 border-white/20 dark:border-gray-700/20",
+                  "border-2 border-slate-200 dark:border-white/20",
                   "transition-all duration-300",
-                  "group-hover:bg-white/20 dark:group-hover:bg-gray-900/20",
+                  "group-hover:bg-slate-50 dark:group-hover:bg-white/20",
                   "relative overflow-hidden",
-                  isChecked && "bg-green-500/20 border-green-500/50",
+                  isChecked && "bg-green-500/20 border-green-500/50 dark:bg-green-500/30 dark:border-green-500/60",
                   error && "border-red-500/50",
                   props.disabled && "opacity-50 cursor-not-allowed"
                 )}
@@ -87,12 +87,12 @@ export const GlassCheckbox = forwardRef<HTMLInputElement, GlassCheckboxProps>(
           {(label || description) && (
             <div className="flex-1">
               {label && (
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-medium text-slate-900 dark:text-white">
                   {label}
                 </span>
               )}
               {description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                <p className="text-sm text-slate-600 dark:text-gray-400 mt-0.5">
                   {description}
                 </p>
               )}
@@ -104,7 +104,7 @@ export const GlassCheckbox = forwardRef<HTMLInputElement, GlassCheckboxProps>(
           <motion.p
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-500 dark:text-red-400 ml-8"
+            className="text-sm text-red-500 ml-8"
           >
             {error}
           </motion.p>

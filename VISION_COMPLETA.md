@@ -77,7 +77,7 @@ App "Ke Carajo Como" - resolver qué comer con lo que hay en casa, minimizando c
 ```
 
 ## STACK TÉCNICO FINAL
-- Next.js 15 + TypeScript + Tailwind + PWA
+- Next.js 15.0.0 + TypeScript + Tailwind + PWA
 - Supabase (DB + Auth + Storage)  
 - Gemini 1.5 Flash + function calling
 - Buscaprecios API + caché 7 días

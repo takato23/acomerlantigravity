@@ -24,17 +24,17 @@ interface PantryState {
   expirationAlerts: ExpirationAlert[];
   stats: PantryStats | null;
   analysis: PantryAnalysis | null;
-  
+
   // UI State
   isLoading: boolean;
   error: string | null;
   selectedItems: string[];
   filter: PantryFilter;
-  
+
   // Cache & Sync
   lastSyncTimestamp: number;
   isDirty: boolean;
-  
+
   // Actions
   // Item Management
   fetchItems: () => Promise<void>;
@@ -42,49 +42,57 @@ interface PantryState {
   updateItem: (item: UpdatePantryItemForm) => Promise<void>;
   deleteItem: (itemId: string) => Promise<void>;
   deleteItems: (itemIds: string[]) => Promise<void>;
-  
+
   // Batch Operations
   batchOperation: (operation: BatchPantryOperation) => Promise<BatchOperationResult>;
-  
+
   // Location Management
   fetchLocations: () => Promise<void>;
   addLocation: (location: Omit<PantryLocation, 'id' | 'user_id'>) => Promise<void>;
   updateLocation: (locationId: string, updates: Partial<PantryLocation>) => Promise<void>;
   deleteLocation: (locationId: string) => Promise<void>;
-  
+
   // Expiration Management
   fetchExpirationAlerts: () => Promise<void>;
   dismissAlert: (alertId: string) => Promise<void>;
   checkExpirations: () => void;
-  
+
   // Statistics & Analytics
   fetchStats: () => Promise<void>;
   fetchAnalysis: () => Promise<void>;
-  
+
   // Search & Filter
   setFilter: (filter: Partial<PantryFilter>) => void;
   clearFilter: () => void;
   searchItems: (query: string) => PantryItem[];
-  
+
   // Selection
   selectItem: (itemId: string) => void;
   selectItems: (itemIds: string[]) => void;
   selectAll: () => void;
   clearSelection: () => void;
-  
+
   // Consumption Tracking
   consumeItem: (itemId: string, quantity: number) => Promise<void>;
-  
+
   // Sync & Cache
   syncData: () => Promise<void>;
   markDirty: () => void;
-  
+
   // Utilities
   getFilteredItems: () => PantryItem[];
   getItemsByCategory: () => Record<string, PantryItem[]>;
   getExpiringItems: (days: number) => PantryItem[];
   getExpiredItems: () => PantryItem[];
-  
+
+  // Helper Functions (New)
+  getPantryItems: () => PantryItem[];
+  getItemCount: (itemName: string) => number;
+  hasIngredient: (ingredientName: string) => boolean;
+  removeItem: (itemName: string, quantity: number) => Promise<void>;
+  updateItemQuantity: (itemName: string, quantity: number) => Promise<void>; // Renamed from addItem to avoid collision
+  addItemsFromShoppingList: (items: { ingredientName: string; totalAmount: number; unit: string; category: string }[]) => Promise<void>;
+
   // Cleanup
   reset: () => void;
 }
@@ -116,14 +124,14 @@ export const usePantryStore = create<PantryState>()(
       filter: initialFilter,
       lastSyncTimestamp: 0,
       isDirty: false,
-      
+
       // Item Management Actions
       fetchItems: async () => {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
-        
+
         try {
           // Use sample data temporarily for demo purposes
 
@@ -140,34 +148,34 @@ export const usePantryStore = create<PantryState>()(
           });
         }
       },
-      
+
       addItem: async (itemForm: AddPantryItemForm) => {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
-        
+
         try {
           const response = await fetch('/api/pantry/items', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(itemForm),
           });
-          
+
           if (!response.ok) throw new Error('Failed to add pantry item');
-          
+
           const newItem = await response.json();
-          
+
           set((state) => {
             state.items.push(newItem);
             state.isLoading = false;
             state.isDirty = true;
           });
-          
+
           // Refresh stats
           get().fetchStats();
           get().checkExpirations();
-          
+
           return newItem;
         } catch (error: unknown) {
           set((state) => {
@@ -177,24 +185,24 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       updateItem: async (itemUpdate: UpdatePantryItemForm) => {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
-        
+
         try {
           const response = await fetch(`/api/pantry/items/${itemUpdate.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(itemUpdate),
           });
-          
+
           if (!response.ok) throw new Error('Failed to update pantry item');
-          
+
           const updatedItem = await response.json();
-          
+
           set((state) => {
             const index = state.items.findIndex((item) => item.id === itemUpdate.id);
             if (index !== -1) {
@@ -203,7 +211,7 @@ export const usePantryStore = create<PantryState>()(
             state.isLoading = false;
             state.isDirty = true;
           });
-          
+
           get().fetchStats();
           get().checkExpirations();
         } catch (error: unknown) {
@@ -214,27 +222,27 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       deleteItem: async (itemId: string) => {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
-        
+
         try {
           const response = await fetch(`/api/pantry/items/${itemId}`, {
             method: 'DELETE',
           });
-          
+
           if (!response.ok) throw new Error('Failed to delete pantry item');
-          
+
           set((state) => {
             state.items = state.items.filter((item) => item.id !== itemId);
             state.selectedItems = state.selectedItems.filter((id) => id !== itemId);
             state.isLoading = false;
             state.isDirty = true;
           });
-          
+
           get().fetchStats();
         } catch (error: unknown) {
           set((state) => {
@@ -244,29 +252,29 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       deleteItems: async (itemIds: string[]) => {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
-        
+
         try {
           const response = await fetch('/api/pantry/items/batch', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ item_ids: itemIds }),
           });
-          
+
           if (!response.ok) throw new Error('Failed to delete pantry items');
-          
+
           set((state) => {
             state.items = state.items.filter((item) => !itemIds.includes(item.id));
             state.selectedItems = state.selectedItems.filter((id) => !itemIds.includes(id));
             state.isLoading = false;
             state.isDirty = true;
           });
-          
+
           get().fetchStats();
         } catch (error: unknown) {
           set((state) => {
@@ -276,33 +284,33 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       // Batch Operations
       batchOperation: async (operation: BatchPantryOperation) => {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
-        
+
         try {
           const response = await fetch('/api/pantry/items/batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(operation),
           });
-          
+
           if (!response.ok) throw new Error('Batch operation failed');
-          
+
           const result = await response.json();
-          
+
           // Refresh data after batch operation
           await get().fetchItems();
-          
+
           set((state) => {
             state.isLoading = false;
             state.isDirty = true;
           });
-          
+
           return result;
         } catch (error: unknown) {
           set((state) => {
@@ -312,15 +320,15 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       // Location Management
       fetchLocations: async () => {
         try {
           const response = await fetch('/api/pantry/locations');
           if (!response.ok) throw new Error('Failed to fetch locations');
-          
+
           const data = await response.json();
-          
+
           set((state) => {
             state.locations = data.locations || [];
           });
@@ -330,7 +338,7 @@ export const usePantryStore = create<PantryState>()(
           });
         }
       },
-      
+
       addLocation: async (location) => {
         try {
           const response = await fetch('/api/pantry/locations', {
@@ -338,11 +346,11 @@ export const usePantryStore = create<PantryState>()(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(location),
           });
-          
+
           if (!response.ok) throw new Error('Failed to add location');
-          
+
           const newLocation = await response.json();
-          
+
           set((state) => {
             state.locations.push(newLocation);
           });
@@ -353,7 +361,7 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       updateLocation: async (locationId, updates) => {
         try {
           const response = await fetch(`/api/pantry/locations/${locationId}`, {
@@ -361,11 +369,11 @@ export const usePantryStore = create<PantryState>()(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates),
           });
-          
+
           if (!response.ok) throw new Error('Failed to update location');
-          
+
           const updatedLocation = await response.json();
-          
+
           set((state) => {
             const index = state.locations.findIndex((loc) => loc.id === locationId);
             if (index !== -1) {
@@ -379,15 +387,15 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       deleteLocation: async (locationId) => {
         try {
           const response = await fetch(`/api/pantry/locations/${locationId}`, {
             method: 'DELETE',
           });
-          
+
           if (!response.ok) throw new Error('Failed to delete location');
-          
+
           set((state) => {
             state.locations = state.locations.filter((loc) => loc.id !== locationId);
           });
@@ -398,15 +406,15 @@ export const usePantryStore = create<PantryState>()(
           throw error;
         }
       },
-      
+
       // Expiration Management
       fetchExpirationAlerts: async () => {
         try {
           const response = await fetch('/api/pantry/expiration-alerts');
           if (!response.ok) throw new Error('Failed to fetch expiration alerts');
-          
+
           const data = await response.json();
-          
+
           set((state) => {
             state.expirationAlerts = data.alerts || [];
           });
@@ -414,7 +422,7 @@ export const usePantryStore = create<PantryState>()(
           logger.error('Failed to fetch expiration alerts:', 'pantry:pantryStore', error);
         }
       },
-      
+
       dismissAlert: async (alertId) => {
         try {
           const response = await fetch(`/api/pantry/expiration-alerts/${alertId}`, {
@@ -422,9 +430,9 @@ export const usePantryStore = create<PantryState>()(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ dismissed: true }),
           });
-          
+
           if (!response.ok) throw new Error('Failed to dismiss alert');
-          
+
           set((state) => {
             const alert = state.expirationAlerts.find((a) => a.id === alertId);
             if (alert) {
@@ -435,11 +443,11 @@ export const usePantryStore = create<PantryState>()(
           logger.error('Failed to dismiss alert:', 'pantry:pantryStore', error);
         }
       },
-      
+
       checkExpirations: () => {
         const now = new Date();
         const items = get().items;
-        
+
         const alerts: ExpirationAlert[] = items
           .filter((item) => item.expiration_date)
           .map((item) => {
@@ -447,7 +455,7 @@ export const usePantryStore = create<PantryState>()(
             const daysUntilExpiration = Math.ceil(
               (expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
             );
-            
+
             let alertType: 'warning' | 'urgent' | 'expired';
             if (daysUntilExpiration < 0) {
               alertType = 'expired';
@@ -458,7 +466,7 @@ export const usePantryStore = create<PantryState>()(
             } else {
               return null;
             }
-            
+
             return {
               id: `alert-${item.id}`,
               pantry_item_id: item.id,
@@ -471,20 +479,20 @@ export const usePantryStore = create<PantryState>()(
             };
           })
           .filter(Boolean) as ExpirationAlert[];
-        
+
         set((state) => {
           state.expirationAlerts = alerts;
         });
       },
-      
+
       // Statistics & Analytics
       fetchStats: async () => {
         try {
           const response = await fetch('/api/pantry/stats');
           if (!response.ok) throw new Error('Failed to fetch pantry stats');
-          
+
           const stats = await response.json();
-          
+
           set((state) => {
             state.stats = stats;
           });
@@ -492,14 +500,14 @@ export const usePantryStore = create<PantryState>()(
           logger.error('Failed to fetch pantry stats:', 'pantry:pantryStore', error);
         }
       },
-      
+
       fetchAnalysis: async () => {
         try {
           const response = await fetch('/api/pantry/analysis');
           if (!response.ok) throw new Error('Failed to fetch pantry analysis');
-          
+
           const analysis = await response.json();
-          
+
           set((state) => {
             state.analysis = analysis;
           });
@@ -507,24 +515,24 @@ export const usePantryStore = create<PantryState>()(
           logger.error('Failed to fetch pantry analysis:', 'pantry:pantryStore', error);
         }
       },
-      
+
       // Search & Filter
       setFilter: (newFilter) => {
         set((state) => {
           state.filter = { ...state.filter, ...newFilter };
         });
       },
-      
+
       clearFilter: () => {
         set((state) => {
           state.filter = initialFilter;
         });
       },
-      
+
       searchItems: (query) => {
         const items = get().items;
         const lowerQuery = query.toLowerCase();
-        
+
         return items.filter((item) =>
           item.ingredient_name.toLowerCase().includes(lowerQuery) ||
           item.category?.toLowerCase().includes(lowerQuery) ||
@@ -532,7 +540,7 @@ export const usePantryStore = create<PantryState>()(
           item.notes?.toLowerCase().includes(lowerQuery)
         );
       },
-      
+
       // Selection
       selectItem: (itemId) => {
         set((state) => {
@@ -543,40 +551,40 @@ export const usePantryStore = create<PantryState>()(
           }
         });
       },
-      
+
       selectItems: (itemIds) => {
         set((state) => {
           state.selectedItems = itemIds;
         });
       },
-      
+
       selectAll: () => {
         const filteredItems = get().getFilteredItems();
         set((state) => {
           state.selectedItems = filteredItems.map((item) => item.id);
         });
       },
-      
+
       clearSelection: () => {
         set((state) => {
           state.selectedItems = [];
         });
       },
-      
+
       // Consumption Tracking
       consumeItem: async (itemId, quantity) => {
         const item = get().items.find((i) => i.id === itemId);
         if (!item) return;
-        
+
         const newQuantity = Math.max(0, item.quantity - quantity);
-        
+
         if (newQuantity === 0) {
           await get().deleteItem(itemId);
         } else {
           await get().updateItem({ id: itemId, quantity: newQuantity });
         }
       },
-      
+
       // Sync & Cache
       syncData: async () => {
         await Promise.all([
@@ -586,27 +594,27 @@ export const usePantryStore = create<PantryState>()(
           get().fetchStats(),
         ]);
       },
-      
+
       markDirty: () => {
         set((state) => {
           state.isDirty = true;
         });
       },
-      
+
       // Utility Functions
       getFilteredItems: () => {
         const { items, filter } = get();
         let filtered = [...items];
-        
+
         // Apply filters
         if (filter.category) {
           filtered = filtered.filter((item) => item.category === filter.category);
         }
-        
+
         if (filter.location) {
           filtered = filtered.filter((item) => item.location === filter.location);
         }
-        
+
         if (filter.expiring_within_days) {
           const now = new Date();
           const cutoffDate = new Date(now.getTime() + filter.expiring_within_days * 24 * 60 * 60 * 1000);
@@ -615,7 +623,7 @@ export const usePantryStore = create<PantryState>()(
             return new Date(item.expiration_date) <= cutoffDate;
           });
         }
-        
+
         if (filter.search_term) {
           const query = filter.search_term.toLowerCase();
           filtered = filtered.filter((item) =>
@@ -624,13 +632,13 @@ export const usePantryStore = create<PantryState>()(
             item.location?.toLowerCase().includes(query)
           );
         }
-        
+
         // Apply sorting
         if (filter.sort_by) {
           filtered.sort((a, b) => {
             let aValue: any;
             let bValue: any;
-            
+
             switch (filter.sort_by) {
               case 'name':
                 aValue = a.ingredient_name;
@@ -651,20 +659,20 @@ export const usePantryStore = create<PantryState>()(
               default:
                 return 0;
             }
-            
+
             if (aValue < bValue) return filter.sort_order === 'asc' ? -1 : 1;
             if (aValue > bValue) return filter.sort_order === 'asc' ? 1 : -1;
             return 0;
           });
         }
-        
+
         return filtered;
       },
-      
+
       getItemsByCategory: () => {
         const items = get().items;
         const categorized: Record<string, PantryItem[]> = {};
-        
+
         items.forEach((item) => {
           const category = item.category || 'Uncategorized';
           if (!categorized[category]) {
@@ -672,30 +680,119 @@ export const usePantryStore = create<PantryState>()(
           }
           categorized[category].push(item);
         });
-        
+
         return categorized;
       },
-      
+
       getExpiringItems: (days) => {
         const now = new Date();
         const cutoffDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-        
+
         return get().items.filter((item) => {
           if (!item.expiration_date) return false;
           const expDate = new Date(item.expiration_date);
           return expDate <= cutoffDate && expDate >= now;
         });
       },
-      
+
       getExpiredItems: () => {
         const now = new Date();
-        
+
         return get().items.filter((item) => {
           if (!item.expiration_date) return false;
           return new Date(item.expiration_date) < now;
         });
       },
-      
+
+      // Helper Functions Implementation
+      getPantryItems: () => get().items,
+
+      getItemCount: (itemName: string) => {
+        const items = get().items;
+        const normalizedName = itemName.toLowerCase();
+        return items
+          .filter(item => item.ingredient_name.toLowerCase() === normalizedName)
+          .reduce((sum, item) => sum + item.quantity, 0);
+      },
+
+      hasIngredient: (ingredientName: string) => {
+        return get().getItemCount(ingredientName) > 0;
+      },
+
+      removeItem: async (itemName: string, quantity: number) => {
+        const items = get().items;
+        const normalizedName = itemName.toLowerCase();
+        // Find items matching name, sorted by expiration (oldest first) to consume properly
+        const matchingItems = items
+          .filter(item => item.ingredient_name.toLowerCase() === normalizedName)
+          .sort((a, b) => {
+            if (!a.expiration_date) return 1;
+            if (!b.expiration_date) return -1;
+            return new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime();
+          });
+
+        let remainingQty = quantity;
+
+        for (const item of matchingItems) {
+          if (remainingQty <= 0) break;
+
+          if (item.quantity <= remainingQty) {
+            // Consume entire item
+            await get().deleteItem(item.id);
+            remainingQty -= item.quantity;
+          } else {
+            // Partial consumption
+            await get().updateItem({ id: item.id, quantity: item.quantity - remainingQty });
+            remainingQty = 0;
+          }
+        }
+      },
+
+      updateItemQuantity: async (itemName: string, quantity: number) => {
+        const items = get().items;
+        const normalizedName = itemName.toLowerCase();
+        const existingItem = items.find(item => item.ingredient_name.toLowerCase() === normalizedName);
+
+        if (existingItem) {
+          await get().updateItem({
+            id: existingItem.id,
+            quantity: existingItem.quantity + quantity
+          });
+        } else {
+          // Add new item with defaults
+          await get().addItem({
+            ingredient_name: itemName,
+            quantity: quantity,
+            unit: 'u', // Default unit, maybe needs refinement
+            category: 'Pantry', // Default category
+            location: 'Pantry' // Default location
+          });
+        }
+      },
+
+      addItemsFromShoppingList: async (items: { ingredientName: string; totalAmount: number; unit: string; category: string }[]) => {
+        for (const item of items) {
+          // Determine if we update or add
+          const pantryItems = get().items;
+          const existingItem = pantryItems.find(p => p.ingredient_name.toLowerCase() === item.ingredientName.toLowerCase());
+
+          if (existingItem) {
+            await get().updateItem({
+              id: existingItem.id,
+              quantity: existingItem.quantity + item.totalAmount
+            });
+          } else {
+            await get().addItem({
+              ingredient_name: item.ingredientName,
+              quantity: item.totalAmount,
+              unit: item.unit,
+              category: item.category || 'Pantry',
+              location: 'Pantry'
+            });
+          }
+        }
+      },
+
       // Cleanup
       reset: () => {
         set((state) => {

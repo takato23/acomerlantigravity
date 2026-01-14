@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase/client';
 import { logger } from '@/services/logger';
 
 import type { Database } from '@/types/database';
@@ -15,16 +15,16 @@ import type {
 } from '@/types/profile';
 
 // Import utilities
-import { 
+import {
   isIngredientCompatible as checkIngredientCompatibility,
   getIngredientRestrictions,
   getCuisineSuggestions
 } from '@/types/profile/utils';
 
 // Import migration utilities
-import { 
+import {
   prepareProfileForDatabase,
-  parseProfileFromDatabase 
+  parseProfileFromDatabase
 } from '@/types/profile/migration';
 
 /**
@@ -33,11 +33,12 @@ import {
  */
 export class ProfileManager {
   private supabase;
-  
+
   constructor(private system: HolisticFoodSystem) {
-    this.supabase = createClientComponentClient<Database>();
+    // Use centralized Supabase client with mock fallback
+    this.supabase = supabase;
   }
-  
+
   /**
    * Obtener perfil del usuario
    */
@@ -48,19 +49,19 @@ export class ProfileManager {
         .select('*')
         .eq('user_id', userId)
         .single();
-        
+
       if (error || !data) {
         return null;
       }
-      
+
       return parseProfileFromDatabase(data);
-      
+
     } catch (error: unknown) {
       logger.error('Error obteniendo perfil:', 'ProfileManager', error);
       return null;
     }
   }
-  
+
   /**
    * Crear o actualizar perfil
    */
@@ -70,7 +71,7 @@ export class ProfileManager {
         ...profile,
         userId
       });
-      
+
       const { data, error } = await this.supabase
         .from('profiles')
         .upsert({
@@ -80,17 +81,17 @@ export class ProfileManager {
         })
         .select()
         .single();
-        
+
       if (error) throw error;
-      
+
       return parseProfileFromDatabase(data);
-      
+
     } catch (error: unknown) {
       logger.error('Error actualizando perfil:', 'ProfileManager', error);
       throw new Error('Error al actualizar perfil');
     }
   }
-  
+
   /**
    * Actualizar restricciones dietéticas
    */
@@ -106,15 +107,15 @@ export class ProfileManager {
           updated_at: new Date().toISOString()
         })
         .eq('user_id', userId);
-        
+
       if (error) throw error;
-      
+
     } catch (error: unknown) {
       logger.error('Error actualizando restricciones:', 'ProfileManager', error);
       throw error;
     }
   }
-  
+
   /**
    * Actualizar alergias
    */
@@ -127,15 +128,15 @@ export class ProfileManager {
           updated_at: new Date().toISOString()
         })
         .eq('user_id', userId);
-        
+
       if (error) throw error;
-      
+
     } catch (error: unknown) {
       logger.error('Error actualizando alergias:', 'ProfileManager', error);
       throw error;
     }
   }
-  
+
   /**
    * Verificar si un ingrediente es compatible con el perfil
    * Now using the consolidated utility function
@@ -149,40 +150,40 @@ export class ProfileManager {
       if (!profile) {
         return { compatible: true };
       }
-      
+
       // Check allergies
       const allergyMatch = profile.allergies.find(
         allergy => ingredient.toLowerCase().includes(allergy.toLowerCase())
       );
-      
+
       if (allergyMatch) {
         return {
           compatible: false,
           reason: `Alergia a ${allergyMatch}`
         };
       }
-      
+
       // Check disliked ingredients
       const dislikedMatch = profile.dislikedIngredients.find(
         disliked => ingredient.toLowerCase().includes(disliked.toLowerCase())
       );
-      
+
       if (dislikedMatch) {
         return {
           compatible: false,
           reason: `No le gusta ${dislikedMatch}`
         };
       }
-      
+
       // Use the utility function for dietary restrictions
       return checkIngredientCompatibility(ingredient, profile.dietaryRestrictions);
-      
+
     } catch (error: unknown) {
       logger.error('Error verificando compatibilidad:', 'ProfileManager', error);
       return { compatible: true };
     }
   }
-  
+
   /**
    * Obtener recomendaciones basadas en perfil
    * Now using consolidated utility functions
@@ -201,22 +202,22 @@ export class ProfileManager {
           nutritionalFocus: []
         };
       }
-      
+
       // Use utility functions
       const suggestedIngredients = this.getSuggestedIngredients(
         profile.preferredCuisines
       );
-      
+
       const avoidIngredients = getIngredientRestrictions(profile);
-      
+
       const nutritionalFocus = this.getNutritionalFocus(profile.nutritionalGoals);
-      
+
       return {
         suggestedIngredients,
         avoidIngredients,
         nutritionalFocus
       };
-      
+
     } catch (error: unknown) {
       logger.error('Error obteniendo recomendaciones:', 'ProfileManager', error);
       return {
@@ -226,13 +227,13 @@ export class ProfileManager {
       };
     }
   }
-  
+
   /**
    * Obtener ingredientes sugeridos por cocina
    */
   private getSuggestedIngredients(cuisines: string[]): string[] {
     const suggestions: string[] = [];
-    
+
     const cuisineIngredients: Record<string, string[]> = {
       'italiana': ['tomate', 'albahaca', 'ajo', 'aceite de oliva', 'parmesano'],
       'mexicana': ['cilantro', 'lima', 'jalapeño', 'aguacate', 'tortillas'],
@@ -240,43 +241,43 @@ export class ProfileManager {
       'argentina': ['chimichurri', 'dulce de leche', 'yerba mate', 'empanadas'],
       'mediterránea': ['aceitunas', 'feta', 'limón', 'orégano', 'berenjena']
     };
-    
+
     for (const cuisine of cuisines) {
       const ingredients = cuisineIngredients[cuisine.toLowerCase()];
       if (ingredients) {
         suggestions.push(...ingredients);
       }
     }
-    
+
     return [...new Set(suggestions)]; // Eliminar duplicados
   }
-  
+
   /**
    * Obtener enfoque nutricional
    */
   private getNutritionalFocus(goals: NutritionalGoals): string[] {
     const focus: string[] = [];
-    
+
     if (goals.caloriesPerDay && goals.caloriesPerDay < 2000) {
       focus.push('Bajo en calorías');
     }
-    
+
     if (goals.proteinPerDay && goals.proteinPerDay > 50) {
       focus.push('Alto en proteínas');
     }
-    
+
     if (goals.carbsPerDay && goals.carbsPerDay < 100) {
       focus.push('Bajo en carbohidratos');
     }
-    
+
     if (goals.sodiumLimit) {
       focus.push('Bajo en sodio');
     }
-    
+
     if (goals.sugarLimit) {
       focus.push('Bajo en azúcar');
     }
-    
+
     return focus;
   }
 }

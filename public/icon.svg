@@ -1,4 +1,28 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="128" fill="#84cc16"/>
-  <text x="256" y="320" font-family="Arial, sans-serif" font-size="280" text-anchor="middle" fill="white">🍳</text>
+  <rect width="512" height="512" rx="120" fill="#84cc16"/>
+  
+  <!-- KC Monogram scaled for 512x512 -->
+  <g transform="translate(106, 106) scale(3)">
+    <path
+      d="M32 28V72M32 52L52 28M32 52L54 72"
+      stroke="white"
+      stroke-width="10"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+       d="M84 34C84 34 84 28 72 28C60 28 60 38 60 50C60 62 60 72 72 72C84 72 84 66 84 66"
+       stroke="white"
+       stroke-width="8"
+       stroke-linecap="round"
+       fill="none" 
+    />
+    <path
+      d="M72 18C72 18 80 18 84 24C88 30 84 34 84 34"
+      fill="none"
+      stroke="#ecfccb"
+      stroke-width="4"
+      stroke-linecap="round"
+    />
+  </g>
 </svg>

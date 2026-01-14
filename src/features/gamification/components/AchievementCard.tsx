@@ -31,10 +31,10 @@ export function AchievementCard({
   const progressPercentage = Math.min((progress / maxProgress) * 100, 100);
 
   const difficultyColors = {
-    [AchievementDifficulty.EASY]: 'from-green-400 to-green-600',
-    [AchievementDifficulty.MEDIUM]: 'from-yellow-400 to-yellow-600', 
+    [AchievementDifficulty.EASY]: 'from-green-500 to-green-600',
+    [AchievementDifficulty.MEDIUM]: 'from-amber-400 to-amber-600',
     [AchievementDifficulty.HARD]: 'from-red-400 to-red-600',
-    [AchievementDifficulty.LEGENDARY]: 'from-purple-400 to-purple-600'
+    [AchievementDifficulty.LEGENDARY]: 'from-slate-600 to-slate-700'
   };
 
   const categoryIcons = {
@@ -111,8 +111,8 @@ export function AchievementCard({
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+              <div
+                className="bg-slate-700 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -127,7 +127,7 @@ export function AchievementCard({
               <span>{achievement.xp_reward} XP</span>
             </div>
             <div className="flex items-center gap-1 text-sm text-gray-600">
-              <Trophy className="w-4 h-4 text-purple-500" />
+              <Trophy className="w-4 h-4 text-slate-600" />
               <span>{achievement.points_reward} pts</span>
             </div>
           </div>
@@ -204,13 +204,13 @@ export function AchievementNotification({ achievement, onClose }: AchievementNot
               <span className="font-medium">+{achievement.xp_reward} XP</span>
             </div>
             <div className="flex items-center gap-1">
-              <Trophy className="w-5 h-5 text-purple-500" />
+              <Trophy className="w-5 h-5 text-slate-600" />
               <span className="font-medium">+{achievement.points_reward} points</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-600 hover:to-indigo-600 transition-all duration-200"
+            className="w-full bg-black text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 transition-all duration-200"
           >
             Awesome!
           </button>

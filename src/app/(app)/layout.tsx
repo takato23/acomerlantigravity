@@ -3,6 +3,7 @@
 import { Navbar } from '@/components/navigation/Navbar';
 import { MobileNav } from '@/components/navigation/MobileNav';
 import { ClientProviders } from '@/app/client-providers';
+import { ThemeBackground } from '@/components/backgrounds';
 
 export default function AppLayout({
   children,
@@ -12,15 +13,18 @@ export default function AppLayout({
 
   return (
     <ClientProviders>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-950 dark:via-purple-950/20 dark:to-gray-950 relative transition-colors duration-500">
+      <div className="min-h-screen bg-white dark:bg-slate-950 relative transition-colors duration-300">
+        {/* Aurora background for dark mode */}
+        <ThemeBackground />
+
         {/* Professional Navigation */}
         <Navbar />
-        
+
         {/* Main Content */}
-        <main className="pt-24 pb-20 lg:pb-0 relative z-0">
+        <main className="pt-24 pb-20 lg:pb-0 relative z-10">
           {children}
         </main>
-        
+
         {/* Mobile Navigation */}
         <MobileNav />
       </div>

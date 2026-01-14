@@ -24,7 +24,7 @@ export class GeminiProvider extends AIProviderInterface {
 
   constructor(config: { apiKey?: string; useProxy?: boolean }) {
     super(config);
-    
+
     if (config.useProxy) {
       // Proxy mode - no API key needed
       this.genAI = null;
@@ -40,8 +40,47 @@ export class GeminiProvider extends AIProviderInterface {
     request: AITextRequest,
     config: AIServiceConfig
   ): Promise<AITextResponse> {
+    // Mock Mode Handler
+    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+      let mockData: any = { response: 'MOCK RESPONSE' };
+
+      const promptLower = request.prompt.toLowerCase();
+
+      if (promptLower.includes('meal plan') || promptLower.includes('plan de comidas')) {
+        const { MOCK_MEAL_PLAN } = require('@/lib/services/mockData');
+        mockData = MOCK_MEAL_PLAN;
+      } else if (promptLower.includes('shopping') || promptLower.includes('lista de compras')) {
+        const { MOCK_SHOPPING_LIST } = require('@/lib/services/mockData');
+        mockData = MOCK_SHOPPING_LIST;
+      } else if (promptLower.includes('receipt') || promptLower.includes('ticket')) {
+        const { MOCK_RECEIPT_DATA } = require('@/lib/services/mockData');
+        mockData = MOCK_RECEIPT_DATA; // UnifiedAIService expects parsed receipt, but here we return text/json
+      }
+
+      return {
+        data: typeof mockData === 'string' ? mockData : JSON.stringify(mockData),
+        provider: 'gemini',
+        model: (config.model || geminiConfig.default.model) as any,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        format: request.format || 'text',
+        metadata: {
+          requestId: this.generateRequestId(),
+          timestamp: new Date(),
+          processingTime: 0,
+        },
+      };
+    }
+
     try {
-      const model = this.genAI.getGenerativeModel({ 
+      if (!this.genAI) {
+        if (this.config.useProxy) {
+          const { aiProxy } = require('@/lib/ai/AIProxyClient');
+          return await aiProxy.generateText(request.prompt, 'gemini', config.model);
+        }
+        throw new Error('Gemini client not initialized.');
+      }
+
+      const model = this.genAI.getGenerativeModel({
         model: config.model === geminiConfig.default.model ? geminiConfig.default.model : config.model || geminiConfig.default.model,
       });
 
@@ -76,7 +115,7 @@ export class GeminiProvider extends AIProviderInterface {
       }, config.retryAttempts, config.retryDelay);
 
       const text = result.response.text();
-      
+
       // Calculate usage (Gemini doesn't provide exact token counts)
       const usage = {
         promptTokens: Math.ceil(fullPrompt.length / 4),
@@ -106,7 +145,7 @@ export class GeminiProvider extends AIProviderInterface {
     config: AIServiceConfig
   ): Promise<AIStreamResponse> {
     try {
-      const model = this.genAI.getGenerativeModel({ 
+      const model = this.genAI.getGenerativeModel({
         model: config.model || geminiConfig.default.model,
       });
 
@@ -155,12 +194,23 @@ export class GeminiProvider extends AIProviderInterface {
     }
   }
 
+  async generateImage(
+    request: AIImageGenerationRequest,
+    config: AIServiceConfig
+  ): Promise<AIImageGenerationResponse> {
+    throw new AIServiceError(
+      'Image generation not supported by Gemini yet',
+      'UNSUPPORTED_OPERATION',
+      'gemini'
+    );
+  }
+
   async analyzeImage(
     request: AIImageRequest,
     config: AIServiceConfig
   ): Promise<AITextResponse> {
     try {
-      const model = this.genAI.getGenerativeModel({ 
+      const model = this.genAI.getGenerativeModel({
         model: geminiConfig.default.model,
       });
 

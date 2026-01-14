@@ -83,23 +83,20 @@ export const MEAL_TYPES = {
     label: 'Desayuno',
     icon: '🌅',
     color: 'bg-amber-50 border-amber-200 text-amber-800',
-    darkColor: 'dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-300',
     time: '07:00',
     order: 1
   },
   lunch: {
     label: 'Almuerzo',
     icon: '☀️',
-    color: 'bg-blue-50 border-blue-200 text-blue-800',
-    darkColor: 'dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-300',
+    color: 'bg-slate-50 border-slate-200 text-slate-800',
     time: '13:00',
     order: 2
   },
   dinner: {
     label: 'Cena',
     icon: '🌙',
-    color: 'bg-purple-50 border-purple-200 text-purple-800',
-    darkColor: 'dark:bg-purple-900/20 dark:border-purple-700 dark:text-purple-300',
+    color: 'bg-slate-100 border-slate-300 text-slate-800',
     time: '20:00',
     order: 3
   },
@@ -107,7 +104,6 @@ export const MEAL_TYPES = {
     label: 'Snack',
     icon: '🍿',
     color: 'bg-green-50 border-green-200 text-green-800',
-    darkColor: 'dark:bg-green-900/20 dark:border-green-700 dark:text-green-300',
     time: '16:00',
     order: 4
   }
@@ -189,7 +185,6 @@ const EventCard: React.FC<EventCardProps> = ({
       className={cn(
         'relative group cursor-pointer rounded-lg border transition-all duration-200',
         mealConfig.color,
-        mealConfig.darkColor,
         compact ? 'p-2' : 'p-3',
         event.isCompleted && 'opacity-60',
         className
@@ -210,14 +205,14 @@ const EventCard: React.FC<EventCardProps> = ({
           </div>
           
           <h4 className={cn(
-            'font-medium text-gray-900 dark:text-white truncate',
+            'font-medium text-slate-900 truncate',
             compact ? 'text-xs mt-1' : 'text-sm mt-2'
           )}>
             {event.title}
           </h4>
           
           {!compact && (
-            <div className="flex items-center gap-3 mt-1 text-xs text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
               {event.duration && (
                 <span className="flex items-center gap-1">
                   ⏱️ {event.duration}min
@@ -336,11 +331,11 @@ const DayCell: React.FC<DayCellProps> = ({
   return (
     <div
       className={cn(
-        'relative group border-r border-b border-gray-200 dark:border-gray-700',
-        'hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer',
-        isSelected && 'bg-blue-50 dark:bg-blue-900/20',
-        isToday && 'bg-yellow-50 dark:bg-yellow-900/20',
-        isOtherMonth && 'text-gray-400 dark:text-gray-600',
+        'relative group border-r border-b border-slate-200',
+        'hover:bg-slate-50 transition-colors cursor-pointer',
+        isSelected && 'bg-orange-50',
+        isToday && 'bg-amber-50',
+        isOtherMonth && 'text-gray-400',
         compact ? 'min-h-[80px] p-1' : 'min-h-[120px] p-2',
         className
       )}
@@ -350,8 +345,8 @@ const DayCell: React.FC<DayCellProps> = ({
       <div className="flex items-center justify-between mb-1">
         <span className={cn(
           'text-sm font-medium',
-          isToday && 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs',
-          isSelected && !isToday && 'bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs'
+          isToday && 'bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs',
+          isSelected && !isToday && 'bg-orange-100 text-orange-800 rounded-full w-6 h-6 flex items-center justify-center text-xs'
         )}>
           {format(date, 'd')}
         </span>
@@ -362,7 +357,7 @@ const DayCell: React.FC<DayCellProps> = ({
               e.stopPropagation();
               onEventAdd(date, 'breakfast');
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-200"
             title="Agregar comida"
           >
             <Plus className="w-3 h-3" />
@@ -554,14 +549,14 @@ export const ResponsiveCalendar: React.FC<ResponsiveCalendarProps> = ({
   
   return (
     <div className={cn(
-      'flex flex-col bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden',
+      'flex flex-col bg-white rounded-lg shadow-lg overflow-hidden',
       className
     )}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <CalendarIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <CalendarIcon className="w-6 h-6 text-gray-600" />
+          <h2 className="text-lg font-semibold text-slate-900">
             {getPeriodDisplay()}
           </h2>
         </div>
@@ -571,7 +566,7 @@ export const ResponsiveCalendar: React.FC<ResponsiveCalendarProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowViewSwitcher(!showViewSwitcher)}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
             >
               {view === 'day' && <Smartphone className="w-4 h-4" />}
               {view === 'week' && <Tablet className="w-4 h-4" />}
@@ -587,15 +582,15 @@ export const ResponsiveCalendar: React.FC<ResponsiveCalendarProps> = ({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10"
+                  className="absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10"
                 >
                   {['day', 'week', 'month'].map((viewOption) => (
                     <button
                       key={viewOption}
                       onClick={() => handleViewChange(viewOption as CalendarView)}
                       className={cn(
-                        'w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
-                        view === viewOption && 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        'w-full px-4 py-2 text-sm text-left hover:bg-slate-100 transition-colors',
+                        view === viewOption && 'bg-orange-50 text-orange-600'
                       )}
                     >
                       {viewOption === 'day' && 'Día'}
@@ -612,22 +607,22 @@ export const ResponsiveCalendar: React.FC<ResponsiveCalendarProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={() => navigateDate('prev')}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
               aria-label="Período anterior"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            
+
             <button
               onClick={goToToday}
-              className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
             >
               Hoy
             </button>
-            
+
             <button
               onClick={() => navigateDate('next')}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
               aria-label="Siguiente período"
             >
               <ChevronRight className="w-4 h-4" />
@@ -638,11 +633,11 @@ export const ResponsiveCalendar: React.FC<ResponsiveCalendarProps> = ({
       
       {/* Week days header (for week and month views) */}
       {(view === 'week' || view === 'month') && !isMobile && (
-        <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-7 border-b border-slate-200">
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
             <div
               key={day}
-              className="p-3 text-sm font-medium text-gray-600 dark:text-gray-400 text-center border-r border-gray-200 dark:border-gray-700 last:border-r-0"
+              className="p-3 text-sm font-medium text-gray-600 text-center border-r border-slate-200 last:border-r-0"
             >
               {day}
             </div>
@@ -672,7 +667,7 @@ export const ResponsiveCalendar: React.FC<ResponsiveCalendarProps> = ({
             maxEventsPerSlot={maxEventsPerSlot}
             compact={compact}
             className={cn(
-              view === 'week' && isMobile && 'border-b border-gray-200 dark:border-gray-700 last:border-b-0',
+              view === 'week' && isMobile && 'border-b border-slate-200 last:border-b-0',
               view === 'month' && index % 7 === 6 && 'border-r-0'
             )}
           />
@@ -680,8 +675,8 @@ export const ResponsiveCalendar: React.FC<ResponsiveCalendarProps> = ({
       </div>
       
       {/* Stats Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+      <div className="p-4 border-t border-slate-200 bg-slate-50">
+        <div className="flex items-center justify-between text-sm text-gray-600">
           <div className="flex items-center gap-4">
             <span>Total: {events.length} comidas</span>
             <span>Completadas: {events.filter(e => e.isCompleted).length}</span>

@@ -6,7 +6,7 @@ kecarajocomer is a next-generation meal planning and recipe application that lev
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15 (App Router) + TypeScript + Tailwind CSS
+- **Frontend**: Next.js 15.0.0 (App Router) + TypeScript + Tailwind CSS
 - **State Management**: Zustand with persistence
 - **Backend**: Supabase (PostgreSQL + Auth + Realtime)
 - **AI Integration**: Claude API via Vercel Edge Functions
@@ -42,7 +42,7 @@ kecarajocomer is a next-generation meal planning and recipe application that lev
 
 ```
 src/
-├── app/                    # Next.js 15 App Router
+├── app/                    # Next.js 15.0.0 App Router
 │   ├── (auth)/            # Auth routes
 │   ├── (dashboard)/       # Protected routes
 │   ├── api/               # API routes
@@ -473,7 +473,7 @@ export const performanceObserver = new PerformanceObserver((list) => {
 ## Implementation Roadmap
 
 ### Phase 1: Foundation (Week 1-2)
-- [ ] Setup Next.js 15 with TypeScript
+- [ ] Setup Next.js 15.0.0 with TypeScript
 - [ ] Configure Supabase with auth
 - [ ] Implement base UI components
 - [ ] Setup Zustand stores

@@ -71,14 +71,14 @@ export const GlowOrb = ({ color = "purple", size = "large", position }: {
   };
   
   const colors = {
-    purple: "from-purple-600/30 to-pink-600/30",
-    blue: "from-blue-600/30 to-cyan-600/30",
-    green: "from-green-600/30 to-emerald-600/30"
+    purple: "bg-slate-600/30",
+    blue: "bg-slate-600/30",
+    green: "bg-green-600/30"
   };
   
   return (
     <motion.div
-      className={`absolute ${sizes[size]} bg-gradient-radial ${colors[color as keyof typeof colors]} rounded-full filter blur-3xl`}
+      className={`absolute ${sizes[size]} ${colors[color as keyof typeof colors]} rounded-full filter blur-3xl`}
       style={{ left: position.x, top: position.y }}
       animate={{
         scale: [1, 1.2, 1],
@@ -154,8 +154,8 @@ export const SuccessAnimation = () => (
     />
     <defs>
       <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#a855f7" />
-        <stop offset="100%" stopColor="#ec4899" />
+        <stop offset="0%" stopColor="#f97316" />
+        <stop offset="100%" stopColor="#ea580c" />
       </linearGradient>
     </defs>
   </svg>
@@ -190,17 +190,17 @@ export const useMagneticHover = () => {
 export const PremiumSpinner = () => (
   <div className="relative w-12 h-12">
     <motion.div
-      className="absolute inset-0 rounded-full border-3 border-purple-400/30"
+      className="absolute inset-0 rounded-full border-3 border-orange-400/30"
       animate={{ rotate: 360 }}
       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
     />
     <motion.div
-      className="absolute inset-0 rounded-full border-3 border-transparent border-t-purple-400 border-r-pink-400"
+      className="absolute inset-0 rounded-full border-3 border-transparent border-t-orange-400 border-r-orange-500"
       animate={{ rotate: -360 }}
       transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
     />
     <motion.div
-      className="absolute inset-2 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 opacity-20"
+      className="absolute inset-2 rounded-full bg-orange-400 opacity-20"
       animate={{ scale: [0.8, 1, 0.8], opacity: [0.2, 0.4, 0.2] }}
       transition={{ duration: 2, repeat: Infinity }}
     />
@@ -210,7 +210,7 @@ export const PremiumSpinner = () => (
 // Animated gradient text
 export const GradientText = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <motion.span
-    className={`bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent bg-[length:200%_auto] ${className}`}
+    className={`bg-orange-400 bg-clip-text text-transparent ${className}`}
     animate={{
       backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
     }}

@@ -33,13 +33,13 @@ const variantMap: Record<ComponentVariant, { gradient: string; hover: string; te
     text: 'text-white'
   },
   secondary: {
-    gradient: 'bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600',
-    hover: 'hover:from-purple-500 hover:via-purple-600 hover:to-purple-700',
+    gradient: 'bg-slate-700',
+    hover: 'hover:bg-slate-800',
     text: 'text-white'
   },
   accent: {
-    gradient: 'bg-gradient-to-r from-lime-400 via-purple-500 to-purple-600',
-    hover: 'hover:from-lime-500 hover:via-purple-600 hover:to-purple-700',
+    gradient: 'bg-orange-500',
+    hover: 'hover:bg-orange-600',
     text: 'text-white'
   },
   success: {
@@ -158,7 +158,7 @@ export function GradientButton({
       'rounded-lg': !rounded,
       'shadow-lg': glow,
       'shadow-lime-500/25 hover:shadow-lime-500/40': glow && variant === 'primary',
-      'shadow-purple-500/25 hover:shadow-purple-500/40': glow && variant === 'secondary',
+      'shadow-slate-500/25 hover:shadow-slate-500/40': glow && variant === 'secondary',
     },
     sizeConfig.padding,
     sizeConfig.text,

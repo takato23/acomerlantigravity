@@ -24,14 +24,14 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
-      setError('Por favor, ingresá tu email');
+      setError('Por favor, ingresa tu email');
       return;
     }
 
     if (!validateEmail(email)) {
-      setError('Por favor, ingresá un email válido');
+      setError('Por favor, ingresa un email valido');
       return;
     }
 
@@ -39,10 +39,16 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
     setError(null);
 
     try {
+      // Build callback URL with redirect param
+      const callbackUrl = new URL('/auth/callback', window.location.origin);
+      if (redirectTo && redirectTo !== '/') {
+        callbackUrl.searchParams.set('next', redirectTo);
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: callbackUrl.toString(),
           data: {
             app_name: 'KeCarajoComer',
             source: 'magic_link_auth'
@@ -56,20 +62,20 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
 
       setIsEmailSent(true);
       logger.info('Magic link sent successfully', 'MagicLinkAuth', { email });
-      
+
       if (onSuccess) {
         onSuccess();
       }
 
     } catch (error: any) {
       logger.error('Magic link auth error', 'MagicLinkAuth', error);
-      
+
       if (error.message?.includes('rate_limit')) {
-        setError('Demasiados intentos. Esperá un momento antes de intentar de nuevo.');
+        setError('Demasiados intentos. Espera un momento antes de intentar de nuevo.');
       } else if (error.message?.includes('invalid_email')) {
-        setError('Email inválido. Verificá que esté bien escrito.');
+        setError('Email invalido. Verifica que este bien escrito.');
       } else {
-        setError('Error al enviar el link. Intentá de nuevo.');
+        setError('Error al enviar el link. Intenta de nuevo.');
       }
     } finally {
       setIsLoading(false);
@@ -85,27 +91,27 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
   if (isEmailSent) {
     return (
       <div className="max-w-md mx-auto">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-8 text-center">
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 text-center">
           {/* Success Icon */}
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            ¡Link enviado!
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            Link enviado!
           </h2>
 
           {/* Description */}
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Te enviamos un link mágico a <span className="font-semibold text-green-600 dark:text-green-400">{email}</span>. 
-            Hacé clic en el link para acceder instantáneamente.
+          <p className="text-slate-600 mb-6">
+            Te enviamos un link magico a <span className="font-semibold text-green-600">{email}</span>.
+            Haz clic en el link para acceder instantaneamente.
           </p>
 
           {/* Instructions */}
-          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-700 dark:text-green-300">
-              💡 <strong>Tip:</strong> Revisá tu bandeja de spam si no ves el email en unos minutos.
+          <div className="bg-green-50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-700">
+              <strong>Tip:</strong> Revisa tu bandeja de spam si no ves el email en unos minutos.
             </p>
           </div>
 
@@ -124,27 +130,27 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-8">
-        
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8">
+
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail className="w-8 h-8 text-green-600 dark:text-green-400" />
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail className="w-8 h-8 text-green-600" />
           </div>
-          
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Acceso rápido
+
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            Acceso rapido
           </h1>
-          
-          <p className="text-gray-600 dark:text-gray-300">
-            Ingresá tu email y te enviamos un link mágico para acceder sin contraseña
+
+          <p className="text-slate-600">
+            Ingresa tu email y te enviamos un link magico para acceder sin contrasena
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
               Email
             </label>
             <input
@@ -156,7 +162,7 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
                 setError(null);
               }}
               placeholder="tu@email.com"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               disabled={isLoading}
               autoComplete="email"
               autoFocus
@@ -164,8 +170,8 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
           </div>
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-              <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
@@ -181,7 +187,7 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
               </>
             ) : (
               <>
-                Enviar link mágico
+                Enviar link magico
                 <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}
@@ -190,8 +196,8 @@ export function MagicLinkAuth({ onSuccess, redirectTo = '/' }: MagicLinkAuthProp
 
         {/* Footer */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Sin contraseñas, sin complicaciones. Solo tu email y listo.
+          <p className="text-xs text-slate-500">
+            Sin contrasenas, sin complicaciones. Solo tu email y listo.
           </p>
         </div>
       </div>

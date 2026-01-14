@@ -12,6 +12,8 @@ import {
   AITextResponse,
   AIJSONResponse,
   AIStreamResponse,
+  AIImageGenerationRequest,
+  AIImageGenerationResponse,
   GeneratedRecipe,
   ParsedReceipt,
   GeneratedMealPlan,
@@ -23,8 +25,10 @@ import { OpenAIProvider } from './providers/OpenAIProvider';
 import geminiConfig from '@/lib/config/gemini.config';
 import { AnthropicProvider } from './providers/AnthropicProvider';
 import { GeminiProvider } from './providers/GeminiProvider';
+import { MockAIProvider } from './providers/MockAIProvider';
 import { AIProviderInterface } from './providers/AIProviderInterface';
 import { aiProxy } from '@/lib/ai/AIProxyClient';
+
 
 export class UnifiedAIService {
   private static instance: UnifiedAIService;
@@ -59,12 +63,15 @@ export class UnifiedAIService {
   }
 
   private initializeProviders(): void {
+    // Always add mock provider
+    this.providers.set('mock' as any, new MockAIProvider());
+
     // Note: API keys are now handled server-side via proxy endpoints
     // Initialize providers with proxy configuration
-    
+
     // Check if we're running on client-side to use proxy
     const isClientSide = typeof window !== 'undefined';
-    
+
     if (isClientSide) {
       // Client-side: Use proxy endpoints (no API keys exposed)
       this.providers.set('openai', new OpenAIProvider({ useProxy: true }));
@@ -89,6 +96,7 @@ export class UnifiedAIService {
     }
   }
 
+
   /**
    * Get the appropriate provider based on request and config
    */
@@ -102,17 +110,17 @@ export class UnifiedAIService {
     if (provider === 'auto') {
       if (requiresVision) {
         // Prefer Gemini Pro Vision for image analysis
-        provider = this.providers.has('gemini') ? 'gemini' : 'openai';
+        provider = this.providers.has('gemini') ? 'gemini' : (this.providers.has('openai') ? 'openai' : 'mock' as any);
       } else {
         // Use default provider for text
-        provider = this.defaultProvider;
+        provider = this.providers.has(this.defaultProvider) ? this.defaultProvider : 'mock' as any;
       }
     }
 
-    const selectedProvider = this.providers.get(provider);
+    const selectedProvider = this.providers.get(provider) || this.providers.get('mock' as any);
     if (!selectedProvider) {
       throw new AIServiceError(
-        `Provider ${provider} is not available`,
+        `Provider ${provider} is not available and mock fallback failed`,
         'PROVIDER_ERROR',
         provider
       );
@@ -127,7 +135,7 @@ export class UnifiedAIService {
   async generateText(request: AITextRequest, config?: Partial<AIServiceConfig>): Promise<AITextResponse> {
     const mergedConfig = { ...this.config, ...config };
     const provider = this.selectProvider(mergedConfig.provider);
-    
+
     try {
       return await provider.generateText(request, mergedConfig);
     } catch (error: unknown) {
@@ -150,7 +158,7 @@ export class UnifiedAIService {
     };
 
     const response = await this.generateText(jsonRequest, config);
-    
+
     try {
       const data = JSON.parse(response.data);
       return {
@@ -178,7 +186,7 @@ export class UnifiedAIService {
   ): Promise<AIStreamResponse> {
     const mergedConfig = { ...this.config, ...config };
     const provider = this.selectProvider(mergedConfig.provider);
-    
+
     try {
       return await provider.streamText(request, mergedConfig);
     } catch (error: unknown) {
@@ -195,9 +203,31 @@ export class UnifiedAIService {
   ): Promise<AITextResponse> {
     const mergedConfig = { ...this.config, ...config };
     const provider = this.selectProvider(mergedConfig.provider, true);
-    
+
     try {
       return await provider.analyzeImage(request, mergedConfig);
+    } catch (error: unknown) {
+      throw this.handleProviderError(error, provider);
+    }
+  }
+
+  /**
+   * Generate image
+   */
+  async generateImage(
+    request: AIImageGenerationRequest,
+    config?: Partial<AIServiceConfig>
+  ): Promise<AIImageGenerationResponse> {
+    const mergedConfig = { ...this.config, ...config };
+    // Force OpenAI for image generation if auto, since Gemini doesn't support it yet
+    if (mergedConfig.provider === 'auto') {
+      mergedConfig.provider = 'openai';
+    }
+
+    const provider = this.selectProvider(mergedConfig.provider);
+
+    try {
+      return await provider.generateImage(request, mergedConfig);
     } catch (error: unknown) {
       throw this.handleProviderError(error, provider);
     }
@@ -243,7 +273,7 @@ Respond with JSON only.`,
     };
 
     const response = await this.generateJSON<ParsedReceipt>(parseRequest, undefined, config);
-    
+
     // Enrich with additional data
     return this.enrichReceiptData(response.data);
   }
@@ -256,7 +286,7 @@ Respond with JSON only.`,
     config?: Partial<AIServiceConfig>
   ): Promise<GeneratedRecipe> {
     const prompt = this.buildRecipePrompt(request);
-    
+
     const aiRequest: AITextRequest = {
       prompt,
       format: 'json',
@@ -264,7 +294,7 @@ Respond with JSON only.`,
     };
 
     const response = await this.generateJSON<GeneratedRecipe>(aiRequest, undefined, config);
-    
+
     // Add metadata
     return {
       ...response.data,
@@ -282,7 +312,7 @@ Respond with JSON only.`,
     config?: Partial<AIServiceConfig>
   ): Promise<GeneratedMealPlan> {
     const prompt = this.buildMealPlanPrompt(request);
-    
+
     const aiRequest: AITextRequest = {
       prompt,
       format: 'json',
@@ -341,7 +371,7 @@ Respond with JSON array of recommendations.`;
   ): Promise<AITextResponse> {
     const systemMessage = messages.find(m => m.role === 'system');
     const userMessages = messages.filter(m => m.role !== 'system');
-    
+
     const request: AITextRequest = {
       prompt: userMessages[userMessages.length - 1]?.content || '',
       systemPrompt: systemMessage?.content,
@@ -455,7 +485,7 @@ Consider:
 List 3-5 suitable substitutions with brief explanations.`;
 
     const response = await this.generateText({ prompt }, config);
-    
+
     // Parse the response to extract substitutions
     const lines = response.data.split('\n').filter(line => line.trim());
     return lines.filter(line => line.match(/^[\d\-\*\•]/)); // Lines starting with bullet points
@@ -494,12 +524,12 @@ Format as practical, actionable tips.`;
   ): Promise<Array<{ success: boolean; data?: T; error?: Error }>> {
     const { concurrency = 3, throwOnError = false } = options;
     const results: Array<{ success: boolean; data?: T; error?: Error }> = [];
-    
+
     // Process in batches
     for (let i = 0; i < requests.length; i += concurrency) {
       const batch = requests.slice(i, i + concurrency);
       const batchResults = await Promise.allSettled(batch.map(fn => fn()));
-      
+
       for (const result of batchResults) {
         if (result.status === 'fulfilled') {
           results.push({ success: true, data: result.value });
@@ -519,7 +549,7 @@ Format as practical, actionable tips.`;
    */
   updateConfig(config: Partial<AIServiceConfig>): void {
     this.config = { ...this.config, ...config };
-    
+
     // Reinitialize providers if API keys changed
     if (config.apiKey) {
       this.initializeProviders();
@@ -553,7 +583,7 @@ Format as practical, actionable tips.`;
         maxTokens: 0,
       };
     }
-    
+
     return p.getCapabilities();
   }
 
@@ -561,37 +591,37 @@ Format as practical, actionable tips.`;
 
   private buildRecipePrompt(request: AIRecipeRequest): string {
     const parts = ['Create a detailed recipe with the following requirements:'];
-    
+
     if (request.ingredients?.length) {
       parts.push(`\nIngredients available: ${request.ingredients.join(', ')}`);
     }
-    
+
     if (request.mealType) {
       parts.push(`Meal type: ${request.mealType}`);
     }
-    
+
     if (request.cuisine) {
       parts.push(`Cuisine: ${request.cuisine}`);
     }
-    
+
     if (request.difficulty) {
       parts.push(`Difficulty level: ${request.difficulty}`);
     }
-    
+
     if (request.servings) {
       parts.push(`Servings: ${request.servings}`);
     }
-    
+
     if (request.maxTime) {
       parts.push(`Maximum cooking time: ${request.maxTime} minutes`);
     }
-    
+
     if (request.constraints?.dietary?.length) {
       parts.push(`Dietary requirements: ${request.constraints.dietary.join(', ')}`);
     }
-    
+
     parts.push('\nProvide complete recipe with ingredients, instructions, nutrition info, and metadata.');
-    
+
     return parts.join('\n');
   }
 
@@ -619,16 +649,16 @@ Respond with complete meal plan in JSON format.`;
       ...item,
       category: item.category || this.categorizeItem(item.name),
     }));
-    
+
     // Calculate confidence based on data completeness
     const confidence = this.calculateReceiptConfidence(receipt);
-    
+
     return { ...receipt, confidence };
   }
 
   private categorizeItem(itemName: string): string {
     const name = itemName.toLowerCase();
-    
+
     if (name.match(/milk|cheese|yogurt|butter/)) return 'dairy';
     if (name.match(/chicken|beef|pork|fish|meat/)) return 'meat';
     if (name.match(/bread|pasta|rice|cereal/)) return 'grains';
@@ -636,32 +666,32 @@ Respond with complete meal plan in JSON format.`;
     if (name.match(/carrot|broccoli|lettuce|vegetable/)) return 'vegetables';
     if (name.match(/soda|juice|water|drink/)) return 'beverages';
     if (name.match(/chips|candy|chocolate|snack/)) return 'snacks';
-    
+
     return 'other';
   }
 
   private calculateRecipeConfidence(recipe: any, request: AIRecipeRequest): number {
     let confidence = 0.5; // Base confidence
-    
+
     // Check if recipe meets requirements
     if (recipe.ingredients?.length > 0) confidence += 0.1;
     if (recipe.instructions?.length > 0) confidence += 0.1;
     if (recipe.nutrition) confidence += 0.1;
     if (recipe.totalTime <= (request.maxTime || Infinity)) confidence += 0.1;
     if (recipe.servings === request.servings) confidence += 0.1;
-    
+
     return Math.min(confidence, 1);
   }
 
   private calculateReceiptConfidence(receipt: ParsedReceipt): number {
     let confidence = 0.5;
-    
+
     if (receipt.store) confidence += 0.1;
     if (receipt.date) confidence += 0.1;
     if (receipt.total > 0) confidence += 0.1;
     if (receipt.items.length > 0) confidence += 0.1;
     if (receipt.items.every(item => item.price > 0)) confidence += 0.1;
-    
+
     return Math.min(confidence, 1);
   }
 
@@ -673,25 +703,25 @@ Respond with complete meal plan in JSON format.`;
     if (error instanceof AIServiceError) {
       return error;
     }
-    
+
     // Map provider-specific errors
     const message = error.message || 'Unknown AI service error';
     const code = this.mapErrorCode(error);
-    
+
     return new AIServiceError(message, code, provider.name, error);
   }
 
   private mapErrorCode(error: any): any {
     if (error.code) return error.code;
-    
+
     const message = error.message?.toLowerCase() || '';
-    
+
     if (message.includes('rate limit')) return 'RATE_LIMIT';
     if (message.includes('authentication') || message.includes('api key')) return 'AUTHENTICATION_ERROR';
     if (message.includes('network')) return 'NETWORK_ERROR';
     if (message.includes('timeout')) return 'TIMEOUT';
     if (message.includes('quota')) return 'QUOTA_EXCEEDED';
-    
+
     return 'UNKNOWN';
   }
 
@@ -714,11 +744,11 @@ Respond with complete meal plan in JSON format.`;
     provider?: 'gemini' | 'openai' | 'anthropic';
   }): Promise<GeneratedRecipe> {
     const isClientSide = typeof window !== 'undefined';
-    
+
     if (isClientSide) {
       // Use proxy for client-side calls
       const response = await aiProxy.generateRecipe(request);
-      
+
       if (!response.success) {
         throw new AIServiceError(
           response.error || 'Failed to generate recipe',
@@ -743,7 +773,7 @@ Respond with complete meal plan in JSON format.`;
     config?: Partial<AIServiceConfig>
   ): Promise<string> {
     const isClientSide = typeof window !== 'undefined';
-    
+
     if (isClientSide) {
       // Use proxy for client-side calls
       return await aiProxy.generateText(prompt, provider, config?.model);
@@ -753,7 +783,7 @@ Respond with complete meal plan in JSON format.`;
         prompt,
         systemPrompt: config?.systemPrompt
       }, { ...config, provider });
-      
+
       return response.data;
     }
   }
@@ -767,7 +797,7 @@ Respond with complete meal plan in JSON format.`;
     config?: Partial<AIServiceConfig>
   ): Promise<T> {
     const isClientSide = typeof window !== 'undefined';
-    
+
     if (isClientSide) {
       // Use proxy for client-side calls
       return await aiProxy.generateJSON(prompt, provider, config?.model);
@@ -778,7 +808,7 @@ Respond with complete meal plan in JSON format.`;
         format: 'json',
         systemPrompt: config?.systemPrompt
       }, undefined, { ...config, provider });
-      
+
       return response.data;
     }
   }
@@ -792,32 +822,32 @@ Respond with complete meal plan in JSON format.`;
     provider: 'openai' | 'gemini' = 'gemini'
   ): Promise<string> {
     const isClientSide = typeof window !== 'undefined';
-    
+
     if (isClientSide) {
       // Use proxy for client-side calls
       return await aiProxy.analyzeImage(imageUrl, prompt, provider);
     } else {
       // Use direct provider for server-side calls
       let imageData: string;
-      
+
       if (imageUrl instanceof File) {
         // Convert File to base64 (this would need implementation)
         throw new Error('File upload analysis not implemented for server-side');
       } else {
         imageData = imageUrl;
       }
-      
+
       const response = await this.analyzeImage({
         imageUrl: imageData,
         analysisType: 'general',
         prompt
       }, { provider });
-      
+
       return response.data;
     }
   }
 }
 
 // Export singleton getter
-export const getAIService = (config?: AIServiceConfig) => 
+export const getAIService = (config?: AIServiceConfig) =>
   UnifiedAIService.getInstance(config);

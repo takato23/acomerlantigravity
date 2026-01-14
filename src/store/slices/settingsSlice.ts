@@ -115,7 +115,7 @@ export interface AppSettings {
 
 export interface SettingsSlice {
   settings: AppSettings;
-  
+
   // Actions
   updateSettings: (path: string, value: any) => void;
   resetSettings: () => void;
@@ -234,13 +234,13 @@ const defaultSettings: AppSettings = {
   }
 };
 
-export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
+export const createSettingsSlice: StateCreator<any, [], [], SettingsSlice> = (set, get) => ({
   settings: defaultSettings,
-  
+
   updateSettings: (path, value) => set((state) => {
     const keys = path.split('.');
     let current: any = state.settings;
-    
+
     // Navigate to the parent object
     for (let i = 0; i < keys.length - 1; i++) {
       if (!(keys[i] in current)) {
@@ -248,23 +248,23 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
       }
       current = current[keys[i]];
     }
-    
+
     // Set the value
     const lastKey = keys[keys.length - 1];
     current[lastKey] = value;
-    
+
     // Validate settings after update
     get().validateSettings();
   }),
-  
+
   resetSettings: () => set((state) => {
     state.settings = { ...defaultSettings };
   }),
-  
+
   resetSection: (section) => set((state) => {
     state.settings[section] = { ...defaultSettings[section] };
   }),
-  
+
   exportData: async () => {
     const state = get();
     const exportData = {
@@ -272,92 +272,92 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
       exportedAt: new Date().toISOString(),
       version: state.settings.version
     };
-    
+
     return JSON.stringify(exportData, null, 2);
   },
-  
+
   importData: async (data) => {
     try {
       const importedData = JSON.parse(data);
-      
+
       // Validate imported data structure
       if (!importedData.settings || !importedData.version) {
         throw new Error('Invalid data format');
       }
-      
+
       // Check version compatibility
       if (importedData.version > defaultSettings.version) {
         throw new Error('Data from newer version not supported');
       }
-      
+
       set((state) => {
         // Merge imported settings with defaults to ensure all fields exist
         state.settings = { ...defaultSettings, ...importedData.settings };
-        
+
         // Migrate if necessary
         if (importedData.version < defaultSettings.version) {
           get().migrateSettings(importedData.version, defaultSettings.version);
         }
       });
-      
+
       return true;
     } catch (error: unknown) {
       logger.error('Failed to import settings:', 'Store:settingsSlice', error);
       return false;
     }
   },
-  
+
   validateSettings: () => {
     const settings = get().settings;
     let isValid = true;
-    
+
     // Validate ranges and constraints
     if (settings.general.syncInterval < 1 || settings.general.syncInterval > 1440) {
       set((state) => { state.settings.general.syncInterval = 15; });
       isValid = false;
     }
-    
+
     if (settings.general.maxCacheSize < 10 || settings.general.maxCacheSize > 1000) {
       set((state) => { state.settings.general.maxCacheSize = 100; });
       isValid = false;
     }
-    
+
     if (settings.security.lockTimeout < 1 || settings.security.lockTimeout > 60) {
       set((state) => { state.settings.security.lockTimeout = 5; });
       isValid = false;
     }
-    
+
     if (settings.security.sessionTimeout < 1 || settings.security.sessionTimeout > 168) {
       set((state) => { state.settings.security.sessionTimeout = 24; });
       isValid = false;
     }
-    
+
     if (settings.voice.confidenceThreshold < 0 || settings.voice.confidenceThreshold > 1) {
       set((state) => { state.settings.voice.confidenceThreshold = 0.7; });
       isValid = false;
     }
-    
+
     if (settings.ai.creativity < 0 || settings.ai.creativity > 1) {
       set((state) => { state.settings.ai.creativity = 0.7; });
       isValid = false;
     }
-    
+
     if (settings.ai.maxSuggestions < 1 || settings.ai.maxSuggestions > 20) {
       set((state) => { state.settings.ai.maxSuggestions = 5; });
       isValid = false;
     }
-    
+
     if (settings.storage.retentionPeriod < 7 || settings.storage.retentionPeriod > 365) {
       set((state) => { state.settings.storage.retentionPeriod = 90; });
       isValid = false;
     }
-    
+
     return isValid;
   },
-  
+
   migrateSettings: (fromVersion, toVersion) => {
     const settings = get().settings;
-    
+
     // Migration logic for different versions
     if (fromVersion < 1 && toVersion >= 1) {
       // Add new fields that didn't exist in version 0
@@ -366,12 +366,12 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
         if (!state.settings.accessibility) {
           state.settings.accessibility = defaultSettings.accessibility;
         }
-        
+
         // Update version
         state.settings.version = toVersion;
       });
     }
-    
+
     // Future migrations would go here
     // if (fromVersion < 2 && toVersion >= 2) { ... }
   }

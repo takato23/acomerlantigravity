@@ -5,14 +5,14 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  ShoppingCart, 
-  Plus, 
-  Scan, 
-  Receipt, 
-  Download, 
-  Filter, 
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  ShoppingCart,
+  Plus,
+  Scan,
+  Receipt,
+  Download,
+  Filter,
   MapPin,
   TrendingDown,
   AlertCircle,
@@ -20,7 +20,8 @@ import {
   Clock,
   DollarSign,
   Package,
-  Settings
+  Settings,
+  MessageCircle
 } from 'lucide-react';
 import { logger } from '@/services/logger';
 import { useEnhancedShoppingList } from '@/hooks/useEnhancedShoppingList';
@@ -36,6 +37,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import BarcodeScanner from '@/components/scanner/BarcodeScanner';
 import ReceiptScanner from '@/components/scanner/ReceiptScanner';
+import { PriceComparisonPanel } from '@/features/shopping/components/PriceComparisonPanel';
 
 interface EnhancedShoppingListProps {
   userId: string;
@@ -113,10 +115,10 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
   const handleExport = (format: 'pdf' | 'txt' | 'json') => {
     try {
       const content = exportShoppingList(format);
-      
+
       // Create download
-      const blob = new Blob([content || ''], { 
-        type: format === 'json' ? 'application/json' : 'text/plain' 
+      const blob = new Blob([content || ''], {
+        type: format === 'json' ? 'application/json' : 'text/plain'
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -131,6 +133,41 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
 
   const filteredItems = getFilteredItems();
   const priceRecommendations = getPriceRecommendations();
+
+  // Extract item names for price comparison
+  const itemNamesForPrices = useMemo(() => {
+    if (!currentList?.shoppingList?.categories) return [];
+    return currentList.shoppingList.categories
+      .flatMap(cat => cat.items)
+      .filter(item => !item.isPurchased)
+      .map(item => item.ingredientName);
+  }, [currentList]);
+
+  // Generate WhatsApp share text
+  const handleShareWhatsApp = () => {
+    if (!currentList?.shoppingList?.categories) return;
+
+    const lines: string[] = ['🛒 *Lista de Compras*\n'];
+
+    currentList.shoppingList.categories.forEach(category => {
+      const unpurchasedItems = category.items.filter(item => !item.isPurchased);
+      if (unpurchasedItems.length === 0) return;
+
+      lines.push(`\n📦 *${category.name}*`);
+      unpurchasedItems.forEach(item => {
+        const price = item.estimatedPrice ? ` ($${item.estimatedPrice.toFixed(0)})` : '';
+        lines.push(`  ☐ ${item.ingredientName} - ${item.totalAmount} ${item.unit}${price}`);
+      });
+    });
+
+    const totalCost = currentList.summary?.estimatedCost || 0;
+    if (totalCost > 0) {
+      lines.push(`\n💰 *Total estimado:* $${totalCost.toFixed(0)}`);
+    }
+
+    const text = encodeURIComponent(lines.join('\n'));
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
 
   if (isLoading && !currentList) {
     return (
@@ -151,7 +188,7 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
           <ShoppingCart className="h-6 w-6 text-primary" />
           <h2 className="text-2xl font-bold">Lista de Compras Inteligente</h2>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             onClick={handleGenerateList}
@@ -166,7 +203,7 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
             )}
             Regenerar
           </Button>
-          
+
           <Dialog open={showFilters} onOpenChange={setShowFilters}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline">
@@ -211,6 +248,16 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
               <SelectItem value="pdf">PDF</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            onClick={handleShareWhatsApp}
+            size="sm"
+            variant="outline"
+            className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300"
+          >
+            <MessageCircle className="h-4 w-4 mr-2 fill-green-600" />
+            WhatsApp
+          </Button>
         </div>
       </div>
 
@@ -284,10 +331,14 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="list">Lista</TabsTrigger>
+          <TabsTrigger value="prices" className="flex items-center gap-1">
+            <DollarSign className="h-3.5 w-3.5" />
+            Precios
+          </TabsTrigger>
           <TabsTrigger value="stores">Tiendas</TabsTrigger>
-          <TabsTrigger value="optimizations">Optimizaciones</TabsTrigger>
+          <TabsTrigger value="optimizations">Ahorro</TabsTrigger>
           <TabsTrigger value="route">Ruta</TabsTrigger>
         </TabsList>
 
@@ -314,7 +365,7 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
                         <ShoppingListItemCard
                           key={item.id}
                           item={item}
-                          onTogglePurchased={(purchased) => 
+                          onTogglePurchased={(purchased) =>
                             toggleItemPurchased(item.ingredientName, purchased)
                           }
                         />
@@ -326,6 +377,11 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
           )}
         </TabsContent>
 
+        {/* Price Comparison Tab - NEW */}
+        <TabsContent value="prices" className="space-y-4">
+          <PriceComparisonPanel items={itemNamesForPrices} />
+        </TabsContent>
+
         {/* Store Comparisons Tab */}
         <TabsContent value="stores" className="space-y-4">
           {currentList && (
@@ -333,7 +389,7 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
               <div className="text-sm text-gray-600 mb-4">
                 Comparación de precios entre tiendas para tu lista
               </div>
-              
+
               {currentList.summary.priceComparisons.map((store) => (
                 <Card key={store.storeId} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
@@ -347,7 +403,7 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
                         <div className="text-xl font-bold">${store.totalCost.toFixed(0)}</div>
                         {store.estimatedSavings > 0 && (
@@ -357,7 +413,7 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
                         )}
                       </div>
                     </div>
-                    
+
                     {store.missingItems.length > 0 && (
                       <div className="mt-3 pt-3 border-t">
                         <p className="text-sm text-gray-600 mb-2">Items no disponibles:</p>
@@ -500,7 +556,7 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
             </CardHeader>
             <CardContent>
               {selectedStore && currentList && (
-                <OptimizedRoute 
+                <OptimizedRoute
                   storeId={selectedStore}
                   items={filteredItems}
                   getOptimizedRoute={getOptimizedRoute}
@@ -538,14 +594,13 @@ interface ShoppingListItemCardProps {
 
 function ShoppingListItemCard({ item, onTogglePurchased }: ShoppingListItemCardProps) {
   return (
-    <div className={`flex items-center space-x-3 p-3 rounded-lg border ${
-      item.isPurchased ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
-    }`}>
+    <div className={`flex items-center space-x-3 p-3 rounded-lg border ${item.isPurchased ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
+      }`}>
       <Checkbox
         checked={item.isPurchased}
         onCheckedChange={onTogglePurchased}
       />
-      
+
       <div className="flex-1">
         <div className={`font-medium ${item.isPurchased ? 'line-through text-gray-500' : ''}`}>
           {item.ingredientName}
@@ -583,8 +638,8 @@ function FilterControls({ filters, onFiltersChange }: FilterControlsProps) {
     <div className="space-y-4">
       <div>
         <label className="text-sm font-medium">Categoría</label>
-        <Select 
-          value={filters.category || ''} 
+        <Select
+          value={filters.category || ''}
           onValueChange={(value) => onFiltersChange({ category: value || undefined })}
         >
           <SelectTrigger>
@@ -663,7 +718,7 @@ function OptimizedRoute({ storeId, items, getOptimizedRoute }: OptimizedRoutePro
       <div className="text-sm text-gray-600 mb-4">
         Orden sugerido para tu recorrido en la tienda:
       </div>
-      
+
       {route.map((item, index) => (
         <div key={item} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
           <div className="bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">

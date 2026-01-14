@@ -113,7 +113,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
           className={cn(
             'absolute left-4 transition-all duration-200 pointer-events-none z-10',
             sizeConfig.label,
-            'text-gray-600 dark:text-gray-400',
+            'text-slate-600',
             (isFocused || hasValue) && 'transform -translate-y-6 scale-90',
             !isFocused && !hasValue && 'top-1/2 -translate-y-1/2',
             (isFocused || hasValue) && 'top-0'
@@ -143,7 +143,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
           {/* Icon */}
           {icon && (
             <div className={cn(
-              'absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400',
+              'absolute left-3 top-1/2 -translate-y-1/2 text-slate-500',
               sizeConfig.icon
             )}>
               {icon}
@@ -158,8 +158,8 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
               sizeConfig.input,
               icon && 'pl-10',
               (endIcon || (showClear && hasValue)) && 'pr-10',
-              'text-gray-900 dark:text-white',
-              'placeholder-gray-500 dark:placeholder-gray-400',
+              'text-slate-900',
+              'placeholder-slate-500',
               label && 'pt-4'
             )}
             value={value}
@@ -182,7 +182,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
                     key="clear"
                     type="button"
                     onClick={handleClear}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                    className="text-slate-500 hover:text-slate-700 transition-colors"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
@@ -199,7 +199,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-gray-500 dark:text-gray-400"
+                    className="text-slate-500"
                   >
                     {endIcon}
                   </motion.div>
@@ -230,7 +230,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
             exit={{ opacity: 0, y: -5 }}
             className={cn(
               'mt-1 text-xs px-1',
-              error ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'
+              error ? 'text-red-500' : 'text-slate-500'
             )}
           >
             {error || helperText}

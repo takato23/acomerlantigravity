@@ -41,8 +41,8 @@ const COOKING_METHODS = [
   { value: 'Hervir', icon: Droplet, color: 'text-blue-600' },
   { value: 'Freír', icon: Zap, color: 'text-yellow-600' },
   { value: 'Vapor', icon: Wind, color: 'text-cyan-600' },
-  { value: 'Plancha', icon: Flame, color: 'text-gray-600' },
-  { value: 'Microondas', icon: Zap, color: 'text-purple-600' },
+  { value: 'Plancha', icon: Flame, color: 'text-slate-600' },
+  { value: 'Microondas', icon: Zap, color: 'text-slate-600' },
   { value: 'Olla de presión', icon: Gauge, color: 'text-green-600' },
   { value: 'Slow cooker', icon: Timer, color: 'text-amber-600' }
 ];
@@ -299,9 +299,9 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
                       htmlFor={value}
                       className={`
                         block p-4 rounded-xl border-2 cursor-pointer transition-all
-                        ${isActive 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
+                        ${isActive
+                          ? 'border-primary bg-primary/5'
+                          : 'border-slate-200 hover:border-slate-300'
                         }
                         ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
                       `}
@@ -402,9 +402,9 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
                   whileTap={{ scale: 0.95 }}
                   className={`
                     p-3 rounded-lg border transition-all flex items-center gap-2
-                    ${isActive 
-                      ? 'border-primary bg-primary/10' 
-                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
+                    ${isActive
+                      ? 'border-primary bg-primary/10'
+                      : 'border-slate-200 hover:border-slate-300'
                     }
                     ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
@@ -425,7 +425,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       <iOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Package className="w-5 h-5 text-purple-600" />
+            <Package className="w-5 h-5 text-slate-600" />
             <h4 className="font-medium">Herramientas de Cocina</h4>
           </div>
           
@@ -448,7 +448,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
                       variant={isActive ? "default" : "outline"}
                       className={`
                         cursor-pointer transition-all
-                        ${isActive ? 'bg-purple-500 hover:bg-purple-600' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}
+                        ${isActive ? 'bg-slate-600 hover:bg-slate-700' : 'hover:bg-slate-100'}
                         ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
                       `}
                       onClick={() => !isUpdating && toggleKitchenTool(tool)}
@@ -542,9 +542,9 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
                     whileTap={{ scale: 0.95 }}
                     className={`
                       p-2 rounded border text-sm transition-all
-                      ${isActive 
-                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300' 
-                        : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
+                      ${isActive
+                        ? 'border-amber-500 bg-amber-50 text-amber-700'
+                        : 'border-slate-200 hover:border-slate-300'
                       }
                       ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
                     `}

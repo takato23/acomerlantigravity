@@ -153,19 +153,19 @@ export function DiscreteVoiceButton({
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             className={`w-20 h-20 rounded-full shadow-2xl flex items-center justify-center cursor-pointer ${
-              isRecording 
-                ? 'bg-red-500 hover:bg-red-600' 
-                : 'bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
-            } transition-all duration-300 border-4 border-white ring-4 ring-purple-500/30`}
-            animate={isRecording ? { 
+              isRecording
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-black hover:bg-gray-800'
+            } transition-all duration-300 border-4 border-white ring-4 ring-slate-500/30`}
+            animate={isRecording ? {
               boxShadow: [
                 "0 0 0 0 rgba(239, 68, 68, 0.4)",
                 "0 0 0 20px rgba(239, 68, 68, 0)",
               ]
             } : {
               boxShadow: [
-                "0 0 0 0 rgba(168, 85, 247, 0.4)",
-                "0 0 0 15px rgba(168, 85, 247, 0)",
+                "0 0 0 0 rgba(51, 65, 85, 0.4)",
+                "0 0 0 15px rgba(51, 65, 85, 0)",
               ]
             }}
             transition={{ 
@@ -220,7 +220,7 @@ export function DiscreteVoiceButton({
           {/* Processing indicator */}
           {isProcessing && (
             <div className="absolute inset-0 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center">
-              <Loader2 className="w-7 h-7 text-purple-500 animate-spin" />
+              <Loader2 className="w-7 h-7 text-slate-700 animate-spin" />
             </div>
           )}
 
@@ -271,9 +271,9 @@ export function DiscreteVoiceButton({
               className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden"
             >
               {/* Header */}
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+              <div className="p-6 border-b border-gray-100 bg-black text-white">
                 <h2 className="text-2xl font-bold">Confirmar productos</h2>
-                <p className="text-purple-100 text-sm mt-1">
+                <p className="text-gray-300 text-sm mt-1">
                   Revisá y editá los productos antes de agregarlos
                 </p>
               </div>
@@ -306,7 +306,7 @@ export function DiscreteVoiceButton({
                             type="text"
                             value={item.name}
                             onChange={(e) => handleItemChange(index, 'name', e.target.value)}
-                            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             placeholder="Nombre del producto"
                           />
                           <button
@@ -325,7 +325,7 @@ export function DiscreteVoiceButton({
                               type="number"
                               value={item.quantity}
                               onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                               placeholder="Cantidad"
                               step="0.1"
                               min="0"
@@ -336,7 +336,7 @@ export function DiscreteVoiceButton({
                             <select
                               value={item.unit}
                               onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             >
                               <option value="pcs">Unidades</option>
                               <option value="kg">Kilogramos</option>
@@ -359,7 +359,7 @@ export function DiscreteVoiceButton({
                             <select
                               value={item.category}
                               onChange={(e) => handleItemChange(index, 'category', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             >
                               <option value="frutas">🍎 Frutas y Verduras</option>
                               <option value="carnes">🥩 Carnes y Pescados</option>
@@ -377,7 +377,7 @@ export function DiscreteVoiceButton({
                             <select
                               value={item.location}
                               onChange={(e) => handleItemChange(index, 'location', e.target.value)}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition-all"
                             >
                               <option value="despensa">🏠 Despensa</option>
                               <option value="refrigerador">❄️ Heladera</option>
@@ -414,7 +414,7 @@ export function DiscreteVoiceButton({
                   className={`px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     editableItems.length === 0
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                      : 'bg-black text-white hover:bg-gray-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                   }`}
                 >
                   <Check className="w-5 h-5" />

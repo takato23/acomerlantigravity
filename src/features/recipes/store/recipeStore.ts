@@ -15,6 +15,7 @@ import {
   CookingSession,
 } from '../types';
 import { generateRecipeWithAI } from '../utils/aiGeneration';
+import { UnifiedAIService } from '@/services/ai/UnifiedAIService';
 
 interface RecipeState {
   // State
@@ -25,12 +26,12 @@ interface RecipeState {
   favoriteRecipes: Recipe[];
   collections: RecipeCollection[];
   currentCollection: RecipeCollection | null;
-  
+
   // Filters and sorting
   filters: RecipeFilters;
   sortOptions: RecipeSortOptions;
   pagination: PaginationOptions;
-  
+
   // UI State
   isLoading: boolean;
   isCreating: boolean;
@@ -38,18 +39,18 @@ interface RecipeState {
   isAnalyzingNutrition: boolean;
   searchQuery: string;
   selectedTags: string[];
-  
+
   // AI Generation
   aiRequest: AIRecipeRequest | null;
   aiResponse: AIRecipeResponse | null;
-  
+
   // Actions - Recipes
   setRecipes: (recipes: Recipe[]) => void;
   setCurrentRecipe: (recipe: Recipe | null) => void;
   addRecipe: (recipe: Recipe) => void;
   updateRecipe: (id: string, updates: Partial<Recipe>) => void;
   deleteRecipe: (id: string) => void;
-  
+
   // Actions - Search and Filter
   setFilters: (filters: RecipeFilters) => void;
   setSortOptions: (options: RecipeSortOptions) => void;
@@ -59,12 +60,12 @@ interface RecipeState {
   removeSelectedTag: (tag: string) => void;
   clearFilters: () => void;
   searchRecipes: () => Promise<void>;
-  
+
   // Actions - User Recipes
   setUserRecipes: (recipes: Recipe[]) => void;
   addToFavorites: (recipeId: string) => void;
   removeFromFavorites: (recipeId: string) => void;
-  
+
   // Actions - Collections
   setCollections: (collections: RecipeCollection[]) => void;
   createCollection: (collection: RecipeCollection) => void;
@@ -72,24 +73,24 @@ interface RecipeState {
   deleteCollection: (id: string) => void;
   addRecipeToCollection: (collectionId: string, recipeId: string) => void;
   removeRecipeFromCollection: (collectionId: string, recipeId: string) => void;
-  
+
   // Actions - AI Generation
   setAIRequest: (request: AIRecipeRequest) => void;
   setAIResponse: (response: AIRecipeResponse | null) => void;
   generateAIRecipe: (request: AIRecipeRequest) => Promise<void>;
   saveAIRecipe: (recipe: RecipeFormData) => Promise<void>;
-  
+
   // Actions - Cooking
   startCookingSession: (recipeId: string) => Promise<CookingSession>;
   completeCookingSession: (sessionId: string, data: Partial<CookingSession>) => Promise<void>;
   rateRecipe: (recipeId: string, rating: number, comment?: string) => Promise<void>;
-  
+
   // Actions - UI State
   setIsLoading: (loading: boolean) => void;
   setIsCreating: (creating: boolean) => void;
   setIsGeneratingAI: (generating: boolean) => void;
   setIsAnalyzingNutrition: (analyzing: boolean) => void;
-  
+
   // Utility functions
   getRecipeById: (id: string) => Recipe | undefined;
   getFilteredRecipes: () => Recipe[];
@@ -107,21 +108,21 @@ export const useRecipeStore = create<RecipeState>()(
       favoriteRecipes: [],
       collections: [],
       currentCollection: null,
-      
+
       filters: {},
       sortOptions: { field: 'created_at', direction: 'desc' },
       pagination: { page: 1, limit: 12 },
-      
+
       isLoading: false,
       isCreating: false,
       isGeneratingAI: false,
       isAnalyzingNutrition: false,
       searchQuery: '',
       selectedTags: [],
-      
+
       aiRequest: null,
       aiResponse: null,
-      
+
       // Recipe actions
       setRecipes: (recipes) => set({ recipes }),
       setCurrentRecipe: (recipe) => set({ currentRecipe: recipe }),
@@ -142,7 +143,7 @@ export const useRecipeStore = create<RecipeState>()(
         userRecipes: state.userRecipes.filter((r) => r.id !== id),
         currentRecipe: state.currentRecipe?.id === id ? null : state.currentRecipe,
       })),
-      
+
       // Search and filter actions
       setFilters: (filters) => set({ filters, pagination: { page: 1, limit: 12 } }),
       setSortOptions: (options) => set({ sortOptions: options }),
@@ -165,7 +166,7 @@ export const useRecipeStore = create<RecipeState>()(
         // This will be implemented with Supabase integration
         setTimeout(() => set({ isLoading: false }), 1000);
       },
-      
+
       // User recipe actions
       setUserRecipes: (recipes) => set({ userRecipes: recipes }),
       addToFavorites: (recipeId) => {
@@ -179,7 +180,7 @@ export const useRecipeStore = create<RecipeState>()(
       removeFromFavorites: (recipeId) => set((state) => ({
         favoriteRecipes: state.favoriteRecipes.filter((r) => r.id !== recipeId),
       })),
-      
+
       // Collection actions
       setCollections: (collections) => set({ collections }),
       createCollection: (collection) => set((state) => ({
@@ -208,7 +209,7 @@ export const useRecipeStore = create<RecipeState>()(
             : c
         ),
       })),
-      
+
       // AI Generation actions
       setAIRequest: (request) => set({ aiRequest: request }),
       setAIResponse: (response) => set({ aiResponse: response }),
@@ -216,6 +217,26 @@ export const useRecipeStore = create<RecipeState>()(
         set({ isGeneratingAI: true, aiRequest: request, aiResponse: null });
         try {
           const response = await generateRecipeWithAI(request);
+
+          // Generate Image
+          try {
+            const ai = UnifiedAIService.getInstance();
+            const imageRes = await ai.generateImage({
+              prompt: `Professional food photography of ${response.recipe.title}. ${response.recipe.description}. High resolution, appetizing, natural lighting.`,
+              n: 1,
+              size: '1024x1024',
+              quality: 'standard',
+              style: 'natural'
+            });
+
+            if (imageRes.data[0]?.url) {
+              response.recipe.image_url = imageRes.data[0].url;
+            }
+          } catch (imgError) {
+            logger.warn('Failed to generate recipe image', 'recipes:store', imgError);
+            // innovative: use a default placeholder or just let it fail gracefully
+          }
+
           set({ aiResponse: response, isGeneratingAI: false });
         } catch (error: unknown) {
           logger.error('Failed to generate AI recipe:', 'recipes:recipeStore', error);
@@ -228,7 +249,7 @@ export const useRecipeStore = create<RecipeState>()(
         // This will be implemented with Supabase
         setTimeout(() => set({ isCreating: false }), 1000);
       },
-      
+
       // Cooking actions
       startCookingSession: async (recipeId) => {
         // This will be implemented with Supabase
@@ -257,13 +278,13 @@ export const useRecipeStore = create<RecipeState>()(
         // This will be implemented with Supabase
 
       },
-      
+
       // UI State actions
       setIsLoading: (loading) => set({ isLoading: loading }),
       setIsCreating: (creating) => set({ isCreating: creating }),
       setIsGeneratingAI: (generating) => set({ isGeneratingAI: generating }),
       setIsAnalyzingNutrition: (analyzing) => set({ isAnalyzingNutrition: analyzing }),
-      
+
       // Utility functions
       getRecipeById: (id) => {
         return get().recipes.find((r) => r.id === id);
@@ -271,7 +292,7 @@ export const useRecipeStore = create<RecipeState>()(
       getFilteredRecipes: () => {
         const state = get();
         let filtered = [...state.recipes];
-        
+
         // Apply filters
         if (state.filters.search) {
           const search = state.filters.search.toLowerCase();
@@ -280,42 +301,42 @@ export const useRecipeStore = create<RecipeState>()(
             r.description.toLowerCase().includes(search)
           );
         }
-        
+
         if (state.filters.cuisine_types?.length) {
           filtered = filtered.filter((r) =>
             state.filters.cuisine_types!.includes(r.cuisine_type)
           );
         }
-        
+
         if (state.filters.dietary_tags?.length) {
           filtered = filtered.filter((r) =>
             state.filters.dietary_tags!.some((tag) => r.dietary_tags.includes(tag))
           );
         }
-        
+
         if (state.filters.difficulty?.length) {
           filtered = filtered.filter((r) =>
             state.filters.difficulty!.includes(r.difficulty)
           );
         }
-        
+
         // Apply sorting
         filtered.sort((a, b) => {
           const field = state.sortOptions.field;
           const direction = state.sortOptions.direction === 'asc' ? 1 : -1;
-          
+
           if (field === 'title') {
             return a.title.localeCompare(b.title) * direction;
           }
-          
+
           const aValue = a[field] || 0;
           const bValue = b[field] || 0;
-          
+
           if (aValue < bValue) return -1 * direction;
           if (aValue > bValue) return 1 * direction;
           return 0;
         });
-        
+
         return filtered;
       },
       getTotalPages: () => {

@@ -3,22 +3,24 @@ import { logger } from '@/lib/logger';
 
 // authOptions removed - using Supabase Auth;
 import { db } from '@/lib/supabase/database.service';
-import { 
-  validateQuery, 
+import {
+  validateQuery,
   validateAuthAndBody,
-  createSuccessResponse, 
-  createPaginatedResponse 
+  createSuccessResponse,
+  createPaginatedResponse
 } from "@/lib/validation/middleware";
-import { 
-  RecipeCreateSchema, 
-  RecipeQuerySchema 
+import {
+  RecipeCreateSchema,
+  RecipeQuerySchema
 } from "@/lib/validation/schemas";
+import { prisma } from '@/lib/prisma';
+import { getUser } from '@/lib/auth/supabase-auth';
 
 export const GET = validateQuery(RecipeQuerySchema, async (request) => {
   try {
     const user = await getUser();
     const query = request.validatedQuery!;
-    
+
     const skip = (query.page - 1) * query.limit;
     const tags = query.tags ? query.tags.split(",") : [];
 
@@ -27,7 +29,7 @@ export const GET = validateQuery(RecipeQuerySchema, async (request) => {
         {
           OR: [
             { isPublic: true },
-            ...(session?.user?.id ? [{ authorId: user.id }] : [])
+            ...(user?.id ? [{ authorId: user.id }] : [])
           ]
         },
         ...(query.search ? [{
@@ -87,13 +89,13 @@ export const POST = validateAuthAndBody(RecipeCreateSchema, async (request) => {
   try {
     const data = request.validatedBody!;
     const userId = request.user!.id;
-    
+
     // Process ingredients - create or find them
     const ingredientPromises = data.ingredients.map(async (ing) => {
       const ingredient = await prisma.ingredient.upsert({
         where: { name: ing.name.toLowerCase() },
         update: {},
-        create: { 
+        create: {
           name: ing.name.toLowerCase(),
           category: 'other',
           unit: ing.unit

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { 
+import {
   ShoppingCart,
   Plus,
   Search,
@@ -61,89 +61,89 @@ interface ShoppingList {
   store?: string;
 }
 
-// Categorías con orden lógico para compras (siguiendo recorrido típico de supermercado)
+// Categorias con orden logico para compras (siguiendo recorrido tipico de supermercado)
 const SHOPPING_CATEGORIES: Omit<ShoppingCategory, 'items'>[] = [
-  { id: 'frutas-verduras', name: 'Frutas y Verduras', icon: '🥬', color: 'from-green-500 to-emerald-600', order: 1 },
-  { id: 'carnes-pescados', name: 'Carnes y Pescados', icon: '🥩', color: 'from-red-500 to-pink-600', order: 2 },
-  { id: 'lacteos-huevos', name: 'Lácteos y Huevos', icon: '🥛', color: 'from-blue-500 to-cyan-600', order: 3 },
-  { id: 'panaderia', name: 'Panadería', icon: '🍞', color: 'from-amber-500 to-yellow-600', order: 4 },
-  { id: 'granos-cereales', name: 'Granos y Cereales', icon: '🌾', color: 'from-orange-500 to-red-600', order: 5 },
-  { id: 'condimentos-especias', name: 'Condimentos', icon: '🧂', color: 'from-purple-500 to-indigo-600', order: 6 },
-  { id: 'bebidas', name: 'Bebidas', icon: '🥤', color: 'from-teal-500 to-blue-600', order: 7 },
-  { id: 'limpieza', name: 'Limpieza', icon: '🧽', color: 'from-cyan-500 to-blue-600', order: 8 },
-  { id: 'cuidado-personal', name: 'Cuidado Personal', icon: '🧴', color: 'from-pink-500 to-rose-600', order: 9 },
-  { id: 'otros', name: 'Otros', icon: '📦', color: 'from-gray-500 to-slate-600', order: 10 }
+  { id: 'frutas-verduras', name: 'Frutas y Verduras', icon: '', color: 'bg-green-600', order: 1 },
+  { id: 'carnes-pescados', name: 'Carnes y Pescados', icon: '', color: 'bg-red-600', order: 2 },
+  { id: 'lacteos-huevos', name: 'Lacteos y Huevos', icon: '', color: 'bg-slate-600', order: 3 },
+  { id: 'panaderia', name: 'Panaderia', icon: '', color: 'bg-amber-600', order: 4 },
+  { id: 'granos-cereales', name: 'Granos y Cereales', icon: '', color: 'bg-orange-600', order: 5 },
+  { id: 'condimentos-especias', name: 'Condimentos', icon: '', color: 'bg-slate-700', order: 6 },
+  { id: 'bebidas', name: 'Bebidas', icon: '', color: 'bg-slate-600', order: 7 },
+  { id: 'limpieza', name: 'Limpieza', icon: '', color: 'bg-slate-600', order: 8 },
+  { id: 'cuidado-personal', name: 'Cuidado Personal', icon: '', color: 'bg-slate-600', order: 9 },
+  { id: 'otros', name: 'Otros', icon: '', color: 'bg-slate-600', order: 10 }
 ];
 
-// Función para categorizar automáticamente productos
+// Funcion para categorizar automaticamente productos
 const categorizarProducto = (nombre: string): string => {
   const nombreLower = nombre.toLowerCase();
-  
+
   // Frutas y Verduras
-  if (nombreLower.match(/(tomate|lechuga|zanahoria|cebolla|papa|manzana|banana|naranja|limón|apio|pepino|brócoli|espinaca|ajo|perejil|cilantro|pimiento|aguacate)/)) {
+  if (nombreLower.match(/(tomate|lechuga|zanahoria|cebolla|papa|manzana|banana|naranja|limon|apio|pepino|brocoli|espinaca|ajo|perejil|cilantro|pimiento|aguacate)/)) {
     return 'frutas-verduras';
   }
-  
+
   // Carnes y Pescados
-  if (nombreLower.match(/(pollo|carne|res|cerdo|pescado|salmón|atún|jamón|chorizo|salchicha|pavo|cordero)/)) {
+  if (nombreLower.match(/(pollo|carne|res|cerdo|pescado|salmon|atun|jamon|chorizo|salchicha|pavo|cordero)/)) {
     return 'carnes-pescados';
   }
-  
-  // Lácteos y Huevos
+
+  // Lacteos y Huevos
   if (nombreLower.match(/(leche|queso|yogur|mantequilla|crema|huevo|yogurt)/)) {
     return 'lacteos-huevos';
   }
-  
-  // Panadería
+
+  // Panaderia
   if (nombreLower.match(/(pan|tortilla|galleta|pastel|croissant|bagel|dona)/)) {
     return 'panaderia';
   }
-  
+
   // Granos y Cereales
   if (nombreLower.match(/(arroz|pasta|avena|quinoa|lentejas|frijol|garbanzo|cereal|harina)/)) {
     return 'granos-cereales';
   }
-  
+
   // Condimentos
   if (nombreLower.match(/(sal|pimienta|aceite|vinagre|mostaza|ketchup|mayonesa|soya|especias)/)) {
     return 'condimentos-especias';
   }
-  
+
   // Bebidas
-  if (nombreLower.match(/(agua|refresco|jugo|café|té|cerveza|vino|soda)/)) {
+  if (nombreLower.match(/(agua|refresco|jugo|cafe|te|cerveza|vino|soda)/)) {
     return 'bebidas';
   }
-  
+
   // Limpieza
-  if (nombreLower.match(/(detergente|jabón|shampoo|suavizante|cloro|desinfectante|papel higiénico|toallas)/)) {
+  if (nombreLower.match(/(detergente|jabon|shampoo|suavizante|cloro|desinfectante|papel higienico|toallas)/)) {
     return 'limpieza';
   }
-  
+
   // Cuidado Personal
-  if (nombreLower.match(/(pasta dental|cepillo|desodorante|perfume|crema|loción)/)) {
+  if (nombreLower.match(/(pasta dental|cepillo|desodorante|perfume|crema|locion)/)) {
     return 'cuidado-personal';
   }
-  
+
   return 'otros';
 };
 
 // Parsear entrada de texto natural (como "media docena de huevos")
 const parsearEntrada = (entrada: string): { nombre: string; cantidad: number; unidad: string } => {
   const entradaLower = entrada.toLowerCase().trim();
-  
+
   // Detectar "media docena" -> 6
   if (entradaLower.includes('media docena')) {
     const producto = entradaLower.replace('media docena de', '').replace('media docena', '').trim();
     return { nombre: producto, cantidad: 6, unidad: 'u' };
   }
-  
+
   // Detectar "docena" -> 12
   if (entradaLower.includes('docena')) {
     const producto = entradaLower.replace('docena de', '').replace('docena', '').trim();
     return { nombre: producto, cantidad: 12, unidad: 'u' };
   }
-  
-  // Detectar números seguidos de unidades
+
+  // Detectar numeros seguidos de unidades
   const match = entradaLower.match(/(\d+(?:\.\d+)?)\s*(kg|g|l|ml|u|unidad|unidades|litro|litros|gramo|gramos|kilo|kilos)?\s*(.+)/);
   if (match) {
     const [, cantidad, unidad, producto] = match;
@@ -153,7 +153,7 @@ const parsearEntrada = (entrada: string): { nombre: string; cantidad: number; un
       unidad: unidad ? (unidad.startsWith('u') ? 'u' : unidad) : 'u'
     };
   }
-  
+
   // Si no se detecta cantidad, asumir 1
   return { nombre: entrada.trim(), cantidad: 1, unidad: 'u' };
 };
@@ -168,9 +168,9 @@ const ShoppingItemCard: React.FC<{
 }> = ({ item, onTogglePurchased, onEdit, onDelete, showPrices }) => {
   return (
     <div className={`group p-4 rounded-xl border transition-all duration-200 ${
-      item.isPurchased 
-        ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20' 
-        : 'bg-white border-gray-200 hover:border-emerald-300 dark:bg-gray-800 dark:border-gray-700'
+      item.isPurchased
+        ? 'bg-emerald-50 border-emerald-200'
+        : 'bg-white border-slate-200 hover:border-emerald-300'
     }`}>
       <div className="flex items-center space-x-3">
         {/* Checkbox */}
@@ -179,7 +179,7 @@ const ShoppingItemCard: React.FC<{
           className={`w-6 h-6 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
             item.isPurchased
               ? 'bg-emerald-500 border-emerald-500 text-white'
-              : 'border-gray-300 hover:border-emerald-400'
+              : 'border-slate-300 hover:border-emerald-400'
           }`}
           aria-label={item.isPurchased ? "Marcar como no comprado" : "Marcar como comprado"}
         >
@@ -187,16 +187,16 @@ const ShoppingItemCard: React.FC<{
         </button>
 
         {/* Emoji/Icon */}
-        <span className="text-2xl">{item.emoji || '📦'}</span>
+        <span className="text-2xl">{item.emoji || ''}</span>
 
         {/* Item Info */}
         <div className="flex-1">
-          <div className={`font-medium ${item.isPurchased ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
+          <div className={`font-medium ${item.isPurchased ? 'line-through text-slate-500' : 'text-slate-900'}`}>
             {item.name}
           </div>
-          <div className="text-sm text-gray-600 flex items-center space-x-2">
+          <div className="text-sm text-slate-600 flex items-center space-x-2">
             <span>{item.quantity} {item.unit}</span>
-            {item.isRequired && <Star className="w-3 h-3 text-yellow-500" />}
+            {item.isRequired && <Star className="w-3 h-3 text-amber-500" />}
             {showPrices && item.estimatedPrice && (
               <span className="text-emerald-600 font-medium">
                 ${item.estimatedPrice.toFixed(2)}
@@ -204,7 +204,7 @@ const ShoppingItemCard: React.FC<{
             )}
           </div>
           {item.notes && (
-            <div className="text-xs text-gray-500 mt-1">{item.notes}</div>
+            <div className="text-xs text-slate-500 mt-1">{item.notes}</div>
           )}
         </div>
 
@@ -222,7 +222,7 @@ const ShoppingItemCard: React.FC<{
   );
 };
 
-// Componente de categoría de compras
+// Componente de categoria de compras
 const ShoppingCategorySection: React.FC<{
   category: ShoppingCategory;
   onTogglePurchased: (item: ShoppingItem) => void;
@@ -239,39 +239,39 @@ const ShoppingCategorySection: React.FC<{
   if (category.items.length === 0) return null;
 
   return (
-    <Card className="shadow-lg">
-      <CardHeader 
-        className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+    <Card className="shadow-lg bg-white">
+      <CardHeader
+        className="cursor-pointer hover:bg-slate-50 transition-colors"
         onClick={onToggleCollapse}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${category.color} flex items-center justify-center text-xl`}>
+            <div className={`w-10 h-10 rounded-xl ${category.color} flex items-center justify-center text-xl text-white`}>
               {category.icon}
             </div>
             <div>
-              <CardTitle className="text-lg">{category.name}</CardTitle>
-              <p className="text-sm text-gray-600">
+              <CardTitle className="text-lg text-slate-900">{category.name}</CardTitle>
+              <p className="text-sm text-slate-600">
                 {completedItems} de {totalItems} items
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
             {progress > 0 && (
-              <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full bg-gradient-to-r ${category.color} transition-all duration-300`}
+              <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${category.color} transition-all duration-300`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
             )}
-            <span className="text-sm text-gray-500">
-              {isCollapsed ? '+' : '−'}
+            <span className="text-sm text-slate-500">
+              {isCollapsed ? '+' : '-'}
             </span>
           </div>
         </div>
       </CardHeader>
-      
+
       {!isCollapsed && (
         <CardContent className="space-y-3">
           {category.items.map(item => (
@@ -313,7 +313,7 @@ export const ShoppingList: React.FC = () => {
         isPurchased: false,
         isRequired: true,
         estimatedPrice: 3.50,
-        emoji: '🍅',
+        emoji: '',
         addedDate: new Date(),
         addedBy: 'Usuario'
       },
@@ -326,7 +326,7 @@ export const ShoppingList: React.FC = () => {
         isPurchased: true,
         isRequired: true,
         estimatedPrice: 8.99,
-        emoji: '🐔',
+        emoji: '',
         addedDate: new Date(),
         addedBy: 'Usuario'
       },
@@ -339,7 +339,7 @@ export const ShoppingList: React.FC = () => {
         isPurchased: false,
         isRequired: true,
         estimatedPrice: 2.30,
-        emoji: '🥛',
+        emoji: '',
         addedDate: new Date(),
         addedBy: 'Usuario'
       },
@@ -352,14 +352,14 @@ export const ShoppingList: React.FC = () => {
         isPurchased: false,
         isRequired: false,
         estimatedPrice: 1.80,
-        emoji: '🍞',
+        emoji: '',
         addedDate: new Date(),
         addedBy: 'Usuario'
       }
     ]
   });
 
-  // Organizar items por categorías
+  // Organizar items por categorias
   const categorizedItems = useMemo(() => {
     const filteredItems = shoppingList.items.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -376,7 +376,7 @@ export const ShoppingList: React.FC = () => {
     }).filter(category => category.items.length > 0);
   }, [shoppingList.items, searchQuery, showPurchased]);
 
-  // Estadísticas
+  // Estadisticas
   const stats = useMemo(() => {
     const totalItems = shoppingList.items.length;
     const purchasedItems = shoppingList.items.filter(item => item.isPurchased).length;
@@ -402,7 +402,7 @@ export const ShoppingList: React.FC = () => {
 
     const parsed = parsearEntrada(newItemInput);
     const category = categorizarProducto(parsed.nombre);
-    
+
     const newItem: ShoppingItem = {
       id: Date.now().toString(),
       name: parsed.nombre,
@@ -420,14 +420,14 @@ export const ShoppingList: React.FC = () => {
       ...prev,
       items: [...prev.items, newItem]
     }));
-    
+
     setNewItemInput('');
   };
 
   const handleTogglePurchased = (item: ShoppingItem) => {
     setShoppingList(prev => ({
       ...prev,
-      items: prev.items.map(i => 
+      items: prev.items.map(i =>
         i.id === item.id ? { ...i, isPurchased: !i.isPurchased } : i
       )
     }));
@@ -456,40 +456,40 @@ export const ShoppingList: React.FC = () => {
     });
   };
 
-  // Función para obtener emoji del producto
+  // Funcion para obtener emoji del producto
   const getEmojiForProduct = (nombre: string): string => {
     const nombreLower = nombre.toLowerCase();
-    
-    if (nombreLower.includes('tomate')) return '🍅';
-    if (nombreLower.includes('pollo')) return '🐔';
-    if (nombreLower.includes('leche')) return '🥛';
-    if (nombreLower.includes('pan')) return '🍞';
-    if (nombreLower.includes('manzana')) return '🍎';
-    if (nombreLower.includes('banana')) return '🍌';
-    if (nombreLower.includes('carne')) return '🥩';
-    if (nombreLower.includes('queso')) return '🧀';
-    if (nombreLower.includes('huevo')) return '🥚';
-    if (nombreLower.includes('arroz')) return '🍚';
-    
-    return '📦';
+
+    if (nombreLower.includes('tomate')) return '';
+    if (nombreLower.includes('pollo')) return '';
+    if (nombreLower.includes('leche')) return '';
+    if (nombreLower.includes('pan')) return '';
+    if (nombreLower.includes('manzana')) return '';
+    if (nombreLower.includes('banana')) return '';
+    if (nombreLower.includes('carne')) return '';
+    if (nombreLower.includes('queso')) return '';
+    if (nombreLower.includes('huevo')) return '';
+    if (nombreLower.includes('arroz')) return '';
+
+    return '';
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
-      <Card className="shadow-xl">
+      <Card className="shadow-xl bg-white">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <ShoppingCart className="w-8 h-8 text-emerald-600" />
               <div>
-                <CardTitle className="text-3xl">{shoppingList.name}</CardTitle>
-                <p className="text-gray-600 mt-1">
-                  {stats.purchasedItems} de {stats.totalItems} items completados • {stats.progress}%
+                <CardTitle className="text-3xl text-slate-900">{shoppingList.name}</CardTitle>
+                <p className="text-slate-600 mt-1">
+                  {stats.purchasedItems} de {stats.totalItems} items completados - {stats.progress}%
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm">
                 <Share2 className="w-4 h-4 mr-2" />
@@ -504,13 +504,13 @@ export const ShoppingList: React.FC = () => {
 
           {/* Progress Bar */}
           <div className="mt-4 space-y-2">
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 transition-all duration-500"
+            <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 transition-all duration-500"
                 style={{ width: `${stats.progress}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-sm text-gray-600">
+            <div className="flex justify-between items-center text-sm text-slate-600">
               <span>{stats.requiredItems} items esenciales</span>
               {showPrices && (
                 <span className="font-medium">
@@ -523,7 +523,7 @@ export const ShoppingList: React.FC = () => {
       </Card>
 
       {/* Add Item & Controls */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg bg-white">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Add Item Input */}
@@ -535,11 +535,11 @@ export const ShoppingList: React.FC = () => {
                   value={newItemInput}
                   onChange={(e) => setNewItemInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddItem()}
-                  className="w-full pl-4 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-800 dark:border-gray-700"
+                  className="w-full pl-4 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                   aria-label="Agregar nuevo producto"
                 />
               </div>
-              <Button onClick={handleAddItem} className="px-6">
+              <Button onClick={handleAddItem} className="px-6 bg-orange-500 hover:bg-orange-600 text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar
               </Button>
@@ -547,13 +547,13 @@ export const ShoppingList: React.FC = () => {
 
             {/* Search */}
             <div className="relative md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Buscar productos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-800 dark:border-gray-700"
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                 aria-label="Buscar productos"
               />
             </div>
@@ -565,15 +565,17 @@ export const ShoppingList: React.FC = () => {
               variant={showPurchased ? "default" : "outline"}
               size="sm"
               onClick={() => setShowPurchased(!showPurchased)}
+              className={showPurchased ? "bg-slate-700 text-white" : ""}
             >
               <CheckCircle className="w-4 h-4 mr-2" />
               Mostrar Comprados
             </Button>
-            
+
             <Button
               variant={showPrices ? "default" : "outline"}
               size="sm"
               onClick={() => setShowPrices(!showPrices)}
+              className={showPrices ? "bg-slate-700 text-white" : ""}
             >
               <DollarSign className="w-4 h-4 mr-2" />
               Ver Precios
@@ -595,11 +597,11 @@ export const ShoppingList: React.FC = () => {
       {/* Shopping Categories */}
       <div className="space-y-4">
         {categorizedItems.length === 0 ? (
-          <Card className="shadow-lg">
+          <Card className="shadow-lg bg-white">
             <CardContent className="text-center py-12">
-              <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No hay productos en tu lista</p>
-              <p className="text-gray-400 text-sm">Agrega algunos productos para comenzar</p>
+              <ShoppingCart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500 text-lg">No hay productos en tu lista</p>
+              <p className="text-slate-400 text-sm">Agrega algunos productos para comenzar</p>
             </CardContent>
           </Card>
         ) : (
@@ -619,9 +621,9 @@ export const ShoppingList: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg bg-white">
         <CardHeader>
-          <CardTitle>Acciones Rápidas</CardTitle>
+          <CardTitle className="text-slate-900">Acciones Rapidas</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -646,4 +648,4 @@ export const ShoppingList: React.FC = () => {
       </Card>
     </div>
   );
-}; 
+};

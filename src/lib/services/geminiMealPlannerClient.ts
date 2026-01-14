@@ -10,7 +10,7 @@
  */
 
 import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from '@google/generative-ai'
-import geminiConfig from '@/lib/config/gemini.config';;
+import geminiConfig from '@/lib/config/gemini.config';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import type { ArgentineMealContext } from '@/lib/prompts/argentineMealPrompts';
@@ -40,7 +40,7 @@ const PERFORMANCE_CONFIGS = {
   fast: {
     model: geminiConfig.default.model as const,
     temperature: 0.7,
-    maxOutputTokens: 2048
+    maxOutputTokens: 2048,
     topP: 0.9,
     topK: 32,
     enableCaching: true,
@@ -50,7 +50,7 @@ const PERFORMANCE_CONFIGS = {
   balanced: {
     model: geminiConfig.default.model as const,
     temperature: 0.7,
-    maxOutputTokens: 2048
+    maxOutputTokens: 2048,
     topP: 0.95,
     topK: 40,
     enableCaching: true,
@@ -60,7 +60,7 @@ const PERFORMANCE_CONFIGS = {
   quality: {
     model: geminiConfig.default.model as const,
     temperature: 0.65,
-    maxOutputTokens: 2048
+    maxOutputTokens: 2048,
     topP: 0.95,
     topK: 40,
     enableCaching: false,
@@ -131,11 +131,11 @@ class RateLimiter {
   async checkLimit(): Promise<boolean> {
     const now = Date.now();
     this.requests = this.requests.filter(time => now - time < this.windowMs);
-    
+
     if (this.requests.length >= this.maxRequests) {
       return false;
     }
-    
+
     this.requests.push(now);
     return true;
   }
@@ -160,7 +160,7 @@ class PerformanceMetrics {
 
   recordRequest(startTime: number, success: boolean, fromCache: boolean = false): void {
     const responseTime = Date.now() - startTime;
-    
+
     this.metrics.totalRequests++;
     if (success) {
       this.metrics.successfulRequests++;
@@ -175,15 +175,15 @@ class PerformanceMetrics {
     }
 
     // Update average response time
-    this.metrics.averageResponseTime = 
-      (this.metrics.averageResponseTime * (this.metrics.totalRequests - 1) + responseTime) / 
+    this.metrics.averageResponseTime =
+      (this.metrics.averageResponseTime * (this.metrics.totalRequests - 1) + responseTime) /
       this.metrics.totalRequests;
   }
 
   getMetrics() {
     return {
       ...this.metrics,
-      successRate: this.metrics.totalRequests > 0 ? 
+      successRate: this.metrics.totalRequests > 0 ?
         (this.metrics.successfulRequests / this.metrics.totalRequests) * 100 : 0,
       cacheHitRate: (this.metrics.cacheHits + this.metrics.cacheMisses) > 0 ?
         (this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses)) * 100 : 0,
@@ -213,32 +213,42 @@ export class GeminiMealPlannerClient {
   private retryConfig: RetryConfig;
 
   constructor(
-    apiKey?: string, 
+    apiKey?: string,
     profileType: keyof typeof PERFORMANCE_CONFIGS = 'balanced',
     customConfig?: Partial<GeminiMealPlannerConfig>
   ) {
     const key = apiKey || geminiConfig.getApiKey() || geminiConfig.getApiKey();
-    
+
     if (!key) {
-      throw new Error(
-        'Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.'
-      );
+      // If getGeminiApiKey returns fallback, we are good. If it returned undefined (shouldn't with new config), catch it here.
+      const mockMode = geminiConfig.isMockMode ? geminiConfig.isMockMode() : false;
+      if (!mockMode) {
+        throw new Error(
+          'Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.'
+        );
+      }
     }
 
     // Merge configuration
     this.config = { ...PERFORMANCE_CONFIGS[profileType], ...customConfig };
     this.retryConfig = DEFAULT_RETRY_CONFIG;
 
-    // Initialize services
-    this.genAI = new GoogleGenerativeAI(key);
-    this.model = this.genAI.getGenerativeModel({ 
-      model: this.config.model,
-      generationConfig: this.createGenerationConfig(),
-    });
-    
     this.cache = new ResponseCache();
     this.rateLimiter = new RateLimiter();
     this.metrics = new PerformanceMetrics();
+
+    // Initialize services
+    if (!geminiConfig.isMockMode || !geminiConfig.isMockMode()) {
+      this.genAI = new GoogleGenerativeAI(key);
+      this.model = this.genAI.getGenerativeModel({
+        model: this.config.model,
+        generationConfig: this.createGenerationConfig(),
+      });
+    } else {
+      // Mock initialization to prevent null pointers if called
+      this.genAI = {} as any;
+      this.model = {} as any;
+    }
 
     logger.info('GeminiMealPlannerClient initialized', 'geminiMealPlannerClient', {
       model: this.config.model,
@@ -268,12 +278,12 @@ export class GeminiMealPlannerClient {
       familySize: context.familySize,
       dietaryRestrictions: context.dietaryRestrictions?.sort(),
     });
-    
+
     // Create a simple hash of the prompt and context
     const hash = btoa(prompt.substring(0, 100) + contextHash)
       .replace(/[+/=]/g, '')
       .substring(0, 16);
-    
+
     return `meal_plan_${hash}`;
   }
 
@@ -299,7 +309,7 @@ export class GeminiMealPlannerClient {
         return await fn();
       } catch (error) {
         lastError = error as Error;
-        
+
         // Check if error is retryable
         const isRetryable = retryConfig.retryableErrors.some(retryableError =>
           lastError!.message.toLowerCase().includes(retryableError.toLowerCase())
@@ -314,7 +324,7 @@ export class GeminiMealPlannerClient {
           maxRetries: retryConfig.maxRetries,
           error: lastError.message,
         });
-        
+
         await new Promise(resolve => setTimeout(resolve, delay));
         delay = Math.min(delay * retryConfig.backoffFactor, retryConfig.maxDelayMs);
       }
@@ -353,7 +363,7 @@ export class GeminiMealPlannerClient {
     try {
       // Clean up response
       let cleanText = text.trim();
-      
+
       // Remove markdown code blocks
       if (cleanText.startsWith('```json')) {
         cleanText = cleanText.slice(7);
@@ -363,24 +373,24 @@ export class GeminiMealPlannerClient {
       if (cleanText.endsWith('```')) {
         cleanText = cleanText.slice(0, -3);
       }
-      
+
       // Remove any trailing commas that might cause issues
       cleanText = cleanText.replace(/,(\s*[}\]])/g, '$1');
-      
+
       const parsed = JSON.parse(cleanText.trim());
-      
+
       // Validate with schema
       return schema.parse(parsed);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        logger.error('Response validation error:', 'geminiMealPlannerClient', { 
+        logger.error('Response validation error:', 'geminiMealPlannerClient', {
           errors: error.errors,
           sample: text.substring(0, 200),
         });
         throw new Error(`Invalid response format: ${error.errors.map(e => e.message).join(', ')}`);
       }
-      
-      logger.error('JSON parsing error:', 'geminiMealPlannerClient', { 
+
+      logger.error('JSON parsing error:', 'geminiMealPlannerClient', {
         error: error instanceof Error ? error.message : 'Unknown error',
         sample: text.substring(0, 200),
       });
@@ -405,6 +415,13 @@ export class GeminiMealPlannerClient {
     let fromCache = false;
 
     try {
+      // Check mock mode
+      if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+        logger.info('Returning MOCK weekly meal plan', 'geminiMealPlannerClient');
+        const { MOCK_MEAL_PLAN } = require('@/lib/services/mockData');
+        return MOCK_MEAL_PLAN as T;
+      }
+
       // Check cache first
       const cacheKey = this.generateCacheKey(prompt, context);
       if (this.config.enableCaching && !options?.bypassCache) {
@@ -442,7 +459,7 @@ export class GeminiMealPlannerClient {
       }
 
       this.metrics.recordRequest(startTime, true, fromCache);
-      
+
       logger.info('Weekly meal plan generated successfully', 'geminiMealPlannerClient', {
         processingTimeMs: Date.now() - startTime,
         fromCache,
@@ -453,7 +470,7 @@ export class GeminiMealPlannerClient {
       return parsedResponse;
     } catch (error) {
       this.metrics.recordRequest(startTime, false, fromCache);
-      
+
       logger.error('Weekly meal plan generation failed', 'geminiMealPlannerClient', {
         error: error instanceof Error ? error.message : 'Unknown error',
         processingTimeMs: Date.now() - startTime,
@@ -463,7 +480,7 @@ export class GeminiMealPlannerClient {
           familySize: context.familySize,
         },
       });
-      
+
       throw error;
     }
   }
@@ -488,7 +505,7 @@ export class GeminiMealPlannerClient {
         model: geminiConfig.default.model,
         generationConfig: {
           temperature: 0.8,
-          maxOutputTokens: 2048
+          maxOutputTokens: 2048,
           topP: 0.9,
           topK: 32,
         },
@@ -526,7 +543,7 @@ export class GeminiMealPlannerClient {
         processingTimeMs: Date.now() - startTime,
         mealType: options?.mealType || 'unknown',
       });
-      
+
       throw error;
     }
   }
@@ -557,16 +574,16 @@ export class GeminiMealPlannerClient {
   }> {
     try {
       const metrics = this.getMetrics();
-      
+
       let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-      
+
       if (metrics.successRate < 95) {
         status = 'degraded';
       }
       if (metrics.successRate < 80) {
         status = 'unhealthy';
       }
-      
+
       return {
         status,
         metrics,
@@ -590,7 +607,7 @@ export function getGeminiMealPlannerClient(
   if (!geminiClient) {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const selectedProfile = isDevelopment ? 'fast' : profile;
-    
+
     geminiClient = new GeminiMealPlannerClient(undefined, selectedProfile);
   }
   return geminiClient;

@@ -23,11 +23,13 @@ interface AnthropicConfig {
 export class AnthropicProvider extends AIProviderInterface {
   name: AIProvider = 'anthropic';
   private apiKey: string;
+  private useProxy: boolean = false;
   private baseURL: string;
 
-  constructor(config: AnthropicConfig) {
+  constructor(config: AnthropicConfig & { useProxy?: boolean }) {
     super(config);
-    this.apiKey = config.apiKey;
+    this.apiKey = config.apiKey || '';
+    this.useProxy = !!config.useProxy;
     this.baseURL = config.baseURL || 'https://api.anthropic.com/v1';
   }
 
@@ -35,10 +37,23 @@ export class AnthropicProvider extends AIProviderInterface {
     request: AITextRequest,
     config: AIServiceConfig
   ): Promise<AITextResponse> {
+    if (this.useProxy) {
+      const { aiProxy } = require('@/lib/ai/AIProxyClient');
+      const text = await aiProxy.generateText(request.prompt, 'anthropic', config.model);
+      return {
+        data: text,
+        provider: 'anthropic',
+        model: (config.model || 'claude-3-sonnet-20240229') as any,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        format: request.format || 'text',
+        metadata: { requestId: 'proxy', timestamp: new Date(), processingTime: 0 }
+      };
+    }
+
     try {
       // Build Claude-specific prompt
       const prompt = this.buildClaudePrompt(request);
-      
+
       const response = await this.retry(async () => {
         const res = await fetch(`${this.baseURL}/messages`, {
           method: 'POST',
@@ -95,7 +110,7 @@ export class AnthropicProvider extends AIProviderInterface {
   ): Promise<AIStreamResponse> {
     try {
       const prompt = this.buildClaudePrompt(request);
-      
+
       const response = await fetch(`${this.baseURL}/messages`, {
         method: 'POST',
         headers: {
@@ -138,7 +153,7 @@ export class AnthropicProvider extends AIProviderInterface {
               for (const line of lines) {
                 if (line.startsWith('data: ')) {
                   const data = line.slice(6);
-                  
+
                   try {
                     const json = JSON.parse(data);
                     if (json.type === 'content_block_delta') {
@@ -180,7 +195,7 @@ export class AnthropicProvider extends AIProviderInterface {
       // Convert image to base64
       let base64: string;
       let mimeType: string;
-      
+
       if (typeof request.image === 'string') {
         if (request.image.startsWith('data:')) {
           const parts = request.image.split(',');
@@ -320,7 +335,7 @@ export class AnthropicProvider extends AIProviderInterface {
     const modelPricing = pricing[model] || pricing['claude-3-sonnet-20240229'];
     const inputCost = (usage.input_tokens / 1_000_000) * modelPricing.input;
     const outputCost = (usage.output_tokens / 1_000_000) * modelPricing.output;
-    
+
     return inputCost + outputCost;
   }
 

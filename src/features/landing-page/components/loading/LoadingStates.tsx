@@ -25,9 +25,9 @@ export const LoadingSpinner = ({
 
   const colorClasses = {
     primary: 'text-lime-500',
-    secondary: 'text-purple-500',
+    secondary: 'text-slate-500',
     white: 'text-white',
-    gray: 'text-gray-500'
+    gray: 'text-slate-500'
   };
 
   return (
@@ -82,9 +82,9 @@ export const LoadingDots = ({
 
   const colorClasses = {
     primary: 'bg-lime-500',
-    secondary: 'bg-purple-500',
+    secondary: 'bg-slate-500',
     white: 'bg-white',
-    gray: 'bg-gray-500'
+    gray: 'bg-slate-500'
   };
 
   const containerVariants = {
@@ -159,9 +159,9 @@ export const PulseLoader = ({
 
   const colorClasses = {
     primary: 'bg-lime-500',
-    secondary: 'bg-purple-500',
+    secondary: 'bg-slate-500',
     white: 'bg-white',
-    gray: 'bg-gray-500'
+    gray: 'bg-slate-500'
   };
 
   return (
@@ -194,16 +194,15 @@ interface SkeletonProps {
   animate?: boolean;
 }
 
-export const Skeleton = ({ 
-  width = '100%', 
-  height = '1rem', 
-  className, 
+export const Skeleton = ({
+  width = '100%',
+  height = '1rem',
+  className,
   rounded = false,
-  animate = true 
+  animate = true
 }: SkeletonProps) => {
   const skeletonClasses = cn(
-    'bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200',
-    'dark:from-gray-700 dark:via-gray-600 dark:to-gray-700',
+    'bg-slate-200',
     {
       'rounded-full': rounded,
       'rounded': !rounded,
@@ -280,10 +279,10 @@ export const ProgressBar = ({
   };
 
   const colorClasses = {
-    primary: 'bg-gradient-to-r from-lime-500 to-purple-500',
-    secondary: 'bg-purple-500',
+    primary: 'bg-lime-500',
+    secondary: 'bg-slate-500',
     success: 'bg-green-500',
-    warning: 'bg-yellow-500',
+    warning: 'bg-amber-500',
     error: 'bg-red-500'
   };
 
@@ -292,12 +291,12 @@ export const ProgressBar = ({
   return (
     <div className={cn('w-full', className)}>
       {showLabel && (
-        <div className="flex justify-between text-sm text-gray-600 mb-1">
+        <div className="flex justify-between text-sm text-slate-600 mb-1">
           <span>Loading...</span>
           <span>{Math.round(clampedProgress)}%</span>
         </div>
       )}
-      <div className={cn('w-full bg-gray-200 rounded-full overflow-hidden', sizeClasses[size])}>
+      <div className={cn('w-full bg-slate-200 rounded-full overflow-hidden', sizeClasses[size])}>
         <motion.div
           className={cn('h-full rounded-full', colorClasses[color])}
           initial={{ width: 0 }}
@@ -339,7 +338,7 @@ export const LoadingOverlay = ({
             <div className="text-center">
               {spinner || <LoadingSpinner size="lg" />}
               {message && (
-                <p className="mt-4 text-gray-600 font-medium">{message}</p>
+                <p className="mt-4 text-slate-600 font-medium">{message}</p>
               )}
             </div>
           </motion.div>
@@ -372,7 +371,7 @@ export const LazyWrapper = ({
   );
 
   const defaultError = (
-    <div className="text-center py-12 text-gray-500">
+    <div className="text-center py-12 text-slate-500">
       <p>Failed to load content</p>
     </div>
   );
@@ -461,8 +460,8 @@ export const LoadingButton = ({
   };
 
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-lime-500 to-purple-500 text-white hover:from-lime-600 hover:to-purple-600',
-    secondary: 'bg-white border-2 border-lime-500 text-lime-600 hover:bg-lime-50'
+    primary: 'bg-lime-500 text-white hover:bg-lime-600',
+    secondary: 'bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50'
   };
 
   return (

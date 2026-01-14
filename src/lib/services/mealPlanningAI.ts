@@ -1,12 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import geminiConfig from '@/lib/config/gemini.config';;
+import geminiConfig from '@/lib/config/gemini.config';
 import { logger } from '@/services/logger';
 
 import { prisma } from '../prisma';
-import { 
-  MealPlanningError, 
-  MealPlanningErrorFactory, 
-  MealPlanningErrorCodes, 
+import {
+  MealPlanningError,
+  MealPlanningErrorFactory,
+  MealPlanningErrorCodes,
   RetryHandler,
   ErrorReporter
 } from '../errors/MealPlanningError';
@@ -47,16 +47,15 @@ export class EnhancedMealPlanningAI {
         new Error('GOOGLE_AI_API_KEY environment variable is required')
       );
     }
-    
+
     try {
-      this.genAI = 
-  const featureConfig = geminiConfig.getFeatureConfig('mealPlanning');
-  new GoogleGenerativeAI(featureConfig.apiKey));
-      this.model = this.genAI.getGenerativeModel({ 
+      const featureConfig = geminiConfig.getFeatureConfig('mealPlanning');
+      this.genAI = new GoogleGenerativeAI(featureConfig.apiKey);
+      this.model = this.genAI.getGenerativeModel({
         model: 'gemini-2.0-flash-exp', // Actualizado a Flash 2.0 para mejor rendimiento y menor costo
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 2048
+          maxOutputTokens: 2048,
           topP: 0.9,
           topK: 40,
         }
@@ -73,19 +72,19 @@ export class EnhancedMealPlanningAI {
    * @returns Promise<WeeklyPlan> Complete weekly meal plan
    */
   async generateWeeklyPlan(
-    preferences: UserPreferences, 
+    preferences: UserPreferences,
     constraints: PlanningConstraints
   ): AsyncMealPlanningResult<WeeklyPlan> {
     try {
       // Validate inputs
       this.validatePreferences(preferences);
       this.validateConstraints(constraints);
-      
+
       const cacheKey = CacheKeyGenerator.mealPlan(
-        preferences.userId, 
+        preferences.userId,
         constraints.startDate.toISOString().split('T')[0]
       );
-      
+
       // Check enhanced cache first
       const cached = await enhancedCache.get<WeeklyPlan>(cacheKey);
       if (cached) {
@@ -98,26 +97,26 @@ export class EnhancedMealPlanningAI {
         this.MAX_RETRIES,
         this.RETRY_DELAY
       );
-      
+
       // Cache the result with enhanced caching
       await enhancedCache.set(cacheKey, result, this.CACHE_TTL);
-      
+
       return { success: true, data: result };
-      
+
     } catch (error: unknown) {
-      ErrorReporter.report(error as MealPlanningError, { 
+      ErrorReporter.report(error as MealPlanningError, {
         userId: preferences.userId,
         operation: 'generateWeeklyPlan'
       });
-      
+
       if (error instanceof MealPlanningError) {
         return { success: false, error: error.message, code: error.code };
       }
-      
-      return { 
-        success: false, 
-        error: 'Failed to generate weekly meal plan', 
-        code: MealPlanningErrorCodes.AI_SERVICE_UNAVAILABLE 
+
+      return {
+        success: false,
+        error: 'Failed to generate weekly meal plan',
+        code: MealPlanningErrorCodes.AI_SERVICE_UNAVAILABLE
       };
     }
   }
@@ -126,33 +125,33 @@ export class EnhancedMealPlanningAI {
    * Internal method to generate weekly plan with enhanced error handling
    */
   private async generateWeeklyPlanInternal(
-    preferences: UserPreferences, 
+    preferences: UserPreferences,
     constraints: PlanningConstraints
   ): Promise<WeeklyPlan> {
     const startTime = Date.now();
-    
+
     try {
       // Get user's pantry items with error handling
       const pantryItems = await this.getUserPantryItemsSafe(preferences.userId);
-      
+
       // Get user's favorite recipes with error handling
       const favoriteRecipes = await this.getUserFavoriteRecipesSafe(preferences.userId);
-      
+
       // Generate meal suggestions using AI with validation
       const mealSuggestions = await this.generateMealSuggestionsWithValidation(
-        preferences, 
-        constraints, 
-        pantryItems, 
+        preferences,
+        constraints,
+        pantryItems,
         favoriteRecipes
       );
-      
+
       // Create weekly plan structure
       const weeklyPlan = await this.createWeeklyPlanStructure(
         preferences,
         constraints,
         mealSuggestions
       );
-      
+
       // Calculate summaries in parallel for better performance
       const [nutritionSummary, budgetSummary, prepPlan, shoppingList] = await Promise.all([
         this.calculateNutritionSummary(weeklyPlan.meals, preferences),
@@ -160,7 +159,7 @@ export class EnhancedMealPlanningAI {
         this.generatePrepPlan(weeklyPlan.meals),
         this.generateShoppingList(weeklyPlan.meals, pantryItems)
       ]);
-      
+
       // Build complete plan
       const completePlan: WeeklyPlan = {
         ...weeklyPlan,
@@ -175,20 +174,21 @@ export class EnhancedMealPlanningAI {
           prepPlan,
           shoppingList
         }),
-        meta{ aiModel: geminiConfig.default.model,
+        meta: {
+          aiModel: geminiConfig.default.model,
           generationTime: (Date.now() - startTime) as Minutes,
           revisionCount: PositiveInteger.create(1),
           userFeedback: null
         }
       };
-      
+
       return completePlan;
-      
+
     } catch (error: unknown) {
       if (error instanceof MealPlanningError) {
         throw error;
       }
-      
+
       throw new MealPlanningError(
         'Failed to generate weekly meal plan',
         MealPlanningErrorCodes.AI_SERVICE_UNAVAILABLE,
@@ -218,16 +218,16 @@ export class EnhancedMealPlanningAI {
   private validateConstraints(constraints: PlanningConstraints): void {
     try {
       PlanningConstraintsSchema.parse(constraints);
-      
+
       // Additional business logic validation
       if (constraints.endDate <= constraints.startDate) {
         throw new Error('End date must be after start date');
       }
-      
+
       if (constraints.mealTypes.length === 0) {
         throw new Error('At least one meal type must be specified');
       }
-      
+
     } catch (error: unknown) {
       throw new MealPlanningError(
         'Invalid planning constraints',
@@ -269,35 +269,35 @@ export class EnhancedMealPlanningAI {
       // Generate AI response with timeout
       const result = await Promise.race([
         this.model.generateContent(promptResult.prompt),
-        new Promise((_, reject) => 
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('AI request timeout')), 30000)
         )
       ]);
 
       const response = await (result as any).response;
       const text = response.text();
-      
+
       // Validate AI response
       const { isValidAIResponse } = await import('../types/mealPlanning');
-      
+
       try {
         const jsonData = JSON.parse(text);
-        
+
         if (!isValidAIResponse(jsonData)) {
           throw MealPlanningErrorFactory.aiResponseInvalid(jsonData, 'Invalid response structure');
         }
-        
+
         return this.processMealSuggestions(jsonData);
       } catch (parseError: unknown) {
         logger.error('Error parsing AI response:', 'mealPlanningAI', parseError);
         throw MealPlanningErrorFactory.aiResponseInvalid(text, 'JSON parsing failed');
       }
-      
+
     } catch (error: unknown) {
       if (error instanceof MealPlanningError) {
         throw error;
       }
-      
+
       // Fallback to database recipes
       logger.warn('AI meal suggestion failed, using fallback strategy:', 'mealPlanningAI', error);
       return this.generateFallbackMealSuggestions(preferences, constraints);
@@ -306,7 +306,7 @@ export class EnhancedMealPlanningAI {
 
   private async processMealSuggestions(aiResponse: any): Promise<MealSuggestion[]> {
     const suggestions: MealSuggestion[] = [];
-    
+
     for (const dayMeals of aiResponse.meals) {
       for (const mealType of ['breakfast', 'lunch', 'dinner']) {
         const meal = dayMeals[mealType];
@@ -338,7 +338,7 @@ export class EnhancedMealPlanningAI {
         }
       }
     }
-    
+
     return suggestions;
   }
 
@@ -347,16 +347,13 @@ export class EnhancedMealPlanningAI {
     constraints: PlanningConstraints
   ): Promise<MealSuggestion[]> {
     // Get existing recipes from database that match preferences
-    const recipes = await db.getRecipes(user.id{
+    const recipes = await prisma.recipe.findMany({
       where: {
         AND: [
           { prepTimeMinutes: { lte: constraints.maxPrepTime } },
           { servings: { gte: constraints.servings } },
           // Add more filters based on preferences
         ]
-      },
-      // includes handled by Supabase service
-        }
       },
       take: 21 // 3 meals × 7 days
     });
@@ -393,14 +390,14 @@ export class EnhancedMealPlanningAI {
    */
   private async getUserPantryItemsSafe(userId: string): Promise<any[]> {
     try {
-      return await db.getPantryItems(user.id{
-        where: { userId },
-        // includes handled by Supabase service
+      return await prisma.pantryItem.findMany({
+        where: { userId }
       });
     } catch (error: unknown) {
       logger.warn('Failed to fetch pantry items:', 'mealPlanningAI', error);
       return [];
     }
+
   }
 
   /**
@@ -409,12 +406,7 @@ export class EnhancedMealPlanningAI {
   private async getUserFavoriteRecipesSafe(userId: string): Promise<any[]> {
     try {
       return await prisma.favoriteRecipe.findMany({
-        where: { userId },
-        // includes handled by Supabase service
-              }
-            }
-          }
-        }
+        where: { userId }
       });
     } catch (error: unknown) {
       logger.warn('Failed to fetch favorite recipes:', 'mealPlanningAI', error);
@@ -444,14 +436,14 @@ export class EnhancedMealPlanningAI {
     for (let i = 0; i < 7; i++) {
       const date = new Date(constraints.startDate);
       date.setDate(date.getDate() + i);
-      
+
       const dailyMeals: any = {
         date,
         breakfast: mealSuggestions[i * 3],
         lunch: mealSuggestions[i * 3 + 1],
         dinner: mealSuggestions[i * 3 + 2]
       };
-      
+
       weeklyPlan.meals.push(dailyMeals);
     }
 
@@ -591,12 +583,12 @@ export class EnhancedMealPlanningAI {
     const nutritionScore = plan.nutritionSummary.nutritionScore || 0;
     const budgetScore = plan.budgetSummary.budgetScore || 0;
     const efficiencyScore = plan.prepPlan.efficiencyScore || 0;
-    
+
     return (nutritionScore + budgetScore + efficiencyScore) / 3 / 100;
   }
 
   // Additional methods for recipe recommendations, meal optimization, etc.
-  
+
   async suggestRecipes(constraints: PlanningConstraints): Promise<MealSuggestion[]> {
     // Implementation for recipe suggestions
     return [];
@@ -604,12 +596,12 @@ export class EnhancedMealPlanningAI {
 
   async optimizeMealPrep(meals: any[]): Promise<any> {
     // Implementation for meal prep optimization
-    return {} as any;
+    return {};
   }
 
   async analyzeNutrition(plan: WeeklyPlan): Promise<any> {
     // Implementation for nutrition analysis
-    return {} as any;
+    return {};
   }
 }
 

@@ -1,112 +1,122 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { logger } from '@/lib/logger';
-
-// authOptions removed - using Supabase Auth;
 import { UnifiedAIService } from "@/services/ai";
+import { createClient } from '@/lib/supabase/server';
 import type { RecipeGenerationParams } from "@/services/ai/types";
-import { db } from '@/lib/supabase/database.service';
 
 export async function POST(req: Request) {
   try {
-    const user = await getUser();
-    
-    if (!user?.id) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    // Check if user has available AI generations (implement limits later)
-    const userProfile = await db.getUserProfile(user.id, {
-      select: { 
-        id: true,
-        name: true,
-        preferences: true 
-      }
-    });
+    const body = await req.json();
+    const { ingredients, cuisine, difficulty, servings } = body;
 
-    if (!user) {
+    if (!ingredients || ingredients.length === 0) {
       return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
+        { error: "At least one ingredient is required" },
+        { status: 400 }
       );
     }
 
-    const params: RecipeGenerationParams = await req.json();
-    
-    // Add user preferences to generation params if not specified
-    if (user.preferences && typeof user.preferences === 'object') {
-      const prefs = user.preferences as any;
-      if (!params.dietary && prefs.dietaryRestrictions) {
-        params.dietary = prefs.dietaryRestrictions;
-      }
-    }
+    // Get user profile for dietary preferences
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('dietary_restrictions, cuisine_preferences')
+      .eq('user_id', user.id)
+      .single();
+
+    // Build AI generation params
+    const params: RecipeGenerationParams = {
+      ingredients: ingredients.map((ing: string) => ({ name: ing })),
+      cuisine: cuisine || 'argentina',
+      difficulty: difficulty || 'medium',
+      servings: servings || 4,
+      dietary: profile?.dietary_restrictions || [],
+    };
 
     // Generate recipe using AI
-    const aiService = new UnifiedAIService();
+    const aiService = UnifiedAIService.getInstance();
     const generatedRecipe = await aiService.generateRecipe(params);
 
-    // Save the generated recipe to database
-    const ingredientPromises = generatedRecipe.ingredients.map(async (ing) => {
-      const ingredient = await prisma.ingredient.upsert({
-        where: { name: ing.name.toLowerCase() },
-        update: {},
-        create: { 
-          name: ing.name.toLowerCase(),
-          unit: ing.unit || "g"
-        }
-      });
-      return {
-        ingredientId: ingredient.id,
-        quantity: parseFloat(ing.quantity) || 0,
-        unit: ing.unit || "",
-        notes: ing.notes || null
-      };
-    });
+    // Format recipe for frontend
+    const recipe = {
+      id: crypto.randomUUID(),
+      name: generatedRecipe.title || generatedRecipe.name,
+      title: generatedRecipe.title || generatedRecipe.name,
+      description: generatedRecipe.description || '',
+      ingredients: generatedRecipe.ingredients.map((ing: any) => ({
+        name: ing.name,
+        quantity: ing.quantity || ing.amount || 0,
+        unit: ing.unit || 'g'
+      })),
+      instructions: Array.isArray(generatedRecipe.instructions)
+        ? generatedRecipe.instructions
+        : [generatedRecipe.instructions],
+      prepTime: generatedRecipe.prepTimeMinutes || generatedRecipe.prepTime || 15,
+      cookTime: generatedRecipe.cookTimeMinutes || generatedRecipe.cookTime || 30,
+      servings: generatedRecipe.servings || servings || 4,
+      difficulty: generatedRecipe.difficulty || difficulty || 'medium',
+      cuisine: generatedRecipe.cuisine || cuisine || 'argentina',
+      tags: generatedRecipe.tags || [],
+      nutrition: generatedRecipe.nutritionInfo || generatedRecipe.nutrition || {
+        calories: 400,
+        protein: 25,
+        carbs: 45,
+        fat: 15
+      },
+      isAiGenerated: true,
+      source: 'ai',
+      imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=600&fit=crop'
+    };
 
-    const ingredientData = await Promise.all(ingredientPromises);
+    // Optionally save to database
+    try {
+      const { data: savedRecipe, error: saveError } = await supabase
+        .from('recipes')
+        .insert({
+          user_id: user.id,
+          name: recipe.name,
+          description: recipe.description,
+          ingredients: recipe.ingredients,
+          instructions: recipe.instructions,
+          prep_time: recipe.prepTime,
+          cook_time: recipe.cookTime,
+          servings: recipe.servings,
+          difficulty: recipe.difficulty,
+          cuisine: recipe.cuisine,
+          tags: recipe.tags,
+          nutrition: recipe.nutrition,
+          source: 'ai',
+          is_public: false
+        })
+        .select()
+        .single();
 
-    // Create the recipe
-    const recipe = await db.createRecipe({
-      data: {
-        title: generatedRecipe.title,
-        description: generatedRecipe.description,
-        instructions: generatedRecipe.instructions,
-        prepTimeMinutes: generatedRecipe.prepTimeMinutes,
-        cookTimeMinutes: generatedRecipe.cookTimeMinutes,
-        servings: generatedRecipe.servings,
-        difficulty: generatedRecipe.difficulty,
-        cuisine: generatedRecipe.cuisine,
-        tags: generatedRecipe.tags,
-        isPublic: true,
-        source: "ai",
-        authorId: user.id,
-        ingredients: {
-          create: ingredientData
-        },
-        ...(generatedRecipe.nutritionInfo ? {
-          nutritionInfo: {
-            create: {
-              calories: generatedRecipe.nutritionInfo.calories,
-              protein: generatedRecipe.nutritionInfo.protein,
-              carbs: generatedRecipe.nutritionInfo.carbs,
-              fat: generatedRecipe.nutritionInfo.fat,
-              fiber: generatedRecipe.nutritionInfo.fiber || null,
-              sugar: generatedRecipe.nutritionInfo.sugar || null,
-              sodium: generatedRecipe.nutritionInfo.sodium || null,
-            }
-          }
-        } : {})
+      if (!saveError && savedRecipe) {
+        recipe.id = savedRecipe.id;
       }
-    });
+    } catch (dbError) {
+      // Non-critical - continue even if save fails
+      console.warn('Failed to save recipe to database:', dbError);
+    }
 
-    return NextResponse.json(recipe, { status: 201 });
+    return NextResponse.json({ recipe, success: true }, { status: 201 });
   } catch (error: unknown) {
-    logger.error("Error generating recipe:", 'API:route', error);
+    console.error("Error generating recipe:", error);
     return NextResponse.json(
-      { error: "Failed to generate recipe" },
+      {
+        error: "Failed to generate recipe",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

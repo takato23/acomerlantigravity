@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { logger } from '@/services/logger';
-import { 
+import {
   ArrowLeft,
-  Sparkles, 
-  X, 
+  Sparkles,
+  X,
   Plus,
   Loader2,
   ChefHat,
@@ -25,12 +25,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 const CUISINE_OPTIONS = [
-  "Italian", "Mexican", "Chinese", "Japanese", "Indian", 
+  "Italian", "Mexican", "Chinese", "Japanese", "Indian",
   "French", "Thai", "Mediterranean", "American", "Korean"
 ];
 
 const DIETARY_OPTIONS = [
-  "Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", 
+  "Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free",
   "Keto", "Paleo", "Low-Carb", "Nut-Free"
 ];
 
@@ -54,7 +54,7 @@ export default function GenerateRecipePage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.push("/auth/login");
+      router.push("/login");
     }
   }, [authLoading, user, router]);
 

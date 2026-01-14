@@ -29,9 +29,9 @@ export interface ProductWithLowestPrice {
 
 export class PriceTracker {
   private static instance: PriceTracker;
-  
-  private constructor() {}
-  
+
+  private constructor() { }
+
   static getInstance(): PriceTracker {
     if (!PriceTracker.instance) {
       PriceTracker.instance = new PriceTracker();
@@ -40,14 +40,15 @@ export class PriceTracker {
   }
 
   async trackPrice(
-    productId: string, 
-    storeId: string, 
+    productId: string,
+    storeId: string,
     price: number,
     source: 'scraper' | 'manual' | 'receipt' = 'scraper'
   ): Promise<void> {
     try {
-      await prisma.priceHistory.create({
-        { productId,
+      await db.priceHistory.create({
+        data: {
+          productId,
           storeId,
           price: new Decimal(price),
           source
@@ -66,7 +67,7 @@ export class PriceTracker {
     source?: 'scraper' | 'manual' | 'receipt';
   }>): Promise<void> {
     try {
-      await prisma.priceHistory.createMany({
+      await db.priceHistory.createMany({
         data: prices.map(p => ({
           productId: p.productId,
           storeId: p.storeId,
@@ -83,22 +84,22 @@ export class PriceTracker {
   async getPriceHistory(productId: string, days: number = 30): Promise<PriceInfo[]> {
     const since = new Date();
     since.setDate(since.getDate() - days);
-    
+
     try {
-      const history = await prisma.priceHistory.findMany({
+      const history = await db.priceHistory.findMany({
         where: {
           productId,
           recordedAt: { gte: since }
         },
         orderBy: { recordedAt: 'desc' },
-        // includes handled by Supabase service
+        include: { store: true }
       });
-      
-      return history.map(h => ({
+
+      return history.map((h: any) => ({
         productId: h.productId,
         storeId: h.storeId,
-        storeName: h.store.name,
-        price: h.price.toNumber(),
+        storeName: h.store?.name,
+        price: Number(h.price),
         recordedAt: h.recordedAt
       }));
     } catch (error: unknown) {
@@ -109,40 +110,40 @@ export class PriceTracker {
 
   async getLowestPrice(productId: string): Promise<PriceInfo | null> {
     const recent = await this.getPriceHistory(productId, 7);
-    
+
     if (recent.length === 0) return null;
-    
-    return recent.reduce((lowest, current) => 
+
+    return recent.reduce((lowest, current) =>
       current.price < lowest.price ? current : lowest
     );
   }
 
   async getLowestPrices(productIds: string[]): Promise<Map<string, PriceInfo>> {
     const lowestPrices = new Map<string, PriceInfo>();
-    
+
     // Batch fetch for efficiency
     const since = new Date();
     since.setDate(since.getDate() - 7);
-    
+
     try {
-      const history = await prisma.priceHistory.findMany({
+      const history = await db.priceHistory.findMany({
         where: {
           productId: { in: productIds },
           recordedAt: { gte: since }
         },
-        // includes handled by Supabase service,
+        include: { store: true },
         orderBy: { price: 'asc' }
       });
-      
+
       // Group by product and get lowest for each
-      history.forEach(h => {
+      history.forEach((h: any) => {
         const productId = h.productId;
         if (!lowestPrices.has(productId)) {
           lowestPrices.set(productId, {
             productId: h.productId,
             storeId: h.storeId,
-            storeName: h.store.name,
-            price: h.price.toNumber(),
+            storeName: h.store?.name,
+            price: Number(h.price),
             recordedAt: h.recordedAt
           });
         }
@@ -150,13 +151,13 @@ export class PriceTracker {
     } catch (error: unknown) {
       logger.error('Error fetching lowest prices:', 'priceTracker', error);
     }
-    
+
     return lowestPrices;
   }
 
   async getPriceTrends(productId: string, days: number = 30): Promise<PriceTrend> {
     const history = await this.getPriceHistory(productId, days);
-    
+
     if (history.length === 0) {
       return {
         average: 0,
@@ -166,17 +167,17 @@ export class PriceTracker {
         percentageChange: 0
       };
     }
-    
+
     const prices = history.map(h => h.price);
     const average = prices.reduce((a, b) => a + b, 0) / prices.length;
     const min = Math.min(...prices);
     const max = Math.max(...prices);
-    
+
     // Calculate trend based on recent vs older prices
     const midPoint = Math.floor(history.length / 2);
     const recentPrices = history.slice(0, midPoint);
     const olderPrices = history.slice(midPoint);
-    
+
     if (recentPrices.length === 0 || olderPrices.length === 0) {
       return {
         average,
@@ -186,16 +187,16 @@ export class PriceTracker {
         percentageChange: 0
       };
     }
-    
+
     const recentAvg = recentPrices.reduce((a, b) => a + b.price, 0) / recentPrices.length;
     const olderAvg = olderPrices.reduce((a, b) => a + b.price, 0) / olderPrices.length;
-    
+
     const percentageChange = ((recentAvg - olderAvg) / olderAvg) * 100;
-    
+
     let trend: 'up' | 'down' | 'stable' = 'stable';
     if (percentageChange > 5) trend = 'up';
     else if (percentageChange < -5) trend = 'down';
-    
+
     return {
       average,
       min,
@@ -212,7 +213,7 @@ export class PriceTracker {
     priceCount: number;
   }>> {
     const history = await this.getPriceHistory(productId, 30);
-    
+
     // Group by store
     const storeData = new Map<string, number[]>();
     history.forEach(h => {
@@ -220,13 +221,13 @@ export class PriceTracker {
       storePrices.push(h.price);
       storeData.set(h.storeId, storePrices);
     });
-    
+
     // Calculate stats per store
     const comparison = Array.from(storeData.entries()).map(([storeId, prices]) => {
       const storeName = history.find(h => h.storeId === storeId)?.storeName || storeId;
       const averagePrice = prices.reduce((a, b) => a + b, 0) / prices.length;
       const lastPrice = prices[0]; // Most recent
-      
+
       return {
         store: storeName,
         averagePrice,
@@ -234,7 +235,7 @@ export class PriceTracker {
         priceCount: prices.length
       };
     });
-    
+
     // Sort by average price
     return comparison.sort((a, b) => a.averagePrice - b.averagePrice);
   }

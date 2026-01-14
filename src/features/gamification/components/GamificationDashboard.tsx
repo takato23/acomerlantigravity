@@ -167,7 +167,7 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
                   className={`
                     flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
+                      ? 'border-slate-800 text-slate-900'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }
                   `}
@@ -225,7 +225,7 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
                       {achievements.filter(a => a.is_completed).length}
                     </p>
                   </div>
-                  <Award className="w-8 h-8 text-purple-500" />
+                  <Award className="w-8 h-8 text-slate-600" />
                 </div>
               </div>
               
@@ -249,7 +249,7 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
                       {challenges.filter(c => c.is_completed).length}
                     </p>
                   </div>
-                  <Target className="w-8 h-8 text-blue-500" />
+                  <Target className="w-8 h-8 text-slate-600" />
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logger } from '@/services/logger';
-import { 
+import {
   Calendar,
   Settings,
   ShoppingCart,
@@ -32,6 +32,7 @@ import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { UserPreferencesModal } from './UserPreferencesModal';
 import { ShoppingListModal } from './ShoppingListModal';
 import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { generateMealPlanPDF } from './ExportPlanPDF';
 
 
 
@@ -40,9 +41,10 @@ type ViewMode = 'calendar' | 'shopping' | 'nutrition';
 export default function MealPlannerPage() {
   const { user } = useUser();
   const { user: supabaseUser, session, loading: authLoading } = useAuth();
-  
+
   const {
     currentDate,
+    currentWeekPlan,
     userPreferences,
     activeModal,
     isLoading,
@@ -59,7 +61,7 @@ export default function MealPlannerPage() {
     lastGeneratedPlan,
     confidence
   } = useGeminiMealPlanner();
-  
+
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [hasCompletedWizard, setHasCompletedWizard] = useState(true); // Siempre true, wizard se maneja en /planificador
   const [selectedSlot, setSelectedSlot] = useState<{ dayOfWeek: number; mealType: MealType } | null>(null);
@@ -76,7 +78,7 @@ export default function MealPlannerPage() {
 
   const handleWeekNavigation = (direction: 'prev' | 'next' | 'today') => {
     let newDate: Date;
-    
+
     if (direction === 'today') {
       newDate = new Date();
     } else if (direction === 'prev') {
@@ -84,7 +86,7 @@ export default function MealPlannerPage() {
     } else {
       newDate = addWeeks(currentDate, 1);
     }
-    
+
     setCurrentDate(newDate);
     const startDate = format(startOfWeek(newDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
     loadWeekPlan(startDate);
@@ -100,26 +102,26 @@ export default function MealPlannerPage() {
   };
 
   const handleExportWeek = async () => {
-    // TODO: Implement week export functionality
-    logger.info('Export week', 'MealPlannerPage');
+    logger.info('Exporting week to PDF', 'MealPlannerPage');
+    await generateMealPlanPDF(currentWeekPlan, currentDate);
   };
 
   const views = [
-    { 
-      id: 'calendar' as const, 
-      label: 'Calendar', 
+    {
+      id: 'calendar' as const,
+      label: 'Calendar',
       icon: Calendar,
       description: 'Plan your weekly meals'
     },
-    { 
-      id: 'shopping' as const, 
-      label: 'Shopping List', 
+    {
+      id: 'shopping' as const,
+      label: 'Shopping List',
       icon: ShoppingCart,
       description: 'Generate shopping lists'
     },
-    { 
-      id: 'nutrition' as const, 
-      label: 'Nutrition', 
+    {
+      id: 'nutrition' as const,
+      label: 'Nutrition',
       icon: BarChart3,
       description: 'Track nutritional goals'
     },
@@ -140,7 +142,7 @@ export default function MealPlannerPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center text-red-500">
           <p>Error: {error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
           >
@@ -208,7 +210,7 @@ export default function MealPlannerPage() {
               >
                 <ChevronLeft className="w-5 h-5 text-white" />
               </motion.button>
-              
+
               <div className="text-center">
                 <h2 className="text-xl font-bold text-white">
                   Semana del {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMM', { locale: es })}
@@ -217,7 +219,7 @@ export default function MealPlannerPage() {
                   {format(currentDate, 'MMMM yyyy', { locale: es })}
                 </p>
               </div>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

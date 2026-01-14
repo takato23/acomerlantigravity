@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
-        
+
         setSession(session);
         setUser(session?.user ?? null);
       } catch (error: unknown) {
@@ -73,10 +73,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Don't redirect on sign in - let the user navigate
           // router.push('/dashboard');
         }
-        
+
         // Handle sign out
         if (event === 'SIGNED_OUT') {
-          router.push('/auth/login');
+          router.push('/login');
         }
       }
     );
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const handleAuthError = (error: AuthError | Error) => {
     let message = 'An error occurred';
-    
+
     if (error.message.includes('Invalid login credentials')) {
       message = 'Invalid email or password';
     } else if (error.message.includes('Email not confirmed')) {
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } else {
       message = error.message;
     }
-    
+
     setError(message);
     setTimeout(() => setError(null), 10000); // Clear error after 10 seconds
   };
@@ -109,12 +109,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       if (error) throw error;
     } catch (error: unknown) {
       handleAuthError(error as AuthError);
@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -135,9 +135,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: metadata,
         },
       });
-      
+
       if (error) throw error;
-      
+
       // Show success message
       setError('Please check your email for a confirmation link');
     } catch (error: unknown) {
@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error: unknown) {
@@ -165,13 +165,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
-      
+
       if (error) throw error;
-      
+
       setError('Password reset link sent to your email');
     } catch (error: unknown) {
       handleAuthError(error as AuthError);
@@ -184,14 +184,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      
+
       if (error) throw error;
     } catch (error: unknown) {
       handleAuthError(error as AuthError);
@@ -204,14 +204,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      
+
       if (error) throw error;
     } catch (error: unknown) {
       handleAuthError(error as AuthError);

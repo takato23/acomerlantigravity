@@ -42,10 +42,10 @@ export function UserPreferencesModal({ onClose }: UserPreferencesModalProps) {
             <div className="px-6 py-4 border-b border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-slate-700 rounded-xl flex items-center justify-center">
                     <Settings className="w-5 h-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-xl font-bold text-slate-900">
                     Preferencias
                   </h2>
                 </div>
@@ -60,7 +60,7 @@ export function UserPreferencesModal({ onClose }: UserPreferencesModalProps) {
 
             {/* Content */}
             <div className="px-6 py-4">
-              <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+              <p className="text-slate-600 text-center py-8">
                 Configuración de preferencias en desarrollo...
               </p>
             </div>
@@ -78,7 +78,7 @@ export function UserPreferencesModal({ onClose }: UserPreferencesModalProps) {
                 icon={<Save className="w-4 h-4" />}
                 iconPosition="left"
                 onClick={handleSave}
-                className="bg-gradient-to-r from-blue-500 to-purple-500"
+                className="bg-orange-500"
               >
                 Guardar
               </iOS26LiquidButton>

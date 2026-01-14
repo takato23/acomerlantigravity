@@ -37,8 +37,8 @@ export function MealPlannerSkeleton() {
             <div className="h-3 w-24 bg-white/10 rounded animate-pulse" />
             <div className="h-3 w-8 bg-white/10 rounded animate-pulse" />
           </div>
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full w-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse" />
+          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-full w-0 bg-slate-400 rounded-full animate-pulse" />
           </div>
         </div>
       </div>
@@ -115,7 +115,7 @@ export function MealPlannerSkeleton() {
           {days.map((_, index) => (
             <div
               key={index}
-              className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"
+              className="w-2 h-2 bg-slate-300 rounded-full animate-pulse"
             />
           ))}
         </div>

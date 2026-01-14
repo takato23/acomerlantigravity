@@ -55,7 +55,7 @@ A comprehensive recipe management system with AI generation, nutritional analysi
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, TypeScript, React
+- **Frontend**: Next.js 15.0.0, TypeScript, React
 - **State Management**: Zustand with devtools
 - **Database**: Supabase (PostgreSQL)
 - **UI Components**: Tailwind CSS, Custom components

@@ -35,6 +35,7 @@ export interface StockAlert {
 }
 
 export interface PantrySlice {
+  // State
   pantry: {
     items: PantryItem[];
     alerts: StockAlert[];
@@ -43,7 +44,8 @@ export interface PantrySlice {
     isLoading: boolean;
     lastSync?: Date;
   };
-  
+  uiState: PantryUIState;
+
   // Actions
   addPantryItem: (item: Omit<PantryItem, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updatePantryItem: (id: string, updates: Partial<PantryItem>) => void;
@@ -54,7 +56,33 @@ export interface PantrySlice {
   dismissAlert: (alertId: string) => void;
   bulkUpdateStock: (updates: { id: string; quantity: number }[]) => void;
   setPantryLoading: (loading: boolean) => void;
+
+  // UI Actions
+  setUIState: (state: Partial<PantryUIState>) => void;
+  resetFilters: () => void;
 }
+
+export interface PantryUIState {
+  search_query: string;
+  filter_category: string;
+  filter_location: string;
+  sort_by: 'name' | 'expiration' | 'quantity' | 'created_at' | 'category';
+  sort_order: 'asc' | 'desc';
+  view_mode: 'grid' | 'list';
+  show_expired: boolean;
+  show_low_stock: boolean;
+}
+
+const defaultUIState: PantryUIState = {
+  search_query: '',
+  filter_category: '',
+  filter_location: '',
+  sort_by: 'name',
+  sort_order: 'asc',
+  view_mode: 'grid',
+  show_expired: false,
+  show_low_stock: false
+};
 
 const defaultCategories = [
   'lacteos',
@@ -76,7 +104,7 @@ const defaultLocations = [
   'alacena'
 ];
 
-export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
+export const createPantrySlice: StateCreator<any, [], [], PantrySlice> = (set, get) => ({
   pantry: {
     items: [],
     alerts: [],
@@ -85,8 +113,29 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
     isLoading: false,
     lastSync: undefined
   },
-  
-  addPantryItem: (item) => set((state) => {
+
+  // UI State
+  uiState: defaultUIState,
+
+  setUIState: (newState) => set((state: PantrySlice) => {
+    // We need to merge directly into the top-level state if uiState is moved there, 
+    // or keep it separate. Based on the interface definition, it seems simpler to add it to the top level 
+    // or inside a `ui` property if we want to follow the pattern. 
+    // However, the `usePantry.ts` hook expects `state.uiState` directly on the slice.
+    // Let's check `usePantry.ts` again. It accesses `usePantryStore((state) => state.uiState)`.
+    // So distinct from `state.pantry`.
+
+    // We need to be careful with `immer` middleware usage in `store/index.ts`.
+    // It is used there: `immer((...a) => ({ ...createPantrySlice(...a) ... }))`.
+    // So we can mutate state here.
+    Object.assign(state.uiState, newState);
+  }),
+
+  resetFilters: () => set((state: PantrySlice) => {
+    state.uiState = defaultUIState;
+  }),
+
+  addPantryItem: (item) => set((state: PantrySlice) => {
     const newItem: PantryItem = {
       ...item,
       id: Date.now().toString(),
@@ -94,32 +143,32 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
       updatedAt: new Date()
     };
     state.pantry.items.push(newItem);
-    
+
     // Add category if new
     if (!state.pantry.categories.includes(item.category)) {
       state.pantry.categories.push(item.category);
     }
-    
+
     // Add location if new
     if (item.location && !state.pantry.locations.includes(item.location)) {
       state.pantry.locations.push(item.location);
     }
   }),
-  
-  updatePantryItem: (id, updates) => set((state) => {
-    const index = state.pantry.items.findIndex(item => item.id === id);
+
+  updatePantryItem: (id, updates) => set((state: PantrySlice) => {
+    const index = state.pantry.items.findIndex((item: PantryItem) => item.id === id);
     if (index !== -1) {
       Object.assign(state.pantry.items[index], updates, { updatedAt: new Date() });
     }
   }),
-  
-  deletePantryItem: (id) => set((state) => {
-    state.pantry.items = state.pantry.items.filter(item => item.id !== id);
-    state.pantry.alerts = state.pantry.alerts.filter(alert => alert.itemId !== id);
+
+  deletePantryItem: (id) => set((state: PantrySlice) => {
+    state.pantry.items = state.pantry.items.filter((item: PantryItem) => item.id !== id);
+    state.pantry.alerts = state.pantry.alerts.filter((alert: StockAlert) => alert.itemId !== id);
   }),
-  
-  updateStock: (id, quantity, operation) => set((state) => {
-    const item = state.pantry.items.find(item => item.id === id);
+
+  updateStock: (id, quantity, operation) => set((state: PantrySlice) => {
+    const item = state.pantry.items.find((item: PantryItem) => item.id === id);
     if (item) {
       switch (operation) {
         case 'add':
@@ -133,20 +182,20 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
           break;
       }
       item.updatedAt = new Date();
-      
+
       // Check for alerts after stock update
       get().checkAlerts();
     }
   }),
-  
-  addFromScan: (scannedData) => set((state) => {
+
+  addFromScan: (scannedData) => set((state: PantrySlice) => {
     // Handle different scan types (barcode, receipt, manual)
     if (scannedData.type === 'barcode') {
-      const existingItem = state.pantry.items.find(item => 
-        item.barcode === scannedData.barcode || 
+      const existingItem = state.pantry.items.find((item: PantryItem) =>
+        item.barcode === scannedData.barcode ||
         item.name.toLowerCase() === scannedData.name?.toLowerCase()
       );
-      
+
       if (existingItem) {
         // Update existing item
         existingItem.currentStock += scannedData.quantity || 1;
@@ -174,10 +223,10 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
     } else if (scannedData.type === 'receipt') {
       // Add multiple items from receipt
       scannedData.items.forEach((item: any) => {
-        const existingItem = state.pantry.items.find(existing => 
+        const existingItem = state.pantry.items.find((existing: PantryItem) =>
           existing.name.toLowerCase() === item.name.toLowerCase()
         );
-        
+
         if (existingItem) {
           existingItem.currentStock += item.quantity;
           existingItem.updatedAt = new Date();
@@ -198,18 +247,18 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
       });
     }
   }),
-  
-  checkAlerts: () => set((state) => {
+
+  checkAlerts: () => set((state: PantrySlice) => {
     const now = new Date();
     const newAlerts: StockAlert[] = [];
-    
-    state.pantry.items.forEach(item => {
+
+    state.pantry.items.forEach((item: PantryItem) => {
       // Check low stock
       if (item.minimumStock && item.currentStock <= item.minimumStock) {
-        const existingAlert = state.pantry.alerts.find(alert => 
+        const existingAlert = state.pantry.alerts.find((alert: StockAlert) =>
           alert.itemId === item.id && alert.type === 'low_stock' && alert.isActive
         );
-        
+
         if (!existingAlert) {
           newAlerts.push({
             id: `${item.id}-low-${Date.now()}`,
@@ -221,19 +270,19 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
           });
         }
       }
-      
+
       // Check expiration
       if (item.expirationDate) {
         const daysUntilExpiration = Math.ceil(
           (item.expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         );
-        
+
         if (daysUntilExpiration <= 0) {
           // Expired
-          const existingAlert = state.pantry.alerts.find(alert => 
+          const existingAlert = state.pantry.alerts.find((alert: StockAlert) =>
             alert.itemId === item.id && alert.type === 'expired' && alert.isActive
           );
-          
+
           if (!existingAlert) {
             newAlerts.push({
               id: `${item.id}-expired-${Date.now()}`,
@@ -246,10 +295,10 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
           }
         } else if (daysUntilExpiration <= 3) {
           // Expiring soon
-          const existingAlert = state.pantry.alerts.find(alert => 
+          const existingAlert = state.pantry.alerts.find((alert: StockAlert) =>
             alert.itemId === item.id && alert.type === 'expiring' && alert.isActive
           );
-          
+
           if (!existingAlert) {
             newAlerts.push({
               id: `${item.id}-expiring-${Date.now()}`,
@@ -263,31 +312,31 @@ export const createPantrySlice: StateCreator<PantrySlice> = (set, get) => ({
         }
       }
     });
-    
+
     state.pantry.alerts.push(...newAlerts);
   }),
-  
-  dismissAlert: (alertId) => set((state) => {
-    const alert = state.pantry.alerts.find(alert => alert.id === alertId);
+
+  dismissAlert: (alertId) => set((state: PantrySlice) => {
+    const alert = state.pantry.alerts.find((alert: StockAlert) => alert.id === alertId);
     if (alert) {
       alert.isActive = false;
     }
   }),
-  
-  bulkUpdateStock: (updates) => set((state) => {
+
+  bulkUpdateStock: (updates) => set((state: PantrySlice) => {
     updates.forEach(({ id, quantity }) => {
-      const item = state.pantry.items.find(item => item.id === id);
+      const item = state.pantry.items.find((item: PantryItem) => item.id === id);
       if (item) {
         item.currentStock = Math.max(0, quantity);
         item.updatedAt = new Date();
       }
     });
-    
+
     // Check alerts after bulk update
     get().checkAlerts();
   }),
-  
-  setPantryLoading: (loading) => set((state) => {
+
+  setPantryLoading: (loading) => set((state: PantrySlice) => {
     state.pantry.isLoading = loading;
   })
 });

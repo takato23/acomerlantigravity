@@ -1,966 +1,611 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { addDays, format, isSameDay, startOfWeek } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import clsx from 'clsx';
+import dynamic from 'next/dynamic';
+import { Sparkles, ChevronLeft, ChevronRight, Plus, Eye, Trash2, Wand2, ChefHat, RefreshCw, Coffee, Sandwich, Apple, MoonStar, Clock, Users, Download, Share2 } from 'lucide-react';
 
-// Feature flag to wrap all new UI/logic
-const ENABLE_PLANNER_MODAL_MVP = true;
+// Code-split heavy modals for better initial load
+const PlanGenerationModal = dynamic(
+  () => import('./components/PlanGenerationModal').then(mod => ({ default: mod.PlanGenerationModal })),
+  { ssr: false, loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-96 w-full" /> }
+);
+const MealDetailModal = dynamic(
+  () => import('./components/MealDetailModal').then(mod => ({ default: mod.MealDetailModal })),
+  { ssr: false }
+);
+const RecipeSelectionModal = dynamic(
+  () => import('@/features/meal-planning/components/RecipeSelectionModal').then(mod => ({ default: mod.RecipeSelectionModal })),
+  { ssr: false }
+);
+const ChefAIChat = dynamic(
+  () => import('@/features/chef-ai/components/ChefAIChat').then(mod => ({ default: mod.ChefAIChat })),
+  { ssr: false }
+);
+const ChefAIChatButton = dynamic(
+  () => import('@/features/chef-ai/components/ChefAIChat').then(mod => ({ default: mod.ChefAIChatButton })),
+  { ssr: false }
+);
 
-// New feature flag for weekly calendar UI
-const ENABLE_WEEKLY_CALENDAR = true;
+// Store & Hooks
+import { useMealPlanningStore } from '@/features/meal-planning/store/useMealPlanningStore';
+import { useGeminiMealPlanner } from '@/features/meal-planning/hooks/useGeminiMealPlanner';
+import { MealSlot, Recipe, MealType } from '@/features/meal-planning/types';
+import { generateMealPlanPDF } from '@/features/meal-planning/components/ExportPlanPDF';
+import { useSharePlan } from '@/features/sharing/hooks/useSharePlan';
+import { useAuth } from '@/providers/SupabaseAuthProvider';
 
-// Prefer existing DS components; fall back to minimal inline if needed
-import { Button, Input } from '@/components/design-system';
-import { Text } from '@/components/design-system'; // Typography exports include Text
-// Try to import a Modal from DS if exists; if not, we implement a lightweight inline modal
-let DSModal: any = null;
-try {
-  // If your DS has a Modal, set DSModal to a function component signature
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const maybe = require('@/components/design-system/Modal');
-  DSModal = maybe?.Modal || maybe?.default || null;
-} catch { /* no-op fallback below */}
+// Analytics
+import { useAppAnalytics } from '@/providers/AnalyticsProvider';
 
-// DS Popover try-catch; fallback implemented inline if not available
-let DSPopover: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const maybe = require('@/components/design-system/Popover');
-  DSPopover = maybe?.Popover || maybe?.default || null;
-} catch { /* fallback later */}
+// -- CONSTANTS --
+const MEALS = [
+  { key: "desayuno", label: "Desayuno", short: "Des", color: "bg-slate-900", icon: Coffee },
+  { key: "almuerzo", label: "Almuerzo", short: "Alm", color: "bg-slate-700", icon: Sandwich },
+  { key: "merienda", label: "Merienda", short: "Mer", color: "bg-slate-500", icon: Apple },
+  { key: "cena", label: "Cena", short: "Cena", color: "bg-slate-800", icon: MoonStar },
+] as const;
 
-// Local types for generated plan preview and weekly slots
-type MealSlot = 'breakfast' | 'lunch' | 'snack' | 'dinner';
+export default function UnifiedPlannerPage() {
+  // Store
+  const {
+    currentWeekPlan,
+    loadWeekPlan,
+    removeMealFromSlot,
+    isLoading
+  } = useMealPlanningStore();
 
-type GeneratedPlan = {
-  id?: string;
-  rangeDays: number;
-  days?: Array<{
-    date?: string;
-    slots?: Partial<Record<MealSlot, any>>;
-  }>;
-  recipes?: any[];
-  // Allow any shape as backend may vary; we keep it permissive
-  [key: string]: any;
-};
-
-type SlotRecipe = { id: string; title: string };
-type SlotsState = Array<Record<MealSlot, SlotRecipe | null>>; // length 7 (Mon-Sun)
-
-function InlineModal({
-  open,
-  onClose,
-  title,
-  children,
-  footer,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const titleId = useMemo(() => `modal-title-${Math.random().toString(36).slice(2)}`, []);
-  const descId = useMemo(() => `modal-desc-${Math.random().toString(36).slice(2)}`, []);
-  useEffect(() => {
-    if (open && containerRef.current) {
-      const focusable = containerRef.current.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      focusable?.focus();
-    }
-  }, [open]);
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    if (open) document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-hidden={!open}>
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-label="Cerrar" />
-      <div
-        ref={containerRef}
-        className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-neutral-200 outline-none"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descId}
-      >
-        <div className="px-5 py-4 border-b border-neutral-200">
-          <h3 id={titleId} className="text-lg font-semibold">{title}</h3>
-        </div>
-        <div id={descId} className="p-5">{children}</div>
-        <div className="px-5 py-4 border-t border-neutral-200 bg-neutral-50 rounded-b-2xl">
-          {footer}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PlannerModal({
-  open,
-  onClose,
-  onGenerate,
-  onConfirm,
-  generating,
-  confirming,
-  generatedPlan,
-  error,
-  setError,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onGenerate: (payload: {
-    rangeDays: number;
-    focusSavings: boolean;
-    usePantryFirst: boolean;
-    maxPrepMinutes?: number;
-    allowRepeats: boolean;
-  }) => Promise<void>;
-  onConfirm: () => Promise<void>;
-  generating: boolean;
-  confirming: boolean;
-  generatedPlan: GeneratedPlan | null;
-  error: string | null;
-  setError: (v: string | null) => void;
-}) {
-  const [rangeDays, setRangeDays] = useState<7 | 14 | 28>(7);
-  const [focusSavings, setFocusSavings] = useState(false);
-  const [usePantryFirst, setUsePantryFirst] = useState(false);
-  const [maxPrepMinutes, setMaxPrepMinutes] = useState<number | ''>('');
-  const [allowRepeats, setAllowRepeats] = useState(false);
-
-  const Footer = (
-    <div className="flex items-center justify-between gap-3">
-      <div className="min-h-[1.25rem]">
-        {error ? (
-          <p className="text-sm text-error-600">{error}</p>
-        ) : generatedPlan ? (
-          <p className="text-sm text-neutral-600">
-            Plan generado: {generatedPlan?.rangeDays || 0} días
-            {typeof (generatedPlan as any)?.totalRecipes === 'number' || Array.isArray((generatedPlan as any)?.recipes)
-              ? `, ${(generatedPlan as any)?.totalRecipes ?? ((generatedPlan as any)?.recipes?.length || 0)} recetas`
-              : ''}
-          </p>
-        ) : null}
-      </div>
-      <div className="flex items-center gap-2">
-        <Button variant="secondary" onClick={onClose} aria-label="Cancelar generación de plan">
-          Cancelar
-        </Button>
-        <Button
-          variant="fresh"
-          loading={generating}
-          aria-label="Generar plan con IA"
-          onClick={async () => {
-            setError(null);
-            console.log('planner_modal_mvp: generate_clicked');
-            await onGenerate({
-              rangeDays,
-              focusSavings,
-              usePantryFirst,
-              maxPrepMinutes: maxPrepMinutes === '' ? undefined : Number(maxPrepMinutes),
-              allowRepeats,
-            });
-          }}
-        >
-          Generar plan
-        </Button>
-        <Button
-          variant="primary"
-          loading={confirming}
-          disabled={!generatedPlan}
-          aria-label="Confirmar plan y crear lista de compras"
-          onClick={async () => {
-            setError(null);
-            console.log('planner_modal_mvp: confirm_clicked');
-            await onConfirm();
-          }}
-        >
-          Confirmar y crear lista
-        </Button>
-      </div>
-    </div>
-  );
-
-  const Content = (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Rango de días
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {[7, 14, 28].map((v) => (
-            <Button
-              key={v}
-              variant={rangeDays === v ? 'fresh' : 'secondary'}
-              onClick={() => setRangeDays(v as 7 | 14 | 28)}
-            >
-              {v}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-neutral-700">
-          Foco ahorro
-        </label>
-        <input
-          type="checkbox"
-          className="h-5 w-5"
-          checked={focusSavings}
-          onChange={(e) => setFocusSavings(e.target.checked)}
-        />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-neutral-700">
-          Usar despensa primero
-        </label>
-        <input
-          type="checkbox"
-          className="h-5 w-5"
-          checked={usePantryFirst}
-          onChange={(e) => setUsePantryFirst(e.target.checked)}
-        />
-      </div>
-
-      <div>
-        <Input
-          type="number"
-          label="Tiempo máx por receta (min)"
-          placeholder="Opcional"
-          value={maxPrepMinutes}
-          onChange={(e) => {
-            const val = e.target.value;
-            setMaxPrepMinutes(val === '' ? '' : Number(val));
-          }}
-          min={0}
-          inputSize="md"
-        />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-neutral-700">
-          Permitir repetir platos
-        </label>
-        <input
-          type="checkbox"
-          className="h-5 w-5"
-          checked={allowRepeats}
-          onChange={(e) => setAllowRepeats(e.target.checked)}
-        />
-      </div>
-
-      {generatedPlan ? (
-        <div className="rounded-lg border border-neutral-200 p-3 bg-neutral-50">
-          <p className="text-sm text-neutral-700">
-            Plan generado: {generatedPlan?.rangeDays || 0} días
-            {typeof (generatedPlan as any)?.totalRecipes === 'number' || Array.isArray((generatedPlan as any)?.recipes)
-              ? `, ${(generatedPlan as any)?.totalRecipes ?? ((generatedPlan as any)?.recipes?.length || 0)} recetas`
-              : ''}
-          </p>
-        </div>
-      ) : null}
-    </div>
-  );
-
-  if (DSModal) {
-    // If a DS Modal exists, render it
-    const ModalComp = DSModal;
-    return (
-      <ModalComp open={open} onOpenChange={(v: boolean) => (!v ? onClose() : undefined)} title="Generar plan" footer={Footer}>
-        {Content}
-      </ModalComp>
-    );
-  }
-
-  // Fallback inline modal
-  return (
-    <InlineModal open={open} onClose={onClose} title="Generar plan" footer={Footer}>
-      {Content}
-    </InlineModal>
-  );
-}
-
-// Glassmorphism reusable class via CSS variables and Tailwind utilities
-const glassBase =
-  'bg-white/60 dark:bg-white/10 backdrop-blur-[14px] border border-white/30 dark:border-white/10 shadow-[0_1px_0_0_rgba(255,255,255,0.25)_inset,0_8px_24px_-8px_rgba(0,0,0,0.35)]';
-
-// Meal labels ES
-const MEAL_LABELS: Record<MealSlot, string> = {
-  breakfast: 'Desayuno',
-  lunch: 'Almuerzo',
-  snack: 'Merienda',
-  dinner: 'Cena',
-};
-
-// Day labels ES (Mon-Sun)
-const DAY_LABELS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-// Helpers for week dates
-function startOfWeekMonday(d: Date) {
-  const date = new Date(d);
-  const day = date.getDay(); // 0=Sun,1=Mon,...6=Sat
-  const diff = (day === 0 ? -6 : 1 - day); // move to Monday
-  date.setDate(date.getDate() + diff);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-function addDays(d: Date, n: number) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + n);
-  return x;
-}
-function isoDate(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0, 10);
-}
-function formatDayMonth(d: Date) {
-  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1)
-    .toString()
-    .padStart(2, '0')}`;
-}
-
-function useWeeklySlots(generatedPlan: GeneratedPlan | null, currentWeekStart: Date) {
-  const emptyWeek: SlotsState = useMemo(
-    () =>
-      Array.from({ length: 7 }, () => ({
-        breakfast: null,
-        lunch: null,
-        snack: null,
-        dinner: null,
-      })),
-    []
-  );
-
-  const slots = useMemo(() => {
-    if (!generatedPlan?.days || !Array.isArray(generatedPlan.days)) {
-      return emptyWeek;
-    }
-    const map: SlotsState = JSON.parse(JSON.stringify(emptyWeek));
-    const weekISO = Array.from({ length: 7 }, (_, i) => isoDate(addDays(currentWeekStart, i)));
-
-    // Attempt mapping plan days to week slots by matching date strings if present
-    for (const day of generatedPlan.days) {
-      const d = day?.date ? new Date(day.date) : null;
-      const dIso = d ? isoDate(d) : null;
-      const dayIndex = dIso ? weekISO.indexOf(dIso) : -1;
-      if (dayIndex >= 0) {
-        const s = day.slots || {};
-        (['breakfast', 'lunch', 'snack', 'dinner'] as MealSlot[]).forEach((m) => {
-          const v: any = (s as any)[m];
-          if (v && typeof v === 'object') {
-            const title = (v.title as string) || (v.name as string) || (v.recipe_title as string) || 'Receta';
-            const id = (v.id as string) || (v.recipe_id as string) || `${dayIndex}-${m}`;
-            (map[dayIndex] as any)[m] = { id, title };
-          }
-        });
-      }
-    }
-    return map;
-  }, [generatedPlan, currentWeekStart, emptyWeek]);
-
-  return slots;
-}
-
-function InlinePopover({
-  open,
-  anchorRect,
-  onClose,
-  children,
-}: {
-  open: boolean;
-  anchorRect: DOMRect | null;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  if (!open || !anchorRect) return null;
-  const style: React.CSSProperties = {
-    position: 'fixed',
-    top: Math.min(window.innerHeight - 16, anchorRect.bottom + 8),
-    left: Math.min(window.innerWidth - 16, anchorRect.left),
-    zIndex: 50,
-  };
-  return (
-    <div className="fixed inset-0 z-50" onClick={onClose} aria-hidden="true">
-      <div
-        className={`${glassBase} relative rounded-xl p-3 w-[260px]`}
-        style={style}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-export default function PlanificadorPage() {
-  // Keep previous behavior when feature disabled
-  const [modalOpen, setModalOpen] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const [generatedPlan, setGeneratedPlan] = useState<GeneratedPlan | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { generateSingleMeal } = useGeminiMealPlanner();
+  const { createShareLink, isSharing } = useSharePlan();
+  const { user } = useAuth();
   const router = useRouter();
+  const { trackPlanGenerated, trackPlanShared, trackPdfDownloaded } = useAppAnalytics();
 
-  // Weekly calendar local state
-  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => startOfWeekMonday(new Date()));
-  const slots = useWeeklySlots(generatedPlan, currentWeekStart);
-  const [compact, setCompact] = useState<boolean>(false);
+  // Local UI State
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [mobileViewDate, setMobileViewDate] = useState<Date>(new Date());
+  const [openPopover, setOpenPopover] = useState<{ dayIndex: number; mealKey: MealType; slotId?: string } | null>(null);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState<{ recipe: Recipe; day: Date; type: string } | null>(null);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const [recipeModalSlot, setRecipeModalSlot] = useState<{ dayOfWeek: number; mealType: MealType; date?: string } | null>(null);
+  const [showChefChat, setShowChefChat] = useState(false);
 
-  // Popover state
-  const [openCell, setOpenCell] = useState<{ dayIndex: number; meal: MealSlot } | null>(null);
-  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
-  const gridScrollRef = useRef<HTMLDivElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    // Telemetry on calendar render
-    if (ENABLE_WEEKLY_CALENDAR) {
-      console.log('calendar_week_rendered', { weekStart: currentWeekStart.toISOString() });
-    }
+  // Derived
+  const currentWeekStart = useMemo(() => startOfWeek(currentDate, { weekStartsOn: 1 }), [currentDate]);
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }).map((_, idx) => addDays(currentWeekStart, idx));
   }, [currentWeekStart]);
 
-  const openModal = useCallback(() => {
-    console.log('planner_modal_mvp: planner_modal_opened');
-    setModalOpen(true);
-  }, []);
+  // Load plan on week change
+  useEffect(() => {
+    loadWeekPlan(format(currentWeekStart, 'yyyy-MM-dd'));
+  }, [currentWeekStart, loadWeekPlan]);
 
-  const closeModal = useCallback(() => {
-    setModalOpen(false);
-  }, []);
-
-  const tryFetch = useCallback(async (url: string) => {
-    try {
-      const res = await fetch(url, { method: 'GET' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (e) {
-      console.warn(`planner_modal_mvp: best-effort fetch failed for ${url}`, e);
-      return null;
+  // Click Outside Popover
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (openPopover && popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setOpenPopover(null);
+      }
     }
-  }, []);
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [openPopover]);
 
-  const onGenerate = useCallback(async (payload: {
-    rangeDays: number;
-    focusSavings: boolean;
-    usePantryFirst: boolean;
-    maxPrepMinutes?: number;
-    allowRepeats: boolean;
-  }) => {
-    setGenerating(true);
-    setError(null);
+  // Handle post-login share intent
+  useEffect(() => {
+    if (user && typeof window !== 'undefined') {
+      const intentAction = sessionStorage.getItem('intent_action');
+      const intentPlan = sessionStorage.getItem('intent_plan');
 
-    // Telemetry
-    console.log('planner_modal_mvp: generate_clicked');
-
-    // Best-effort fetches
-    const [preferencesJson, pantryJson] = await Promise.all([
-      tryFetch('/api/user/preferences'),
-      tryFetch('/api/pantry/items'),
-    ]);
-
-    const preferences = preferencesJson || {};
-    // Pantry API in repo returns shape { success, data }, normalize to array
-    const pantry =
-      pantryJson?.data && Array.isArray(pantryJson.data)
-        ? pantryJson.data
-        : Array.isArray(pantryJson)
-        ? pantryJson
-        : [];
-
-    // Compose request body
-    const body = {
-      rangeDays: payload.rangeDays as 7 | 14 | 28,
-      focusSavings: payload.focusSavings,
-      usePantryFirst: payload.usePantryFirst,
-      maxPrepMinutes: payload.maxPrepMinutes,
-      allowRepeats: payload.allowRepeats,
-      preferences,
-      pantry,
-      scope: 'range' as const,
-      slotsPerDay: ['breakfast', 'lunch', 'snack', 'dinner'] as MealSlot[],
-    };
-
-    try {
-      // Prefer dedicated generate endpoint if available; fallback to generate-simple
-      const endpointCandidates = [
-        '/api/meal-planning/generate',
-        '/api/meal-planning/generate-simple',
-      ];
-
-      let res: Response | null = null;
-      for (const ep of endpointCandidates) {
+      if (intentAction === 'share_plan' && intentPlan) {
         try {
-          const test = await fetch(ep, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
-          if (test.ok) {
-            res = test;
-            break;
-          }
-        } catch {
-          // try next
+          const plan = JSON.parse(intentPlan);
+          // Small delay to ensure UI is ready
+          setTimeout(() => {
+            createShareLink(plan);
+            toast.success('¡Plan compartido exitosamente!');
+          }, 500);
+        } catch (e) {
+          console.error('Failed to parse intent plan', e);
+          toast.error('Error al restaurar tu plan');
+        } finally {
+          sessionStorage.removeItem('intent_action');
+          sessionStorage.removeItem('intent_plan');
         }
       }
-
-      if (!res || !res.ok) {
-        throw new Error('No se pudo generar el plan');
-      }
-
-      const json = await res.json();
-      // Normalize the generated plan
-      const normalized: GeneratedPlan =
-        json?.plan
-          ? {
-              id: json.plan.id,
-              rangeDays: body.rangeDays,
-              ...json.plan,
-            }
-          : {
-              id: json?.id,
-              rangeDays: body.rangeDays,
-              ...json,
-            };
-
-      setGeneratedPlan(normalized);
-      console.log('planner_modal_mvp: generate_success', {
-        rangeDays: body.rangeDays,
-        recipes: (normalized as any)?.recipes?.length,
-      });
-    } catch (e: any) {
-      console.error('planner_modal_mvp: generate_error', e);
-      setError(e?.message || 'Error al generar el plan');
-    } finally {
-      setGenerating(false);
     }
-  }, [tryFetch]);
+  }, [user, createShareLink]);
 
-  const onConfirm = useCallback(async () => {
-    if (!generatedPlan) return;
-    setConfirming(true);
-    setError(null);
+  // Navigation Handlers
+  const handleNavPrev = () => setCurrentDate(addDays(currentDate, -7));
+  const handleNavNext = () => setCurrentDate(addDays(currentDate, 7));
+  const isToday = (d: Date) => isSameDay(d, new Date());
 
-    try {
-      const start =
-        (generatedPlan as any)?.start_date ||
-        (generatedPlan as any)?.startDate ||
-        (generatedPlan as any)?.dates?.start || currentWeekStart.toISOString();
-      const end =
-        (generatedPlan as any)?.end_date ||
-        (generatedPlan as any)?.endDate ||
-        (generatedPlan as any)?.dates?.end || addDays(currentWeekStart, 6).toISOString();
-
-      const startISO = new Date(start).toISOString();
-      const endISO = new Date(end).toISOString();
-
-      const buildItems = () => {
-        const items: any[] = [];
-        const daysArr: any[] = Array.isArray((generatedPlan as any)?.days) ? (generatedPlan as any).days : [];
-        for (const d of daysArr) {
-          const dateISO = d?.date ? new Date(d.date).toISOString() : startISO;
-          const slots = d?.slots || {};
-          for (const meal of ['breakfast', 'lunch', 'snack', 'dinner'] as MealSlot[]) {
-            const rec: any = (slots as any)[meal];
-            if (rec) {
-              items.push({
-                recipeId: rec.id || null,
-                date: dateISO,
-                mealType: meal,
-                servings: 1,
-                isCompleted: false,
-                customRecipe: rec.title ? { title: rec.title } : null,
-                nutritionalInfo: {}
-              });
-            }
-          }
-        }
-        return items;
-      };
-
-      let savedPlanId: string | undefined;
-      try {
-        const saveRes = await fetch('/api/meal-planning', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: 'Plan semanal IA',
-            startDate: startISO,
-            endDate: endISO,
-            preferences: {},
-            nutritionalGoals: {},
-            items: buildItems(),
-            setActive: true
-          })
-        });
-        if (saveRes.ok) {
-          const saved = await saveRes.json();
-          savedPlanId = saved?.data?.id;
-        }
-      } catch (e) {
-        console.warn('[Planner] no se pudo persistir el plan, continuando', e);
-      }
-
-      let payload: any = { plan: generatedPlan, start_date: startISO, end_date: endISO };
-      if (savedPlanId) payload.meal_plan_ids = [savedPlanId];
-
-      const res = await fetch('/api/meal-planning/shopping-list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error('No se pudo crear la lista de compras');
-      }
-
-      console.log('planner_modal_mvp: confirm_success');
-      // Navigate to shopping list UI
-      router.push('/shopping-list');
-    } catch (e: any) {
-      console.error('planner_modal_mvp: confirm_error', e);
-      setError(e?.message || 'Error al crear la lista');
-    } finally {
-      setConfirming(false);
-    }
-  }, [generatedPlan, router, currentWeekStart]);
-
-  const triggerArea = useMemo(() => {
-    if (!ENABLE_PLANNER_MODAL_MVP) {
-      // Old behavior: render previous page if flag is off
-      return (
-        <div className="p-6">
-          <p className="text-neutral-600 text-sm">
-            Modo clásico del planificador activo (flag deshabilitado).
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Planificador</h1>
-          <Button variant="primary" onClick={openModal}>
-            Generar plan
-          </Button>
-        </div>
-        <p className="text-neutral-600 mt-2">
-          Abre el modal para generar un plan y crear tu lista de compras.
-        </p>
-      </div>
+  // Slot Logic
+  const getSlot = (dayIndex: number, mealKey: MealType) => {
+    if (!currentWeekPlan) return null;
+    const targetDate = weekDays[dayIndex];
+    // Use 'T00:00:00' suffix to force local timezone interpretation
+    // Without it, new Date("2024-12-31") is parsed as UTC midnight,
+    // which becomes Dec 30 21:00 in Argentina (UTC-3), causing off-by-one errors
+    return currentWeekPlan.slots.find(
+      s => isSameDay(new Date(s.date + 'T00:00:00'), targetDate) && s.mealType === mealKey
     );
-  }, [openModal]);
+  };
 
-  // Handlers for slot actions (telemetry only; integration TODO)
-  const onOpenCell = useCallback((dayIndex: number, meal: MealSlot, target: HTMLElement | null) => {
-    console.log('slot_opened', { dayIndex, mealKey: meal });
-    setOpenCell({ dayIndex, meal });
-    if (target) setAnchorRect(target.getBoundingClientRect());
-  }, []);
-  const onAddFromMyRecipes = useCallback(() => {
-    console.log('slot_add_clicked', { source: 'mis_recetas', ...openCell });
-    // TODO integrate selection flow
-    setOpenCell(null);
-  }, [openCell]);
-  const onSuggestAI = useCallback(() => {
-    console.log('slot_add_clicked', { source: 'ia', ...openCell });
-    (async () => {
-      try {
-        if (!openCell) return;
-        const res = await fetch('/api/meal-planning/generate-simple', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        if (!res.ok) throw new Error('No se pudo obtener sugerencia');
-        const json = await res.json();
-        const plan = json?.plan;
-        if (!plan?.days || !Array.isArray(plan.days)) throw new Error('Plan inválido');
-        const targetISO = isoDate(addDays(currentWeekStart, openCell.dayIndex));
-        const day = plan.days.find((d: any) => d?.date && isoDate(new Date(d.date)) === targetISO);
-        const slot = day?.slots?.[openCell.meal];
-        if (!slot) throw new Error('Sin sugerencia para este espacio');
-        setGeneratedPlan((prev) => {
-          const next: any = prev ? { ...prev } : { days: [] };
-          const idx = (next.days || []).findIndex((d: any) => d?.date && isoDate(new Date(d.date)) === targetISO);
-          if (idx >= 0) {
-            next.days[idx] = { ...next.days[idx], slots: { ...(next.days[idx].slots || {}), [openCell.meal]: slot } };
-          } else {
-            next.days = [...(next.days || []), { date: targetISO, slots: { [openCell.meal]: slot } }];
-          }
-          return next;
-        });
-      } catch (e) {
-        console.error('[Planner] sugerencia_ia_error', e);
-      } finally {
-        setOpenCell(null);
-      }
-    })();
-  }, [openCell, currentWeekStart]);
-  const onChoosePantry = useCallback(() => {
-    console.log('slot_add_clicked', { source: 'despensa', ...openCell });
-    // TODO integrate pantry picker
-    setOpenCell(null);
-  }, [openCell]);
-  const onView = useCallback(() => {
-    console.log('slot_view_clicked', { ...openCell });
-    // TODO navigate to recipe
-    setOpenCell(null);
-  }, [openCell]);
-  const onReplace = useCallback(() => {
-    console.log('slot_replace_clicked', { ...openCell });
-    // TODO open replace flow
-    setOpenCell(null);
-  }, [openCell]);
-  const onRemove = useCallback(() => {
-    console.log('slot_remove_clicked', { ...openCell });
-    // TODO remove from plan state
-    setOpenCell(null);
-  }, [openCell]);
+  const onCellOpen = (dayIndex: number, mealKey: MealType, slotId?: string) => {
+    setOpenPopover({ dayIndex, mealKey, slotId });
+  };
 
-  const meals: MealSlot[] = ['breakfast', 'lunch', 'snack', 'dinner'];
-  const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i)),
-    [currentWeekStart]
-  );
-
-  // Render calendar grid
-  const calendar = useMemo(() => {
-    if (!ENABLE_WEEKLY_CALENDAR) {
-      return (
-        <div className="p-6">
-          <p className="text-neutral-500">Calendario semanal desactivado</p>
-        </div>
-      );
+  const handleRemoveSlot = (slotId?: string) => {
+    if (slotId) {
+      removeMealFromSlot(slotId);
+      setOpenPopover(null);
     }
+  };
 
-    const filledCount = slots.reduce((acc, day) => {
-      return acc + (day.breakfast ? 1 : 0) + (day.lunch ? 1 : 0) + (day.snack ? 1 : 0) + (day.dinner ? 1 : 0);
-    }, 0);
-    const totalSlots = 28;
+  const handleOpenDetail = (recipe: Recipe, day: Date, type: string) => {
+    setSelectedMeal({ recipe, day, type });
+    setOpenPopover(null);
+  };
 
-    return (
-      <div className="px-4 sm:px-6 pb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              aria-label="Semana anterior"
-              onClick={() => setCurrentWeekStart((d) => addDays(d, -7))}
-            >
-              ← Semana anterior
-            </Button>
-            <Button
-              variant="secondary"
-              aria-label="Ir a esta semana"
-              onClick={() => setCurrentWeekStart(startOfWeekMonday(new Date()))}
-            >
-              Esta semana
-            </Button>
-            <Button
-              variant="secondary"
-              aria-label="Semana siguiente"
-              onClick={() => setCurrentWeekStart((d) => addDays(d, 7))}
-            >
-              Semana siguiente →
-            </Button>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-neutral-500">
-              {formatDayMonth(days[0])} - {formatDayMonth(days[6])}
-            </div>
-            <div className="text-sm font-medium text-neutral-700" aria-label="Progreso semana">
-              {filledCount}/{totalSlots}
-            </div>
-            <Button variant="secondary" aria-label="Alternar vista compacta" onClick={() => setCompact((v) => !v)}>
-              {compact ? 'Vista cómoda' : 'Vista compacta'}
-            </Button>
-          </div>
-        </div>
+  const handleQuickGenerate = async (dayIndex: number, mealKey: MealType) => {
+    setOpenPopover(null);
+    await generateSingleMeal(dayIndex + 1, mealKey as any); // dayIndex 0 is Monday (1)
+    // Removed loadWeekPlan: generateSingleMeal now updates store directly
+  };
 
-        <div
-          ref={gridScrollRef}
-          className="relative overflow-x-auto pb-2"
-          role="grid"
-          aria-label="Calendario semanal de comidas"
-        >
-          <div
-            className="min-w-[880px] grid"
-            style={{
-              gridTemplateColumns: '160px repeat(7, minmax(120px, 1fr))',
-            }}
-          >
-            {/* Corner empty header */}
-            <div className="sticky left-0 z-10" />
-
-            {/* Day headers */}
-            {days.map((d, idx) => (
-              <div key={idx} className="px-2 py-3 text-center text-sm font-medium text-neutral-700">
-                <div>{DAY_LABELS[idx]}</div>
-                <div className="text-xs text-neutral-500">{formatDayMonth(d)}</div>
-              </div>
-            ))}
-
-            {/* Rows for meals */}
-            {meals.map((meal) => (
-              <React.Fragment key={meal}>
-                {/* Row header */}
-                <div className="sticky left-0 z-10 px-3 py-4 text-sm font-semibold text-neutral-700">
-                  {MEAL_LABELS[meal]}
-                </div>
-
-                {/* Cells */}
-                {days.map((_, dayIndex) => {
-                  const recipe = slots[dayIndex]?.[meal] as SlotRecipe | null;
-                  const isEmpty = !recipe;
-                  const labelDay = DAY_LABELS[dayIndex];
-                  const aria = `${labelDay} ${MEAL_LABELS[meal]}, ${isEmpty ? 'vacío' : recipe?.title}`;
-                  return (
-                    <button
-                      key={`${dayIndex}-${meal}`}
-                      className={`${glassBase} group m-2 ${compact ? 'h-[64px]' : 'h-[84px]'} rounded-xl px-3 py-2 text-left outline-none transition
-                        hover:brightness-105 hover:scale-[1.01] focus:brightness-105 focus:scale-[1.01]
-                        active:scale-[0.99]
-                        `}
-                      aria-label={aria}
-                      role="gridcell"
-                      onClick={(e) => onOpenCell(dayIndex, meal, e.currentTarget)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          onOpenCell(dayIndex, meal, e.currentTarget as HTMLButtonElement);
-                        }
-                        // Navegación con flechas entre celdas
-                        const moveFocus = (rowDelta: number, colDelta: number) => {
-                          const newDay = dayIndex + colDelta;
-                          const mealsOrder: MealSlot[] = ['breakfast', 'lunch', 'snack', 'dinner'];
-                          const currentRow = mealsOrder.indexOf(meal);
-                          const newRow = currentRow + rowDelta;
-                          if (newDay < 0 || newDay > 6 || newRow < 0 || newRow > 3) return;
-                          const selector = `button[key='${newDay}-${mealsOrder[newRow]}']`;
-                          const target = document.querySelector<HTMLButtonElement>(selector);
-                          (target || e.currentTarget)?.focus();
-                        };
-                        if (e.key === 'ArrowRight') moveFocus(0, 1);
-                        if (e.key === 'ArrowLeft') moveFocus(0, -1);
-                        if (e.key === 'ArrowDown') moveFocus(1, 0);
-                        if (e.key === 'ArrowUp') moveFocus(-1, 0);
-                      }}
-                    >
-                      {isEmpty ? (
-                        <div className="h-full w-full flex items-center justify-center">
-                          <span className="text-sm text-neutral-600 dark:text-neutral-300">+ Agregar</span>
-                        </div>
-                      ) : (
-                        <div className="h-full flex flex-col">
-                          <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                            {MEAL_LABELS[meal]}
-                          </span>
-                          <span className="mt-1 line-clamp-3 text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                            {recipe.title}
-                          </span>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }, [days, meals, slots, onOpenCell]);
-
-  const popoverContent = openCell && (
-    <>
-      {(() => {
-        const r = slots[openCell.dayIndex]?.[openCell.meal] as SlotRecipe | null;
-        if (!r) {
-          return (
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={onAddFromMyRecipes}>
-                Agregar desde mis recetas
-              </Button>
-              <Button variant="secondary" onClick={onSuggestAI}>
-                Generar sugerencia IA
-              </Button>
-              <Button variant="secondary" onClick={onChoosePantry}>
-                Elegir desde despensa
-              </Button>
-            </div>
-          );
-        }
-        return (
-          <div className="flex flex-col gap-2">
-            <div className="text-sm font-medium mb-1 line-clamp-2">{r.title}</div>
-            <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={onView}>
-                Ver
-              </Button>
-              <Button variant="secondary" onClick={onReplace}>
-                Sustituir
-              </Button>
-              <Button variant="destructive" onClick={onRemove}>
-                Quitar
-              </Button>
-            </div>
-          </div>
-        );
-      })()}
-    </>
-  );
+  const handleOpenRecipeModal = (dayIndex: number, mealKey: MealType) => {
+    const targetDate = weekDays[dayIndex];
+    setRecipeModalSlot({
+      dayOfWeek: dayIndex,
+      mealType: mealKey,
+      date: format(targetDate, 'yyyy-MM-dd')
+    });
+    setShowRecipeModal(true);
+    setOpenPopover(null);
+  };
 
   return (
-    <div className="w-full">
-      {triggerArea}
+    <main className="min-h-screen pb-32 bg-white dark:bg-transparent">
 
-      {/* Weekly Calendar */}
-      {ENABLE_WEEKLY_CALENDAR ? calendar : (
-        <div className="px-6">
-          <p className="text-neutral-500">Calendario semanal desactivado</p>
+      {/* HEADER */}
+      <div className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/10">
+        <div className="max-w-[1600px] mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
+                Planificador
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 hidden md:block">
+                {format(weekDays[0], 'd MMM', { locale: es })} - {format(weekDays[6], 'd MMM', { locale: es })}
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-[11px] uppercase tracking-wider font-semibold text-gray-600 dark:text-gray-400">
+                Semana activa
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowGenerateModal(true)}
+              className="px-4 py-2 rounded-full font-medium text-sm flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+            >
+              <Sparkles size={16} />
+              <span className="hidden sm:inline">Generar Plan</span>
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                generateMealPlanPDF(currentWeekPlan, currentDate);
+                trackPdfDownloaded('meal_plan');
+              }}
+              disabled={!currentWeekPlan?.slots?.length}
+              title="Descargar PDF"
+              className="p-2 rounded-full font-medium text-sm flex items-center justify-center bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download size={16} />
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (!user) {
+                  // Store intent to share after login
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.setItem('intent_action', 'share_plan');
+                    if (currentWeekPlan) {
+                      sessionStorage.setItem('intent_plan', JSON.stringify(currentWeekPlan));
+                    }
+                  }
+                  router.push('/login?redirect=/planificador&action=share');
+                  return;
+                }
+
+                if (currentWeekPlan) {
+                  createShareLink(currentWeekPlan);
+                  trackPlanShared('link');
+                }
+              }}
+              disabled={!currentWeekPlan?.slots?.length || isSharing}
+              title={!user ? "Inicia sesión para compartir tu plan" : "Compartir plan"}
+              className="p-2 rounded-full font-medium text-sm flex items-center justify-center bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isSharing ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600" />
+              ) : (
+                <Share2 size={16} />
+              )}
+            </motion.button>
+
+            <div className="h-6 w-[1px] bg-gray-200 dark:bg-white/10 mx-2" />
+
+            <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-full border border-gray-200 dark:border-white/10">
+              <button onClick={handleNavPrev} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-400">
+                <ChevronLeft size={18} />
+              </button>
+              <button onClick={() => setCurrentDate(new Date())} className="px-4 text-sm font-semibold hover:text-orange-500 transition-colors text-gray-700 dark:text-gray-300">
+                Hoy
+              </button>
+              <button onClick={handleNavNext} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-400">
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Existing modal flow */}
-      {ENABLE_PLANNER_MODAL_MVP && (
-        <PlannerModal
-          open={modalOpen}
-          onClose={closeModal}
-          onGenerate={onGenerate}
-          onConfirm={onConfirm}
-          generating={generating}
-          confirming={confirming}
-          generatedPlan={generatedPlan}
-          error={error}
-          setError={setError}
+        {/* MOBILE STRIP */}
+        <div className="md:hidden py-2 px-4 overflow-x-auto hide-scrollbar flex gap-2 snap-x">
+          {Array.from({ length: 14 }).map((_, i) => {
+            const d = addDays(startOfWeek(mobileViewDate), i - 3);
+            const selected = isSameDay(d, mobileViewDate);
+            const today = isToday(d);
+            return (
+              <button
+                key={i}
+                onClick={() => setMobileViewDate(d)}
+                className={clsx(
+                  "flex-shrink-0 w-[56px] h-[72px] rounded-[18px] flex flex-col items-center justify-center snap-center transition-all border",
+                  selected
+                    ? "bg-orange-500 text-white border-transparent shadow-lg shadow-orange-500/30"
+                    : "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10"
+                )}
+              >
+                <span className={clsx("text-[11px] font-medium uppercase mb-1", selected ? "text-white/80" : "text-gray-500 dark:text-gray-400")}>
+                  {format(d, 'EEE', { locale: es }).slice(0, 3)}
+                </span>
+                <span className={clsx("text-xl font-bold", selected ? "text-white" : "text-slate-900 dark:text-white")}>
+                  {format(d, 'd')}
+                </span>
+                {today && !selected && <div className="mt-1 w-1 h-1 bg-orange-500 rounded-full" />}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div className="max-w-[1600px] mx-auto p-4 md:p-6">
+
+        {/* LOADING STATE */}
+        {isLoading && !currentWeekPlan && (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+          </div>
+        )}
+
+        {/* DESKTOP GRID */}
+        {!isLoading && (
+          <div className="hidden md:block rounded-[28px] overflow-hidden shadow-xl dark:shadow-black/30 border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900/50 backdrop-blur-sm">
+            {/* Header */}
+            <div className="grid border-b border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5" style={{ gridTemplateColumns: `220px repeat(7, 1fr)` }}>
+              <div className="p-4 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center">Comidas</div>
+              {weekDays.map((d, idx) => (
+                <div key={idx} className="p-3 border-l border-gray-100 dark:border-white/10">
+                  <div className={clsx(
+                    "rounded-2xl px-3 py-2 bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-white/10 shadow-sm flex items-center justify-between gap-3",
+                    isToday(d) && "ring-1 ring-orange-500/30 bg-orange-50 dark:bg-orange-500/10"
+                  )}>
+                    <div>
+                      <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        {format(d, 'EEE', { locale: es })}
+                      </div>
+                      <div className="text-lg font-semibold leading-none text-slate-900 dark:text-white">{format(d, 'd')}</div>
+                    </div>
+                    <div className="text-[11px] uppercase tracking-wider text-gray-400">{format(d, 'MMM', { locale: es })}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Grid Body */}
+            <div className="grid" style={{ gridTemplateColumns: `220px repeat(7, 1fr)` }}>
+              {MEALS.map((meal, rIdx) => (
+                <React.Fragment key={meal.key}>
+                  {/* Label */}
+                  <div className="p-4 border-b border-gray-100 dark:border-white/10 font-bold text-sm flex items-center bg-gray-50/50 dark:bg-white/5 relative">
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${meal.color}`} />
+                    <div className="flex items-center gap-3 rounded-2xl bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-white/10 px-3 py-3 shadow-sm w-full">
+                      <div className={`w-9 h-9 rounded-2xl ${meal.color} flex items-center justify-center text-white shadow-md`}>
+                        <meal.icon size={16} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900 dark:text-white">{meal.label}</div>
+                        <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400">{meal.short}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cells */}
+                  {weekDays.map((d, cIdx) => {
+                    const dayIndex = cIdx;
+                    const slot = getSlot(dayIndex, meal.key);
+                    const hasReference = !!slot?.recipe;
+                    const recipe = slot?.recipe;
+
+                    const isOpen = openPopover?.dayIndex === dayIndex && openPopover?.mealKey === meal.key;
+
+                    return (
+                      <div key={`${rIdx}-${cIdx}`} className={clsx("relative border-l border-b border-gray-100 dark:border-white/10 p-2 min-h-[160px] transition-colors hover:bg-gray-50 dark:hover:bg-white/5", isToday(d) && "bg-orange-50/50 dark:bg-orange-500/10")}>
+                        {hasReference && recipe ? (
+                          <motion.div
+                            layoutId={`meal-${slot.id}`}
+                            onClick={() => onCellOpen(dayIndex, meal.key, slot.id)}
+                            className="h-full rounded-[18px] bg-white dark:bg-slate-800/80 p-3 shadow-lg dark:shadow-black/20 border border-gray-200 dark:border-white/10 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group relative overflow-hidden"
+                          >
+                            {/* Image Background (Subtle) */}
+                            {recipe.image && (
+                              <div className="absolute inset-0 opacity-[0.08] dark:opacity-[0.15] bg-cover bg-center pointer-events-none" style={{ backgroundImage: `url(${recipe.image})` }} />
+                            )}
+
+                            <div className="relative z-10">
+                              <div className="font-semibold text-sm line-clamp-2 leading-tight mb-2 text-slate-900 dark:text-white">{recipe.name}</div>
+
+                              {/* Nutrition Info */}
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-medium">
+                                  {recipe.nutrition?.calories || '-'} kcal
+                                </span>
+                                {recipe.nutrition?.protein && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 font-medium">
+                                    {recipe.nutrition.protein}g prot
+                                  </span>
+                                )}
+                                {recipe.nutrition?.carbs && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-medium">
+                                    {recipe.nutrition.carbs}g carb
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Time */}
+                              <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 font-medium mb-2">
+                                <span className="flex items-center gap-1">
+                                  <Clock size={10} />
+                                  {recipe.prepTime}m
+                                </span>
+                                {recipe.servings && (
+                                  <span className="flex items-center gap-1">
+                                    <Users size={10} />
+                                    {recipe.servings}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Tags */}
+                              <div className="flex gap-1 flex-wrap">
+                                {(recipe.dietaryLabels || []).slice(0, 2).map((tag: string) => (
+                                  <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30 uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <button
+                            onClick={() => onCellOpen(dayIndex, meal.key)}
+                            className="w-full h-full rounded-[18px] border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 flex flex-col items-center justify-center opacity-60 hover:opacity-100 hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all group"
+                          >
+                            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+                              <Plus size={16} className="text-gray-500 dark:text-gray-400" />
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Agregar</span>
+                          </button>
+                        )}
+
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              ref={popoverRef}
+                              className="absolute z-50 top-[80%] left-4 min-w-[220px] bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 shadow-2xl dark:shadow-black/40 rounded-xl p-1.5 flex flex-col gap-1"
+                            >
+                              {hasReference && recipe ? (
+                                <>
+                                  <button
+                                    onClick={() => handleOpenDetail(recipe, d, meal.label)}
+                                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 text-sm font-medium transition-colors text-slate-900 dark:text-white"
+                                  >
+                                    <Eye size={16} className="text-orange-500" /> Ver Detalles
+                                  </button>
+                                  <button onClick={() => { }} className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 text-sm font-medium transition-colors text-slate-900 dark:text-white">
+                                    <RefreshCw size={16} className="text-gray-500 dark:text-gray-400" /> Regenerar
+                                  </button>
+                                  <div className="h-[1px] bg-gray-100 dark:bg-white/10 my-1" />
+                                  <button onClick={() => handleRemoveSlot(slot?.id)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-500 flex items-center gap-2 text-sm font-medium transition-colors">
+                                    <Trash2 size={16} /> Quitar
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handleOpenRecipeModal(dayIndex, meal.key)}
+                                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 text-sm font-medium transition-colors text-slate-900 dark:text-white"
+                                  >
+                                    <ChefHat size={16} className="text-gray-500 dark:text-gray-400" /> Mis Recetas
+                                  </button>
+                                  <button
+                                    onClick={() => handleQuickGenerate(dayIndex, meal.key)}
+                                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2 text-sm font-medium transition-colors text-slate-900 dark:text-white"
+                                  >
+                                    <Wand2 size={16} className="text-orange-500" /> Sugerencia IA
+                                  </button>
+                                </>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MOBILE VIEWS */}
+        <div className="md:hidden space-y-4">
+          {(() => {
+            const dayIndex = weekDays.findIndex(d => isSameDay(d, mobileViewDate));
+            const indexToUse = dayIndex >= 0 ? dayIndex : 0;
+
+            return MEALS.map((meal) => {
+              const slot = getSlot(indexToUse, meal.key);
+              const recipe = slot?.recipe;
+
+              return (
+                <div key={meal.key} className="bg-white dark:bg-slate-900/50 dark:backdrop-blur-sm rounded-[24px] p-5 relative overflow-hidden shadow-lg dark:shadow-black/20 border border-gray-200 dark:border-white/10">
+                  {/* Decorative accent */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${meal.color}`} />
+
+                  <div className="flex items-center justify-between mb-4 relative z-10">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-xl ${meal.color} flex items-center justify-center text-white`}>
+                        <meal.icon size={14} />
+                      </div>
+                      <span className="font-bold text-lg text-slate-900 dark:text-white">{meal.label}</span>
+                    </div>
+                    {recipe && (
+                      <button onClick={() => handleRemoveSlot(slot?.id)} className="text-red-500 opacity-50 hover:opacity-100 p-1">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+
+                  {recipe ? (
+                    <div className="flex gap-4 relative z-10">
+                      <div className="w-24 h-24 rounded-2xl bg-gray-100 dark:bg-white/10 flex-shrink-0 bg-cover bg-center shadow-inner" style={{ backgroundImage: recipe.image ? `url(${recipe.image})` : undefined }} />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-lg leading-tight mb-2 truncate text-slate-900 dark:text-white">{recipe.name}</h3>
+
+                        {/* Nutrition Badges */}
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-medium">
+                            {recipe.nutrition?.calories || '-'} kcal
+                          </span>
+                          {recipe.nutrition?.protein && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 font-medium">
+                              {recipe.nutrition.protein}g prot
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Time & Servings */}
+                        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} />
+                            {recipe.prepTime} min
+                          </span>
+                          {recipe.servings && (
+                            <span className="flex items-center gap-1">
+                              <Users size={12} />
+                              {recipe.servings} porc
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleOpenDetail(recipe, mobileViewDate, meal.label)}
+                          className="text-xs font-bold px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg hover:scale-105 active:scale-95 transition-all"
+                        >
+                          Ver Detalles
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleOpenRecipeModal(indexToUse, meal.key)}
+                      className="w-full py-8 border-2 border-dashed border-gray-200 dark:border-white/20 rounded-2xl flex flex-col items-center justify-center text-gray-400 gap-2 hover:bg-gray-50 dark:hover:bg-white/5 hover:border-gray-300 dark:hover:border-white/30 transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center">
+                        <Plus size={20} />
+                      </div>
+                      <span className="font-bold text-sm tracking-wide">Agregar {meal.label}</span>
+                    </button>
+                  )}
+                </div>
+              );
+            });
+          })()}
+        </div>
+
+      </div>
+
+      <PlanGenerationModal
+        isOpen={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+        onSuccess={() => loadWeekPlan(format(currentWeekStart, 'yyyy-MM-dd'))} // Refresh on success
+      />
+
+      {selectedMeal && (
+        <MealDetailModal
+          isOpen={!!selectedMeal}
+          onClose={() => setSelectedMeal(null)}
+          recipe={selectedMeal.recipe}
+          day={selectedMeal.day}
+          mealType={selectedMeal.type}
         />
       )}
 
-      {/* Popover (DS or fallback) */}
-      {openCell &&
-        (DSPopover ? (
-          <DSPopover open={!!openCell} onOpenChange={(v: boolean) => !v && setOpenCell(null)}>
-            {popoverContent}
-          </DSPopover>
-        ) : (
-          <InlinePopover
-            open={!!openCell}
-            anchorRect={anchorRect}
-            onClose={() => setOpenCell(null)}
-          >
-            {popoverContent}
-          </InlinePopover>
-        ))}
-    </div>
+      {showRecipeModal && recipeModalSlot && (
+        <RecipeSelectionModal
+          slot={recipeModalSlot}
+          onClose={() => {
+            setShowRecipeModal(false);
+            setRecipeModalSlot(null);
+            // Don't reload here as it overwrites optimistic updates before debounced save completes
+          }}
+        />
+      )}
+
+      {/* Chef AI Chat */}
+      {!showChefChat && (
+        <ChefAIChatButton onClick={() => setShowChefChat(true)} />
+      )}
+
+      {showChefChat && (
+        <div className="fixed bottom-4 right-4 w-[400px] max-w-[90vw] z-50 shadow-2xl">
+          <ChefAIChat onClose={() => setShowChefChat(false)} isOpen={showChefChat} />
+        </div>
+      )}
+
+    </main>
   );
 }

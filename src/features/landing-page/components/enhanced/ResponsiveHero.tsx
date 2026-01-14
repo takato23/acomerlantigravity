@@ -10,10 +10,10 @@ import { HeroIllustration } from '../ui/FlatIllustrations';
 import { ScrollTriggeredAnimation, FloatingElement, CountUp, ParallaxElement } from '../interactive/ScrollAnimations';
 import { TiltCard, PulseButton } from '../interactive/MicroInteractions';
 
-const limePurpleColors = {
-  primary: '#84cc16',
-  secondary: '#a855f7',
-  accent: '#22d3ee'
+const slateColors = {
+  primary: '#1e293b',
+  secondary: '#334155',
+  accent: '#f97316'
 };
 
 export function ResponsiveHero({
@@ -36,8 +36,7 @@ export function ResponsiveHero({
         'px-4 sm:px-6 lg:px-8',
         'pt-20 pb-8 sm:pt-24 sm:pb-12 lg:pt-32 lg:pb-16',
         // Background
-        'bg-gradient-to-br from-lime-50 via-purple-50 to-cyan-50',
-        'dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900',
+        'bg-slate-900',
         'overflow-hidden',
         className
       )}
@@ -48,25 +47,25 @@ export function ResponsiveHero({
         {/* Gradient Overlay */}
         <div className={cn(
           'absolute inset-0',
-          background.gradient || 'bg-gradient-to-br from-lime-400/20 via-purple-500/20 to-cyan-400/20'
+          background.gradient || 'bg-slate-800/50'
         )} />
         
         {/* Animated Background Orbs with Parallax */}
         <ParallaxElement speed={-0.2}>
           <FloatingElement intensity="subtle" duration={20} direction="circular">
-            <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 rounded-full bg-lime-400/10 blur-3xl" />
+            <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-72 sm:h-72 lg:w-96 lg:h-96 rounded-full bg-slate-700/30 blur-3xl" />
           </FloatingElement>
         </ParallaxElement>
-        
+
         <ParallaxElement speed={-0.3}>
           <FloatingElement intensity="medium" duration={15} direction="up">
-            <div className="absolute top-3/4 right-1/4 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 rounded-full bg-purple-500/10 blur-3xl" />
+            <div className="absolute top-3/4 right-1/4 w-40 h-40 sm:w-60 sm:h-60 lg:w-80 lg:h-80 rounded-full bg-slate-600/20 blur-3xl" />
           </FloatingElement>
         </ParallaxElement>
-        
+
         <ParallaxElement speed={-0.1}>
           <FloatingElement intensity="subtle" duration={18} direction="left">
-            <div className="absolute top-1/2 left-3/4 w-36 h-36 sm:w-54 sm:h-54 lg:w-72 lg:h-72 rounded-full bg-cyan-400/10 blur-3xl" />
+            <div className="absolute top-1/2 left-3/4 w-36 h-36 sm:w-54 sm:h-54 lg:w-72 lg:h-72 rounded-full bg-slate-700/20 blur-3xl" />
           </FloatingElement>
         </ParallaxElement>
       </div>
@@ -81,8 +80,7 @@ export function ResponsiveHero({
             {/* Subtitle with enhanced responsiveness */}
             <ScrollTriggeredAnimation animation="fadeInUp" delay={0.2}>
               <div className="mb-4 sm:mb-6">
-                <span className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-lime-400/20 to-purple-500/20 border border-lime-400/30 text-lime-700 dark:text-lime-300 text-xs sm:text-sm font-medium">
-                  <span className="mr-1" role="img" aria-label="sparkles">✨</span>
+                <span className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs sm:text-sm font-medium">
                   {subtitle}
                 </span>
               </div>
@@ -91,7 +89,7 @@ export function ResponsiveHero({
             {/* Main Title with responsive typography */}
             <ScrollTriggeredAnimation animation="fadeInUp" delay={0.3}>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
-                <span className="bg-gradient-to-r from-lime-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                <span className="text-white">
                   {title}
                 </span>
               </h1>
@@ -99,7 +97,7 @@ export function ResponsiveHero({
 
             {/* Description with improved readability */}
             <ScrollTriggeredAnimation animation="fadeInUp" delay={0.4}>
-              <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+              <p className="text-base sm:text-lg lg:text-xl text-slate-400 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
                 {description}
               </p>
             </ScrollTriggeredAnimation>
@@ -145,14 +143,11 @@ export function ResponsiveHero({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {stats.map((stat, index) => (
                     <div key={stat.label} className="text-center">
-                      <div className={cn(
-                        'text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent mb-1',
-                        stat.gradient || 'from-lime-600 to-purple-600'
-                      )}>
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
                         <CountUp end={parseInt(stat.value)} />
                         {stat.suffix && <span className="text-sm">{stat.suffix}</span>}
                       </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-slate-400">
                         {stat.label}
                       </div>
                     </div>
@@ -168,14 +163,14 @@ export function ResponsiveHero({
               <TiltCard maxTilt={8} scale={1.02}>
                 <GlassHeroCard
                   className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
-                  gradient="bg-gradient-to-br from-lime-400/10 via-purple-500/10 to-cyan-400/10"
+                  gradient="bg-slate-800/50"
                   hover={true}
                 >
                   <div className="p-4 sm:p-6 lg:p-8">
                     <FloatingElement intensity="subtle" duration={4}>
                       {illustration || (
                         <HeroIllustration
-                          colors={limePurpleColors}
+                          colors={slateColors}
                           size="xl"
                           animated={true}
                         />
@@ -192,12 +187,12 @@ export function ResponsiveHero({
       {/* Enhanced Scroll Indicator */}
       <ScrollTriggeredAnimation animation="fadeInUp" delay={1} className="absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2">
         <FloatingElement intensity="subtle" duration={2}>
-          <div className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center space-y-2 text-slate-400">
             <span className="text-xs sm:text-sm font-medium hidden sm:block">Scroll to explore</span>
             <motion.div
               animate={{ y: [0, 8, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20"
+              className="p-2 rounded-full bg-slate-800/50 backdrop-blur-sm border border-slate-700"
             >
               <svg
                 className="w-4 h-4 sm:w-5 sm:h-5"
@@ -245,14 +240,14 @@ export function AccessibleHero({
       stats={stats}
       illustration={
         <HeroIllustration
-          colors={limePurpleColors}
+          colors={slateColors}
           size="xl"
           animated={true}
         />
       }
       background={{
-        gradient: 'bg-gradient-to-br from-lime-400/20 via-purple-500/20 to-cyan-400/20',
-        overlay: 'bg-white/5'
+        gradient: 'bg-slate-800/50',
+        overlay: 'bg-black/10'
       }}
       {...props}
     />
@@ -273,21 +268,21 @@ export function MobileOptimizedHero({
       description={description}
       cta={cta}
       stats={[
-        { label: 'Users', value: '50K+', gradient: 'from-lime-600 to-purple-600' },
-        { label: 'Recipes', value: '1M+', gradient: 'from-purple-600 to-cyan-600' },
-        { label: 'Time Saved', value: '2hrs', suffix: '/week', gradient: 'from-cyan-600 to-lime-600' },
-        { label: 'Less Waste', value: '40%', suffix: '', gradient: 'from-lime-600 to-purple-600' }
+        { label: 'Users', value: '50K+' },
+        { label: 'Recipes', value: '1M+' },
+        { label: 'Time Saved', value: '2hrs', suffix: '/week' },
+        { label: 'Less Waste', value: '40%', suffix: '' }
       ]}
       illustration={
         <HeroIllustration
-          colors={limePurpleColors}
+          colors={slateColors}
           size="xl"
           animated={true}
         />
       }
       background={{
-        gradient: 'bg-gradient-to-br from-lime-400/20 via-purple-500/20 to-cyan-400/20',
-        overlay: 'bg-white/5'
+        gradient: 'bg-slate-800/50',
+        overlay: 'bg-black/10'
       }}
       className="px-4 sm:px-6" // Enhanced mobile padding
       {...props}

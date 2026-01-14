@@ -250,7 +250,7 @@ export const shoppingService = {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   }
 };

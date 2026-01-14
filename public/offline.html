@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KeCaraJoComer - Offline</title>
+    <title>KeCaraJoComer - Sin Conexión</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -20,36 +20,38 @@
             max-width: 400px;
             padding: 40px;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
         .icon {
             font-size: 64px;
             margin-bottom: 20px;
         }
         h1 {
-            color: #1e293b;
+            color: #064e3b;
             margin-bottom: 10px;
             font-size: 24px;
         }
         p {
-            color: #64748b;
+            color: #374151;
             line-height: 1.6;
             margin-bottom: 30px;
         }
         .button {
-            background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             border: none;
             padding: 12px 24px;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 500;
-            transition: transform 0.2s;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         .features {
             margin-top: 30px;
@@ -57,31 +59,32 @@
         }
         .feature {
             margin-bottom: 12px;
-            color: #64748b;
+            color: #4b5563;
             display: flex;
             align-items: center;
+            font-size: 14px;
         }
         .feature::before {
             content: "✓";
-            color: #84cc16;
+            color: #10b981;
             font-weight: bold;
-            margin-right: 10px;
+            margin-right: 12px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="icon">🍳</div>
-        <h1>You're Offline</h1>
-        <p>Don't worry! You can still browse your saved recipes and plan meals while offline. Your changes will sync when you're back online.</p>
+        <h1>Estás sin conexión</h1>
+        <p>¡No te preocupes! Aún puedes ver tus recetas guardadas y el plan de comidas. Tus cambios se sincronizarán cuando vuelvas a conectarte.</p>
         
-        <button class="button" onclick="window.location.reload()">Try Again</button>
+        <button class="button" onclick="window.location.reload()">Reintentar</button>
         
         <div class="features">
-            <div class="feature">Browse cached recipes</div>
-            <div class="feature">View meal plans</div>
-            <div class="feature">Check pantry items</div>
-            <div class="feature">Update shopping lists</div>
+            <div class="feature">Ver recetas guardadas</div>
+            <div class="feature">Consultar plan semanal</div>
+            <div class="feature">Administrar despensa</div>
+            <div class="feature">Lista de compras offline</div>
         </div>
     </div>
 

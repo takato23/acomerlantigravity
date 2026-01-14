@@ -133,8 +133,8 @@ export function ChallengeCard({
           </div>
           
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+            <div
+              className="bg-slate-700 h-2 rounded-full transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -168,7 +168,7 @@ export function ChallengeCard({
               <span>{challenge.xp_reward} XP</span>
             </div>
             <div className="flex items-center gap-1 text-sm text-gray-600">
-              <Trophy className="w-4 h-4 text-purple-500" />
+              <Trophy className="w-4 h-4 text-slate-600" />
               <span>{challenge.points_reward} pts</span>
             </div>
           </div>
@@ -178,7 +178,7 @@ export function ChallengeCard({
               <button
                 onClick={handleJoin}
                 disabled={isJoining}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50"
+                className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-800 transition-all duration-200 disabled:opacity-50"
               >
                 {isJoining ? (
                   <>
@@ -238,7 +238,7 @@ export function ChallengeGrid({
       {activeChallenges.length > 0 && (
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5 text-blue-500" />
+            <Target className="w-5 h-5 text-slate-600" />
             Active Challenges
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

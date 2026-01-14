@@ -1,14 +1,14 @@
-import { 
-  ArgentineWeeklyPlan, 
-  ArgentineDayPlan, 
+import {
+  ArgentineWeeklyPlan,
+  ArgentineDayPlan,
   ArgentineMeal,
   Recipe,
   UserPreferences,
   PantryItem,
   ShoppingList,
   WeeklyNutritionSummary,
-  MealPlanRecord 
-} from '@/store/slices/mealPlanSlice';
+  MealPlanRecord
+} from '@/features/meal-planning/types';
 
 // Mock recipes for testing
 export const mockAsadoRecipe: Recipe = {

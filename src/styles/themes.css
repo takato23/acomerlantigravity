@@ -1,141 +1,146 @@
-/* Base theme variables */
+/* Base theme variables - Light mode */
 :root {
   /* Colors with WCAG AA/AAA compliance */
   --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  
+  --foreground: 215 25% 8%;
+
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  
+  --card-foreground: 215 25% 8%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  
-  --primary: 222.2 47.4% 11.2%;
+  --popover-foreground: 215 25% 8%;
+
+  --primary: 215 25% 8%;
   --primary-foreground: 210 40% 98%;
-  
+
   --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  
+  --secondary-foreground: 215 25% 8%;
+
   --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  
-  --destructive: 0 84.2% 60.2%;
+  --muted-foreground: 215 16% 47%;
+
+  --accent: 24 95% 53%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
-  
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 222.2 84% 4.9%;
-  
+
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 215 25% 27%;
+
   --radius: 0.5rem;
-  
+
   /* Focus indicators */
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --focus-ring-color: var(--primary);
+  --focus-ring-color: var(--ring);
+
+  /* Glass effects - Light mode */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-blur: 10px;
 }
 
-/* Dark theme */
+/* Dark theme - Aurora palette */
 .dark {
-  --background: 222.2 84% 4.9%;
+  /* Core backgrounds - slate-950 base */
+  --background: 222 47% 4%;
   --foreground: 210 40% 98%;
-  
-  --card: 222.2 84% 4.9%;
+
+  /* Card surfaces */
+  --card: 222 47% 6%;
   --card-foreground: 210 40% 98%;
-  
-  --popover: 222.2 84% 4.9%;
+
+  /* Popover surfaces */
+  --popover: 222 47% 8%;
   --popover-foreground: 210 40% 98%;
-  
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  
-  --secondary: 217.2 32.6% 17.5%;
+
+  /* Primary - keep brand recognition */
+  --primary: 24 95% 53%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary surfaces */
+  --secondary: 222 47% 11%;
   --secondary-foreground: 210 40% 98%;
-  
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  
-  --destructive: 0 62.8% 30.6%;
+
+  /* Muted elements */
+  --muted: 222 47% 11%;
+  --muted-foreground: 215 20% 65%;
+
+  /* Accent stays orange for brand */
+  --accent: 24 95% 53%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Destructive */
+  --destructive: 0 62% 50%;
   --destructive-foreground: 210 40% 98%;
-  
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+
+  /* Borders - inverted for dark mode */
+  --border: 215 20% 20%;
+  --input: 215 20% 20%;
+  --ring: 215 20% 65%;
+
+  /* Glass effects - Dark mode */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: 20px;
+
+  /* Aurora accent colors for decorations */
+  --aurora-purple: 271 81% 56%;
+  --aurora-pink: 330 81% 60%;
+  --aurora-cyan: 188 94% 43%;
+  --aurora-orange: 24 95% 53%;
+
+  /* Aurora gradient rgba values */
+  --aurora-purple-glow: rgba(139, 92, 246, 0.3);
+  --aurora-pink-glow: rgba(236, 72, 153, 0.25);
+  --aurora-cyan-glow: rgba(34, 211, 238, 0.2);
+  --aurora-orange-glow: rgba(249, 115, 22, 0.25);
+
+  /* Shadows for dark mode - deeper */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 /* High contrast theme */
 .high-contrast {
   --background: 0 0% 100%;
   --foreground: 0 0% 0%;
-  
+
   --card: 0 0% 100%;
   --card-foreground: 0 0% 0%;
-  
+
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 0%;
-  
+
   --primary: 0 0% 0%;
   --primary-foreground: 0 0% 100%;
-  
+
   --secondary: 0 0% 90%;
   --secondary-foreground: 0 0% 0%;
-  
+
   --muted: 0 0% 85%;
   --muted-foreground: 0 0% 0%;
-  
+
   --accent: 0 0% 0%;
   --accent-foreground: 0 0% 100%;
-  
+
   --destructive: 0 100% 30%;
   --destructive-foreground: 0 0% 100%;
-  
+
   --border: 0 0% 0%;
   --input: 0 0% 0%;
   --ring: 0 0% 0%;
-  
+
   --focus-ring-width: 3px;
   --focus-ring-offset: 3px;
 }
 
-/* High contrast dark theme */
-.high-contrast.dark {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  
-  --card: 0 0% 0%;
-  --card-foreground: 0 0% 100%;
-  
-  --popover: 0 0% 0%;
-  --popover-foreground: 0 0% 100%;
-  
-  --primary: 0 0% 100%;
-  --primary-foreground: 0 0% 0%;
-  
-  --secondary: 0 0% 10%;
-  --secondary-foreground: 0 0% 100%;
-  
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 100%;
-  
-  --accent: 0 0% 100%;
-  --accent-foreground: 0 0% 0%;
-  
-  --destructive: 0 100% 70%;
-  --destructive-foreground: 0 0% 0%;
-  
-  --border: 0 0% 100%;
-  --input: 0 0% 100%;
-  --ring: 0 0% 100%;
-}
-
 /* Focus styles for keyboard navigation */
 .keyboard-navigation *:focus {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline: var(--focus-ring-width) solid hsl(var(--focus-ring-color));
   outline-offset: var(--focus-ring-offset);
 }
 
@@ -146,7 +151,7 @@
 
 /* Enhanced focus indicators */
 :focus-visible {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline: var(--focus-ring-width) solid hsl(var(--ring));
   outline-offset: var(--focus-ring-offset);
   transition: outline-offset 0.1s ease-out;
 }

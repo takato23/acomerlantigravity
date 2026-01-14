@@ -66,16 +66,16 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
     <Card 
       className={cn(
         'border-2 transition-all duration-200',
-        showOnlyCanMake 
-          ? 'border-food-fresh-300 bg-food-fresh-50 dark:bg-food-fresh-900/20' 
-          : 'border-neutral-200 dark:border-neutral-700',
+        showOnlyCanMake
+          ? 'border-food-fresh-300 bg-food-fresh-50'
+          : 'border-slate-200',
         className
       )}
     >
       <CardBody className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-food-fresh-100 dark:bg-food-fresh-900/30">
+            <div className="p-2 rounded-lg bg-food-fresh-100">
               <Icons.ChefHat className="w-5 h-5 text-food-fresh-600" />
             </div>
             
@@ -103,7 +103,7 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
                 
                 {!showOnlyCanMake && (
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-neutral-400" />
+                    <div className="w-2 h-2 rounded-full bg-slate-400" />
                     <Text size="sm" color="muted">
                       {totalRecipes - canMakeCount} con ingredientes faltantes
                     </Text>
@@ -155,7 +155,7 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
               }
               className={cn(
                 "transition-all duration-200",
-                showOnlyCanMake && "ring-2 ring-food-fresh-200 dark:ring-food-fresh-700"
+                showOnlyCanMake && "ring-2 ring-food-fresh-200"
               )}
             >
               {showOnlyCanMake ? 'Solo lo que puedo cocinar' : 'Mostrar todo'}
@@ -215,7 +215,7 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
                 {Math.round((canMakeCount / totalRecipes) * 100)}%
               </Text>
             </div>
-            <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+            <div className="w-full bg-slate-200 rounded-full h-2">
               <div 
                 className="bg-gradient-to-r from-food-fresh-400 to-food-fresh-600 h-2 rounded-full transition-all duration-500"
                 style={{ 
@@ -243,7 +243,7 @@ export const PantryFilterCompact: React.FC<PantryFilterProps> = ({
   if (pantryItemsCount === 0) {
     return (
       <div className={cn('flex items-center gap-2 p-2 rounded-lg border border-dashed', className)}>
-        <Icons.ChefHat className="w-4 h-4 text-neutral-400" />
+        <Icons.ChefHat className="w-4 h-4 text-slate-400" />
         <Text size="sm" color="muted">
           Despensa vacía
         </Text>

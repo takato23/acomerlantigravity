@@ -86,7 +86,7 @@
 
 ### Frontend Architecture
 ```
-Framework: Next.js 14+ (App Router)
+Framework: Next.js 15.0.0 (App Router)
 State: Zustand + Immer
 UI Library: Tailwind CSS + Framer Motion
 Components: React 18+ with TypeScript

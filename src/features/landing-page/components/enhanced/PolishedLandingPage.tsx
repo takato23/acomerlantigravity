@@ -88,14 +88,14 @@ export function PolishedLandingPage({
       }
     ],
     stats: [
-      { label: 'Happy Users', value: '50K+', gradient: 'from-lime-600 to-purple-600' },
-      { label: 'Recipes Created', value: '1M+', gradient: 'from-purple-600 to-cyan-600' },
-      { label: 'Time Saved', value: '2hrs', suffix: '/week', gradient: 'from-cyan-600 to-lime-600' },
-      { label: 'Food Waste', value: '40%', suffix: ' less', gradient: 'from-lime-600 to-purple-600' }
+      { label: 'Happy Users', value: '50K+' },
+      { label: 'Recipes Created', value: '1M+' },
+      { label: 'Time Saved', value: '2hrs', suffix: '/week' },
+      { label: 'Food Waste', value: '40%', suffix: ' less' }
     ],
     background: {
-      gradient: 'bg-gradient-to-br from-lime-400/20 via-purple-500/20 to-cyan-400/20',
-      overlay: 'bg-white/5'
+      gradient: 'bg-slate-800/50',
+      overlay: 'bg-black/10'
     }
   };
 
@@ -114,7 +114,7 @@ export function PolishedLandingPage({
   return (
     <AccessibilityProvider>
       <PageErrorBoundary>
-        <div className={cn('min-h-screen bg-white dark:bg-gray-900', className)}>
+        <div className={cn('min-h-screen bg-slate-900', className)}>
           {/* Accessibility Skip Links */}
           <SkipLink href="#main-content">Skip to main content</SkipLink>
           <SkipLink href="#navigation">Skip to navigation</SkipLink>
@@ -129,49 +129,49 @@ export function PolishedLandingPage({
             spinner={<LoadingSpinner size="xl" />}
           >
             {/* Navigation */}
-            <nav 
+            <nav
               id="navigation"
-              className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/20 dark:border-gray-700/20"
+              className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800"
               role="navigation"
               aria-label="Main navigation"
             >
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
-                  <motion.div 
+                  <motion.div
                     className="flex items-center space-x-2"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <div className="w-8 h-8 bg-gradient-to-r from-lime-500 to-purple-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">KC</span>
+                    <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                      <span className="text-orange-500 font-bold text-sm">KC</span>
                     </div>
-                    <span className="text-xl font-bold bg-gradient-to-r from-lime-600 to-purple-600 bg-clip-text text-transparent">
+                    <span className="text-xl font-bold text-white">
                       KeCaraJoComer
                     </span>
                   </motion.div>
-                  
+
                   <div className="hidden md:flex items-center space-x-8">
-                    <a 
-                      href="#features" 
-                      className="text-gray-600 dark:text-gray-300 hover:text-lime-600 dark:hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded px-2 py-1"
+                    <a
+                      href="#features"
+                      className="text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded px-2 py-1"
                     >
                       Features
                     </a>
-                    <a 
-                      href="#pricing" 
-                      className="text-gray-600 dark:text-gray-300 hover:text-lime-600 dark:hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded px-2 py-1"
+                    <a
+                      href="#pricing"
+                      className="text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded px-2 py-1"
                     >
                       Pricing
                     </a>
-                    <a 
-                      href="#about" 
-                      className="text-gray-600 dark:text-gray-300 hover:text-lime-600 dark:hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded px-2 py-1"
+                    <a
+                      href="#about"
+                      className="text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded px-2 py-1"
                     >
                       About
                     </a>
-                    <motion.button 
-                      className="bg-gradient-to-r from-lime-500 to-purple-500 text-white px-4 py-2 rounded-lg hover:from-lime-600 hover:to-purple-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2"
+                    <motion.button
+                      className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-slate-900"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -242,8 +242,8 @@ export function PolishedLandingPage({
             </main>
 
             {/* Footer */}
-            <footer 
-              className="bg-gray-900 text-white py-12"
+            <footer
+              className="bg-black text-white py-12"
               role="contentinfo"
               aria-label="Site footer"
             >
@@ -251,50 +251,50 @@ export function PolishedLandingPage({
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gradient-to-r from-lime-500 to-purple-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">KC</span>
+                      <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+                        <span className="text-orange-500 font-bold text-sm">KC</span>
                       </div>
-                      <span className="text-xl font-bold bg-gradient-to-r from-lime-400 to-purple-400 bg-clip-text text-transparent">
+                      <span className="text-xl font-bold text-white">
                         KeCaraJoComer
                       </span>
                     </div>
-                    <p className="text-gray-400">
+                    <p className="text-slate-500">
                       Transform your kitchen into a smart culinary assistant with AI-powered meal planning.
                     </p>
                   </div>
-                  
+
                   <div>
                     <h3 className="font-semibold mb-4">Product</h3>
-                    <ul className="space-y-2 text-gray-400">
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Features</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Pricing</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">API</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Mobile App</a></li>
+                    <ul className="space-y-2 text-slate-500">
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Features</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Pricing</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">API</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Mobile App</a></li>
                     </ul>
                   </div>
-                  
+
                   <div>
                     <h3 className="font-semibold mb-4">Resources</h3>
-                    <ul className="space-y-2 text-gray-400">
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Blog</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Help Center</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Community</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Recipes</a></li>
+                    <ul className="space-y-2 text-slate-500">
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Blog</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Help Center</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Community</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Recipes</a></li>
                     </ul>
                   </div>
-                  
+
                   <div>
                     <h3 className="font-semibold mb-4">Company</h3>
-                    <ul className="space-y-2 text-gray-400">
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">About</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Privacy</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Terms</a></li>
-                      <li><a href="#" className="hover:text-lime-400 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500 rounded">Contact</a></li>
+                    <ul className="space-y-2 text-slate-500">
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">About</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Privacy</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Terms</a></li>
+                      <li><a href="#" className="hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 rounded">Contact</a></li>
                     </ul>
                   </div>
                 </div>
-                
-                <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+
+                <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-500">
                   <p>&copy; 2024 KeCaraJoComer. All rights reserved.</p>
                 </div>
               </div>

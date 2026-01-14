@@ -46,30 +46,25 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       'w-full rounded-xl border transition-all duration-200',
       'focus:outline-none focus:ring-2 focus:ring-offset-1',
       'disabled:opacity-50 disabled:cursor-not-allowed',
-      'placeholder:text-neutral-400 dark:placeholder:text-neutral-500',
+      'placeholder:text-slate-400',
     ];
 
     const variantClasses = {
       default: [
-        'bg-white border-neutral-200 text-neutral-900',
-        'focus:border-food-fresh-300 focus:ring-food-fresh-200',
-        'dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100',
-        'dark:focus:border-food-fresh-400 dark:focus:ring-food-fresh-400/20',
+        'bg-white border-slate-200 text-slate-900',
+        'focus:border-slate-400 focus:ring-slate-200',
       ],
       glass: [
-        'glass border-glass-border text-neutral-900',
+        'glass border-glass-border text-slate-900',
         'focus:border-glass-border-light focus:ring-glass-border/20',
-        'dark:text-neutral-100',
       ],
       fresh: [
         'glass-fresh border-food-fresh-200 text-food-fresh-900',
         'focus:border-food-fresh-400 focus:ring-food-fresh-200',
-        'dark:text-food-fresh-100',
       ],
       warm: [
         'glass-warm border-food-warm-200 text-food-warm-900',
         'focus:border-food-warm-400 focus:ring-food-warm-200',
-        'dark:text-food-warm-100',
       ],
     };
 
@@ -82,7 +77,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const errorClasses = hasError
       ? [
           'border-error-500 focus:border-error-500 focus:ring-error-200',
-          'dark:border-error-400 dark:focus:border-error-400 dark:focus:ring-error-400/20',
         ]
       : [];
 
@@ -103,7 +97,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+            className="block text-sm font-medium text-slate-700 mb-2"
           >
             {label}
           </label>
@@ -112,7 +106,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div className="relative">
           {leftAddon && (
             <div className="absolute inset-y-0 left-0 flex items-center">
-              <div className="glass-secondary rounded-l-xl px-3 py-2 border-r border-glass-border text-sm text-neutral-600 dark:text-neutral-400">
+              <div className="glass-secondary rounded-l-xl px-3 py-2 border-r border-glass-border text-sm text-slate-600">
                 {leftAddon}
               </div>
             </div>
@@ -120,7 +114,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
           {leftIcon && !leftAddon && (
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <div className={cn('text-neutral-400 dark:text-neutral-500', iconSizeClasses[inputSize])}>
+              <div className={cn('text-slate-400', iconSizeClasses[inputSize])}>
                 {leftIcon}
               </div>
             </div>
@@ -146,7 +140,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
           {rightIcon && !rightAddon && (
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <div className={cn('text-neutral-400 dark:text-neutral-500', iconSizeClasses[inputSize])}>
+              <div className={cn('text-slate-400', iconSizeClasses[inputSize])}>
                 {rightIcon}
               </div>
             </div>
@@ -154,7 +148,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
           {rightAddon && (
             <div className="absolute inset-y-0 right-0 flex items-center">
-              <div className="glass-secondary rounded-r-xl px-3 py-2 border-l border-glass-border text-sm text-neutral-600 dark:text-neutral-400">
+              <div className="glass-secondary rounded-r-xl px-3 py-2 border-l border-glass-border text-sm text-slate-600">
                 {rightAddon}
               </div>
             </div>
@@ -164,7 +158,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {(error || helper) && (
           <div className="mt-1 text-sm">
             {hasError ? (
-              <p className="text-error-600 dark:text-error-400 flex items-center gap-1">
+              <p className="text-error-600 flex items-center gap-1">
                 <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
@@ -175,7 +169,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 {error}
               </p>
             ) : helper ? (
-              <p className="text-neutral-500 dark:text-neutral-400">{helper}</p>
+              <p className="text-slate-500">{helper}</p>
             ) : null}
           </div>
         )}

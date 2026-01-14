@@ -49,7 +49,7 @@ export const ModernAppLayout: React.FC<ModernAppLayoutProps> = ({ children }) =>
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-white">
       {/* Loading screen */}
       <AnimatePresence mode="wait">
         {isLoading && (
@@ -57,7 +57,7 @@ export const ModernAppLayout: React.FC<ModernAppLayoutProps> = ({ children }) =>
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-white dark:bg-gray-900 flex items-center justify-center"
+            className="fixed inset-0 z-[100] bg-white flex items-center justify-center"
           >
             <div className="text-center">
               <motion.div
@@ -65,13 +65,13 @@ export const ModernAppLayout: React.FC<ModernAppLayoutProps> = ({ children }) =>
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 className="w-16 h-16 mx-auto mb-4"
               >
-                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl" />
+                <div className="w-full h-full bg-slate-800 rounded-xl" />
               </motion.div>
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-gray-600 dark:text-gray-400"
+                className="text-slate-600"
               >
                 Cargando...
               </motion.p>

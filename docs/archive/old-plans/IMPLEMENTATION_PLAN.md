@@ -28,7 +28,7 @@
    - Comprehensive test suite
 
 ### 🏗️ Architecture Foundation
-- Next.js 15 with App Router
+- Next.js 15.0.0 with App Router
 - TypeScript for type safety
 - Tailwind CSS for styling
 - Framer Motion for animations
@@ -263,7 +263,7 @@ User Action → Zustand Store → API Call → Supabase/Claude
 
 ### External Resources
 - [Supabase Docs](https://supabase.com/docs)
-- [Next.js 15 Docs](https://nextjs.org/docs)
+- [Next.js 15.0.0 Docs](https://nextjs.org/docs)
 - [Claude API Docs](https://docs.anthropic.com)
 - [Vercel Deployment](https://vercel.com/docs)
 

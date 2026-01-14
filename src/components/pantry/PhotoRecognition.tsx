@@ -2,11 +2,11 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logger } from '@/services/logger';
-import { 
-  Camera, 
-  Upload, 
-  X, 
-  Loader2, 
+import {
+  Camera,
+  Upload,
+  X,
+  Loader2,
   Check,
   AlertCircle,
   Scan,
@@ -14,15 +14,16 @@ import {
 } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { iOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
+import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
 // Simple toast function
 function showToast(message: string, type: 'success' | 'error' = 'success') {
   const toast = document.createElement('div');
-  toast.className = `fixed top-4 right-4 ${
-    type === 'success' ? 'bg-green-500' : 'bg-red-500'
-  } text-white p-4 rounded-lg shadow-lg z-50 max-w-sm`;
+  toast.className = `fixed top-4 right-4 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    } text-white p-4 rounded-lg shadow-lg z-50 max-w-sm`;
   toast.textContent = message;
   document.body.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.style.opacity = '0';
     setTimeout(() => {
@@ -61,7 +62,7 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
     if (isOpen) {
       FoodRecognitionService.initialize().catch(console.error);
     }
-    
+
     return () => {
       // Cleanup camera stream
       if (stream) {
@@ -82,10 +83,10 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
 
       // Create image element for AI processing
       const img = await FoodRecognitionService.createImageElement(file);
-      
+
       // Detect food items
       const foods = await FoodRecognitionService.detectFood(img);
-      
+
       if (foods.length === 0) {
         showToast("No se detectaron alimentos. Intenta con otra imagen más clara", 'error');
       } else {
@@ -98,7 +99,7 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
           }
         });
         setSelectedFoods(autoSelected);
-        
+
         showToast(`¡Alimentos detectados! Se encontraron ${foods.length} alimentos en la imagen`, 'success');
       }
     } catch (error: unknown) {
@@ -125,8 +126,8 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
       });
       setStream(mediaStream);
       if (videoRef.current) {
@@ -234,8 +235,8 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                       className={`
                         border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
                         transition-colors duration-200
-                        ${isDragActive 
-                          ? 'border-primary bg-primary/10' 
+                        ${isDragActive
+                          ? 'border-primary bg-primary/10'
                           : 'border-gray-300 hover:border-primary'
                         }
                       `}
@@ -349,19 +350,18 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                             >
                               <iOS26LiquidCard
                                 variant="subtle"
-                                className={`p-4 cursor-pointer transition-all ${
-                                  selectedFoods.has(index) 
-                                    ? 'ring-2 ring-primary' 
+                                className={`p-4 cursor-pointer transition-all ${selectedFoods.has(index)
+                                    ? 'ring-2 ring-primary'
                                     : 'hover:ring-1 hover:ring-gray-300'
-                                }`}
+                                  }`}
                                 onClick={() => toggleFoodSelection(index)}
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
                                     <div className={`
                                       w-5 h-5 rounded-full border-2 flex items-center justify-center
-                                      ${selectedFoods.has(index) 
-                                        ? 'bg-primary border-primary' 
+                                      ${selectedFoods.has(index)
+                                        ? 'bg-primary border-primary'
                                         : 'border-gray-300'
                                       }
                                     `}>
@@ -379,11 +379,11 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                                   <div className="text-right">
                                     <div className={`
                                       inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs
-                                      ${food.confidence > 0.8 
-                                        ? 'bg-green-100 text-green-700' 
-                                        : food.confidence > 0.6 
-                                        ? 'bg-yellow-100 text-yellow-700'
-                                        : 'bg-red-100 text-red-700'
+                                      ${food.confidence > 0.8
+                                        ? 'bg-green-100 text-green-700'
+                                        : food.confidence > 0.6
+                                          ? 'bg-yellow-100 text-yellow-700'
+                                          : 'bg-red-100 text-red-700'
                                       }
                                     `}>
                                       <Scan className="h-3 w-3" />

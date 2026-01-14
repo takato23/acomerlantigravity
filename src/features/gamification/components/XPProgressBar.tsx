@@ -37,12 +37,12 @@ export function XPProgressBar({ showDetails = true, className = '' }: XPProgress
   }
 
   return (
-    <div className={`bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 ${className}`}>
+    <div className={`bg-slate-50 rounded-lg p-4 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-purple-100 rounded-full">
-            <Zap className="w-4 h-4 text-purple-600" />
+          <div className="p-1.5 bg-slate-100 rounded-full">
+            <Zap className="w-4 h-4 text-slate-600" />
           </div>
           <span className="text-sm font-medium text-gray-700">
             Level {progressData.currentLevel}
@@ -66,8 +66,8 @@ export function XPProgressBar({ showDetails = true, className = '' }: XPProgress
       {/* Progress Bar */}
       <div className="relative">
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-500 ease-out"
+          <div
+            className="bg-slate-700 h-2 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progressData.progressPercentage}%` }}
           />
         </div>
@@ -108,8 +108,8 @@ export function LevelBadge({ level, size = 'md', className = '' }: LevelBadgePro
   return (
     <div className={`
       ${sizeClasses[size]}
-      bg-gradient-to-r from-purple-500 to-indigo-500 
-      rounded-full flex items-center justify-center 
+      bg-slate-700
+      rounded-full flex items-center justify-center
       text-white font-bold shadow-lg
       ${className}
     `}>
@@ -127,7 +127,7 @@ export function XPAnimation({ amount, onComplete }: XPAnimationProps) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
       <div className="animate-bounce">
-        <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+        <div className="bg-slate-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
           <Zap className="w-5 h-5" />
           <span className="font-bold">+{amount} XP</span>
         </div>

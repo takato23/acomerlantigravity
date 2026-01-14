@@ -32,16 +32,16 @@ export function MealPlannerError({ error, onRetry }: MealPlannerErrorProps) {
             initial={{ rotate: 0 }}
             animate={{ rotate: [0, -10, 10, -10, 0] }}
             transition={{ duration: 0.5 }}
-            className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-3xl flex items-center justify-center mx-auto mb-6"
+            className="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6"
           >
-            <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
+            <AlertTriangle className="w-10 h-10 text-red-600" />
           </motion.div>
 
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-bold text-slate-900 mb-2">
             ¡Ups! Algo salió mal
           </h3>
           
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-slate-600 mb-6">
             {error || 'Ha ocurrido un error al cargar el planificador de comidas.'}
           </p>
 
@@ -63,8 +63,8 @@ export function MealPlannerError({ error, onRetry }: MealPlannerErrorProps) {
             </KeButton>
           </div>
 
-          <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-800/50 rounded-xl">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-8 p-4 bg-slate-100 rounded-xl">
+            <p className="text-xs text-slate-500">
               Si el problema persiste, por favor contacta con soporte técnico.
             </p>
           </div>

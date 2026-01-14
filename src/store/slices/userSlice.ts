@@ -44,7 +44,7 @@ export interface UserSlice {
     isAuthenticated: boolean;
     isLoading: boolean;
   };
-  
+
   // Actions
   setUser: (profile: UserProfile) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
@@ -77,37 +77,37 @@ const defaultPreferences: UserPreferences = {
   }
 };
 
-export const createUserSlice: StateCreator<UserSlice> = (set, get) => ({
+export const createUserSlice: StateCreator<any, [], [], UserSlice> = (set, get) => ({
   user: {
     profile: null,
     preferences: defaultPreferences,
     isAuthenticated: false,
     isLoading: false
   },
-  
-  setUser: (profile) => set((state) => {
+
+  setUser: (profile) => set((state: UserSlice) => {
     state.user.profile = profile;
     state.user.isAuthenticated = true;
     state.user.isLoading = false;
   }),
-  
-  updateProfile: (updates) => set((state) => {
+
+  updateProfile: (updates) => set((state: UserSlice) => {
     if (state.user.profile) {
       Object.assign(state.user.profile, updates);
     }
   }),
-  
-  setPreferences: (preferences) => set((state) => {
+
+  setPreferences: (preferences) => set((state: UserSlice) => {
     Object.assign(state.user.preferences, preferences);
   }),
-  
-  logout: () => set((state) => {
+
+  logout: () => set((state: UserSlice) => {
     state.user.profile = null;
     state.user.isAuthenticated = false;
     state.user.isLoading = false;
   }),
-  
-  setAuthLoading: (loading) => set((state) => {
+
+  setAuthLoading: (loading) => set((state: UserSlice) => {
     state.user.isLoading = loading;
   })
 });

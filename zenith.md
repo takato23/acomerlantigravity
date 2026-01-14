@@ -1,4 +1,4 @@
-¡Vamos con todo! Abajo tenés un sistema completo y listo para pegar: hook principal, servicios de IA y Supabase, tipos, store Zustand, prompts, componentes UI con glassmorphism, tests (unit/integration/E2E), y documentación de implementación. Todo en TypeScript, pensado para Next.js 14 (App Router), optimizado, accesible y con fallbacks robustos.
+¡Vamos con todo! Abajo tenés un sistema completo y listo para pegar: hook principal, servicios de IA y Supabase, tipos, store Zustand, prompts, componentes UI con glassmorphism, tests (unit/integration/E2E), y documentación de implementación. Todo en TypeScript, pensado para Next.js 15.0.0 (App Router), optimizado, accesible y con fallbacks robustos.
 
 Sugerencia: copiá los archivos en los paths indicados. El orden recomendado es:
 

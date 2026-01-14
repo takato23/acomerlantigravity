@@ -38,7 +38,7 @@ A comprehensive authentication and onboarding system built with Supabase, featur
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15.0.0, TypeScript, Tailwind CSS
 - **Authentication**: Supabase Auth with custom session management
 - **State Management**: Zustand with persistence
 - **Database**: PostgreSQL with RLS policies

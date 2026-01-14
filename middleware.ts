@@ -1,7 +1,13 @@
 import createIntlMiddleware from 'next-intl/middleware';
+import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import { locales, defaultLocale } from './i18n.config';
-// import { authMiddleware } from '@/features/auth';
+
+// Routes that require authentication
+const protectedRoutes = ['/settings', '/historial', '/profile'];
+
+// Routes that are always public
+const publicRoutes = ['/login', '/signup', '/auth/callback', '/forgot-password'];
 
 const intlMiddleware = createIntlMiddleware({
   locales,
@@ -10,17 +16,58 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export async function middleware(request: NextRequest) {
-  // Apply internationalization first
-  const intlResponse = intlMiddleware(request);
-  
-  // Temporarily disable auth middleware to test login flow
-  // const authResponse = await authMiddleware(request);
-  // if (authResponse) return authResponse;
-  
-  if (process.env.NODE_ENV === 'development') {
+  // Create response for potential modification
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
+  // Check if route needs protection
+  const pathname = request.nextUrl.pathname;
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
+  // Only check auth for protected routes
+  if (isProtectedRoute) {
+    try {
+      // Create Supabase client for middleware
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                request.cookies.set(name, value);
+                response.cookies.set(name, value, options);
+              });
+            },
+          },
+        }
+      );
+
+      // Get user session
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Redirect to login if not authenticated
+      if (!user) {
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    } catch (error) {
+      // On error, allow access but log it
+      console.error('Middleware auth error:', error);
+    }
   }
-  
+
+  // Apply internationalization
+  const intlResponse = intlMiddleware(request);
+
   return intlResponse;
 }
 

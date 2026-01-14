@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
+import {
   Heart,
   Clock,
   Users,
@@ -17,6 +17,7 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useRecipeAvailability } from '@/features/recipes/hooks/useRecipeAvailability';
 
 interface Recipe {
   id: string;
@@ -103,6 +104,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 }) => {
   const [showActions, setShowActions] = useState(false);
 
+  // Cook Now Availability
+  const { getRecipeAvailability } = useRecipeAvailability([recipe]);
+  const availability = getRecipeAvailability(recipe.id);
+  const matchPercentage = availability?.matchPercentage || 0;
+  const availableCount = availability?.matchedIngredients || 0;
+  const totalCount = availability?.totalIngredients || 0;
+
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleFavorite?.(recipe);
@@ -126,16 +134,16 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             <div className="w-16 h-16 rounded-xl bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center text-2xl">
               {recipe.emoji || getCuisineEmoji(recipe.cuisine)}
             </div>
-            
+
             {/* Recipe Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white truncate">{recipe.name}</h3>
+                <h3 className="font-semibold text-slate-900 truncate">{recipe.name}</h3>
                 <button onClick={handleToggleFavorite} className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <Heart className={`w-4 h-4 ${recipe.isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
                 </button>
               </div>
-              
+
               <div className="flex items-center space-x-3 text-sm text-gray-600">
                 <span className="flex items-center">
                   <Clock className="w-3 h-3 mr-1" />
@@ -161,7 +169,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
     <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border-0 shadow-lg">
       {/* Trending Badge */}
       {recipe.trending && (
-        <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+        <div className="absolute top-3 left-3 z-10 bg-black text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
           <TrendingUp className="w-3 h-3 mr-1" />
           Trending
         </div>
@@ -176,7 +184,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             {recipe.emoji || getCuisineEmoji(recipe.cuisine)}
           </div>
         )}
-        
+
         {/* Overlay Actions */}
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center">
           <div className="opacity-0 group-hover:opacity-100 transition-opacity space-x-2">
@@ -200,7 +208,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           >
             <Heart className={`w-4 h-4 ${recipe.isFavorite ? 'fill-current' : ''}`} />
           </button>
-          
+
           <button
             onClick={handleToggleBookmark}
             className={`w-8 h-8 rounded-full ${recipe.isBookmarked ? 'bg-blue-500 text-white' : 'bg-white bg-opacity-90 text-gray-600'} flex items-center justify-center shadow-md hover:scale-110 transition-transform`}
@@ -215,7 +223,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         {/* Recipe Header */}
         <div className="mb-4">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+            <h3 className="text-xl font-bold text-slate-900 leading-tight">
               {recipe.name}
             </h3>
             <div className="flex items-center space-x-1">
@@ -224,33 +232,56 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <span className="text-xs text-gray-500">({recipe.reviewCount})</span>
             </div>
           </div>
-          
-          <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
+
+          <p className="text-sm text-gray-600 line-clamp-2">
             {recipe.description}
           </p>
+
+          {/* Pantry Availability Indicator */}
+          {matchPercentage > 0 && (
+            <div className="mt-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${matchPercentage >= 80 ? 'bg-green-500' :
+                      matchPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-400'
+                      }`}
+                    style={{ width: `${matchPercentage}%` }}
+                  />
+                </div>
+                <span className={`text-xs font-bold ${matchPercentage >= 80 ? 'text-green-600' : 'text-gray-500'
+                  }`}>
+                  {matchPercentage}%
+                </span>
+              </div>
+              <p className="text-xs text-gray-500">
+                Tienes {availableCount} de {totalCount} ingredientes
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Recipe Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+        <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-slate-50 rounded-xl">
           <div className="text-center">
-            <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-            <div className="text-sm font-medium text-gray-900 dark:text-white">
+            <Clock className="w-5 h-5 text-slate-600 mx-auto mb-1" />
+            <div className="text-sm font-medium text-slate-900">
               {recipe.prepTime + recipe.cookTime}min
             </div>
             <div className="text-xs text-gray-500">Total</div>
           </div>
-          
+
           <div className="text-center">
-            <Users className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-            <div className="text-sm font-medium text-gray-900 dark:text-white">
+            <Users className="w-5 h-5 text-green-600 mx-auto mb-1" />
+            <div className="text-sm font-medium text-slate-900">
               {recipe.servings}
             </div>
             <div className="text-xs text-gray-500">Porciones</div>
           </div>
-          
+
           <div className="text-center">
-            <ChefHat className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-            <div className="text-sm font-medium text-gray-900 dark:text-white capitalize">
+            <ChefHat className="w-5 h-5 text-slate-600 mx-auto mb-1" />
+            <div className="text-sm font-medium text-slate-900 capitalize">
               {recipe.difficulty}
             </div>
             <div className="text-xs text-gray-500">Nivel</div>
@@ -260,14 +291,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         {/* Tags and Category */}
         <div className="mb-4">
           <div className="flex items-center space-x-2 mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-medium text-gray-700">
               {getCuisineEmoji(recipe.cuisine)} {recipe.cuisine}
             </span>
             <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(recipe.difficulty)}`}>
               {recipe.difficulty}
             </span>
           </div>
-          
+
           {recipe.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {recipe.tags.slice(0, 3).map(tag => (
@@ -289,25 +320,25 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
         {/* Nutrition Info */}
         {recipe.nutritionInfo && (
-          <div className="mb-4 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl">
-            <div className="text-xs text-emerald-700 dark:text-emerald-300 font-medium mb-1">
+          <div className="mb-4 p-3 bg-green-50 rounded-xl">
+            <div className="text-xs text-green-700 font-medium mb-1">
               Información Nutricional (por porción)
             </div>
             <div className="grid grid-cols-4 gap-2 text-xs">
               <div className="text-center">
-                <div className="font-medium text-gray-900 dark:text-white">{recipe.nutritionInfo.calories}</div>
+                <div className="font-medium text-slate-900">{recipe.nutritionInfo.calories}</div>
                 <div className="text-gray-500">kcal</div>
               </div>
               <div className="text-center">
-                <div className="font-medium text-gray-900 dark:text-white">{recipe.nutritionInfo.protein}g</div>
+                <div className="font-medium text-slate-900">{recipe.nutritionInfo.protein}g</div>
                 <div className="text-gray-500">proteína</div>
               </div>
               <div className="text-center">
-                <div className="font-medium text-gray-900 dark:text-white">{recipe.nutritionInfo.carbs}g</div>
+                <div className="font-medium text-slate-900">{recipe.nutritionInfo.carbs}g</div>
                 <div className="text-gray-500">carbos</div>
               </div>
               <div className="text-center">
-                <div className="font-medium text-gray-900 dark:text-white">{recipe.nutritionInfo.fat}g</div>
+                <div className="font-medium text-slate-900">{recipe.nutritionInfo.fat}g</div>
                 <div className="text-gray-500">grasa</div>
               </div>
             </div>
@@ -325,13 +356,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
-          
+
           <div className="text-xs text-gray-500">
             por {recipe.author}
           </div>
         </div>
       </CardContent>
-    </Card>
+    </Card >
   );
 };
 

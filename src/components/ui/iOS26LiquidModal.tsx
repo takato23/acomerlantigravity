@@ -122,11 +122,11 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
   };
 
   const variantClasses = {
-    default: 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl border border-white/30',
-    elevated: 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl shadow-[0_20px_70px_rgba(0,0,0,0.2)] border border-white/40',
-    fullscreen: 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl w-full h-full max-w-none rounded-none',
-    drawer: 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl fixed bottom-0 left-0 right-0 rounded-t-3xl border-t border-white/40',
-    spotlight: 'bg-gradient-to-br from-purple-900/80 via-pink-900/80 to-orange-900/80 backdrop-blur-3xl text-white border border-white/20',
+    default: 'bg-white/80 backdrop-blur-2xl border border-white/30',
+    elevated: 'bg-white/95 backdrop-blur-3xl shadow-[0_20px_70px_rgba(0,0,0,0.2)] border border-white/40',
+    fullscreen: 'bg-white/90 backdrop-blur-2xl w-full h-full max-w-none rounded-none',
+    drawer: 'bg-white/95 backdrop-blur-3xl fixed bottom-0 left-0 right-0 rounded-t-3xl border-t border-white/40',
+    spotlight: 'bg-slate-800/90 backdrop-blur-3xl text-white border border-white/20',
   };
 
   if (!mounted) return null;
@@ -196,7 +196,7 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
               {/* Glow effect for spotlight variant */}
               {variant === 'spotlight' && (
                 <>
-                  <div className="absolute -inset-10 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 opacity-20 blur-3xl animate-pulse" />
+                  <div className="absolute -inset-10 bg-slate-600 opacity-20 blur-3xl animate-pulse" />
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent" />
                 </>
               )}
@@ -210,9 +210,9 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
                   {title && (
                     <h2 className={cn(
                       'text-2xl font-bold',
-                      variant === 'spotlight' 
-                        ? 'text-white' 
-                        : 'text-gray-900 dark:text-white'
+                      variant === 'spotlight'
+                        ? 'text-white'
+                        : 'text-slate-900'
                     )}>
                       {title}
                     </h2>
@@ -226,7 +226,7 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
                         'ml-auto p-2 rounded-full transition-colors',
                         variant === 'spotlight'
                           ? 'hover:bg-white/10 text-white'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400'
+                          : 'hover:bg-slate-100 text-slate-500'
                       )}
                     >
                       <X className="w-5 h-5" />

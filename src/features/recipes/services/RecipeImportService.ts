@@ -131,9 +131,8 @@ export class RecipeImportService {
     try {
 
       // Notificar inicio
-      await this.notificationService.notify({
+      await this.notificationService.notify('Importación Iniciada', {
         type: 'info',
-        title: 'Importación Iniciada',
         message: 'Comenzando importación de recetas desde recipes_full.json',
         userId: options.userId,
         priority: 'medium'
@@ -141,7 +140,7 @@ export class RecipeImportService {
 
       // Cargar archivo de recetas
       const rawRecipes = await this.loadRecipesFromFile();
-      
+
       if (!rawRecipes || rawRecipes.length === 0) {
         throw new Error('No se encontraron recetas para importar');
       }
@@ -176,10 +175,9 @@ export class RecipeImportService {
 
     } catch (error: unknown) {
       logger.error('Error in recipe import:', 'RecipeImportService', error);
-      
-      await this.notificationService.notify({
+
+      await this.notificationService.notify('Error en Importación', {
         type: 'error',
-        title: 'Error en Importación',
         message: 'No se pudo completar la importación de recetas',
         priority: 'high'
       });
@@ -234,13 +232,13 @@ export class RecipeImportService {
       }
 
       // Procesar recetas válidas
-      const validRecipes = recipes.filter((_, index) => 
+      const validRecipes = recipes.filter((_, index) =>
         !validationResults.errors.some(error => error.index === index)
       );
 
       for (let i = 0; i < validRecipes.length; i++) {
         const recipe = validRecipes[i];
-        
+
         try {
           // Actualizar progreso
           this.updateProgress({
@@ -256,16 +254,16 @@ export class RecipeImportService {
 
           // Verificar si la receta ya existe
           const existingRecipe = await this.findExistingRecipe(recipe);
-          
+
           if (existingRecipe) {
             result.report.duplicatesFound++;
-            
+
             if (options.skipDuplicates) {
               result.skipped++;
 
               continue;
             }
-            
+
             if (options.updateExisting) {
               await this.updateRecipe(existingRecipe.id, recipe, userId);
               result.updated++;
@@ -315,10 +313,10 @@ export class RecipeImportService {
         error: error instanceof Error ? error.message : 'Error crítico desconocido',
         details: error
       });
-      
+
       result.report.endTime = new Date().toISOString();
       result.report.duration = Date.now() - startTime;
-      
+
       throw error;
     }
   }
@@ -339,7 +337,7 @@ export class RecipeImportService {
 
       // Procesar archivo JSON
       const recipes = await this.processRecipeFile(file);
-      
+
       if (!recipes || recipes.length === 0) {
         throw new Error('El archivo no contiene recetas válidas');
       }
@@ -363,11 +361,11 @@ export class RecipeImportService {
   static async processRecipeFile(file: File): Promise<ImportRecipeData[]> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (event) => {
         try {
           const jsonData = JSON.parse(event.target?.result as string);
-          
+
           if (!Array.isArray(jsonData)) {
             reject(new Error('El archivo debe contener un array de recetas'));
             return;
@@ -425,7 +423,7 @@ export class RecipeImportService {
     } catch (error: unknown) {
       // Fallback: load from static file
       logger.warn('Could not load from API, attempting static file', 'RecipeImportService');
-      
+
       try {
         const response = await fetch('/docs/recipes_full.json');
         if (!response.ok) {
@@ -457,7 +455,7 @@ export class RecipeImportService {
       if (!recipe.title || recipe.title.trim().length === 0) {
         validationErrors.push('Título requerido');
       }
-      
+
       if (!recipe.description || recipe.description.trim().length === 0) {
         validationErrors.push('Descripción requerida');
       }
@@ -567,14 +565,14 @@ export class RecipeImportService {
     }
 
     const newNames = newIngredients.map(ing => ing.name.toLowerCase().trim()).sort();
-    const existingNames = existingIngredients.map((ing: any) => 
+    const existingNames = existingIngredients.map((ing: any) =>
       ing.name?.toLowerCase().trim() || ''
     ).sort();
 
     // Calcular similaridad (al menos 70% de ingredientes en común)
     const commonIngredients = newNames.filter(name => existingNames.includes(name));
     const similarity = commonIngredients.length / Math.max(newNames.length, existingNames.length);
-    
+
     return similarity >= 0.7;
   }
 
@@ -663,7 +661,7 @@ export class RecipeImportService {
    */
   private categorizeError(error: any): string {
     const message = error?.message?.toLowerCase() || '';
-    
+
     if (message.includes('duplicate') || message.includes('unique')) {
       return 'duplicado';
     }
@@ -679,7 +677,7 @@ export class RecipeImportService {
     if (message.includes('network') || message.includes('timeout')) {
       return 'conexion';
     }
-    
+
     return 'desconocido';
   }
 
@@ -697,13 +695,12 @@ export class RecipeImportService {
    */
   private async sendCompletionNotification(userId: string, result: ImportResult): Promise<void> {
     try {
-      const message = result.success 
+      const message = result.success
         ? `Importación completada: ${result.imported} recetas importadas, ${result.updated} actualizadas, ${result.skipped} omitidas`
         : `Importación fallida: ${result.errors.length} errores encontrados`;
 
-      await this.notificationService.notify({
+      await this.notificationService.notify('Importación de Recetas', {
         type: result.success ? 'success' : 'error',
-        title: 'Importación de Recetas',
         message,
         userId,
         priority: 'high',
@@ -716,10 +713,10 @@ export class RecipeImportService {
       // Feedback de voz en español
       try {
         const voiceService = getVoiceService();
-        const voiceMessage = result.success 
+        const voiceMessage = result.success
           ? `Importación completada exitosamente. ${result.imported} recetas importadas.`
           : `Importación fallida. Se encontraron ${result.errors.length} errores.`;
-        
+
         await voiceService.speak(voiceMessage, { lang: 'es-MX' });
       } catch (voiceError: unknown) {
         logger.warn('Error en feedback de voz:', 'RecipeImportService', voiceError);
@@ -767,8 +764,8 @@ export class RecipeImportService {
         user_id: options.userId,
         title: recipeData.title,
         description: recipeData.description || '',
-        instructions: Array.isArray(recipeData.instructions) 
-          ? recipeData.instructions 
+        instructions: Array.isArray(recipeData.instructions)
+          ? recipeData.instructions
           : recipeData.instructions.split('\n').filter(Boolean),
         ingredients: this.normalizeIngredients(recipeData.ingredients),
         prep_time: recipeData.prepTimeMinutes || 15,
@@ -790,7 +787,7 @@ export class RecipeImportService {
 
       // Save recipe
       await this.saveRecipe(recipe, options.userId);
-      
+
       // Add to existing titles set
       existingTitles.add(titleLower);
 
@@ -819,7 +816,7 @@ export class RecipeImportService {
 
     const sampleRecipe = recipes[0];
     const requiredFields = ['title', 'instructions', 'ingredients'];
-    
+
     for (const field of requiredFields) {
       if (!sampleRecipe.hasOwnProperty(field)) {
         throw new Error(`Estructura de archivo inválida: falta el campo '${field}'`);
@@ -884,10 +881,10 @@ export class RecipeImportService {
     try {
       // Get existing recipes
       const existingRecipes = await this.storageService.get(`user_recipes_${userId}`) || [];
-      
+
       // Add new recipe
       const updatedRecipes = [...existingRecipes, recipe];
-      
+
       // Save back to storage
       await this.storageService.set(`user_recipes_${userId}`, updatedRecipes);
 

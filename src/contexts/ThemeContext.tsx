@@ -1,107 +1,131 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'light' | 'dark' | 'system';
+type EffectiveTheme = 'light' | 'dark';
 
-type ThemeProviderProps = {
+interface ThemeProviderProps {
   children: React.ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
-};
+}
 
-type ThemeProviderState = {
+interface ThemeProviderState {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  effectiveTheme: 'dark' | 'light';
+  effectiveTheme: EffectiveTheme;
   toggleTheme: () => void;
-};
+  isHydrated: boolean;
+}
 
-const initialState: ThemeProviderState = {
-  theme: 'system',
-  setTheme: () => null,
-  effectiveTheme: 'light',
-  toggleTheme: () => null,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undefined);
 
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
   storageKey = 'ui-theme',
-  ...props
 }: ThemeProviderProps) {
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [effectiveTheme, setEffectiveTheme] = useState<'dark' | 'light'>('light');
+  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+  const [effectiveTheme, setEffectiveTheme] = useState<EffectiveTheme>('light');
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Handle initial theme on mount
-  useEffect(() => {
-    setMounted(true);
-    const storedTheme = localStorage?.getItem(storageKey) as Theme;
-    if (storedTheme) {
-      setTheme(storedTheme);
+  // Get system preference
+  const getSystemTheme = useCallback((): EffectiveTheme => {
+    if (typeof window === 'undefined') return 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }, []);
+
+  // Calculate effective theme based on current theme setting
+  const calculateEffectiveTheme = useCallback((currentTheme: Theme): EffectiveTheme => {
+    if (currentTheme === 'system') {
+      return getSystemTheme();
     }
+    return currentTheme;
+  }, [getSystemTheme]);
+
+  // Apply theme to DOM
+  const applyTheme = useCallback((effective: EffectiveTheme) => {
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(effective);
+
+    // Update meta theme-color for mobile browsers
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', effective === 'dark' ? '#020617' : '#ffffff');
+    }
+  }, []);
+
+  // Initialize theme from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(storageKey) as Theme | null;
+      if (stored && ['light', 'dark', 'system'].includes(stored)) {
+        setThemeState(stored);
+      }
+    } catch (e) {
+      // localStorage might not be available
+    }
+    setIsHydrated(true);
   }, [storageKey]);
 
+  // Update effective theme and apply to DOM when theme changes
   useEffect(() => {
-    if (!mounted) return;
-    
-    const root = window.document.documentElement;
+    if (!isHydrated) return;
 
-    root.classList.remove('light', 'dark');
+    const effective = calculateEffectiveTheme(theme);
+    setEffectiveTheme(effective);
+    applyTheme(effective);
 
-    let resolvedTheme: 'dark' | 'light';
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
-        ? 'dark'
-        : 'light';
-      resolvedTheme = systemTheme;
-    } else {
-      resolvedTheme = theme;
+    try {
+      localStorage.setItem(storageKey, theme);
+    } catch (e) {
+      // localStorage might not be available
     }
+  }, [theme, isHydrated, calculateEffectiveTheme, applyTheme, storageKey]);
 
-    root.classList.add(resolvedTheme);
-    setEffectiveTheme(resolvedTheme);
-  }, [theme, mounted]);
-
-  // Listen for system theme changes
+  // Listen for system theme changes when in 'system' mode
   useEffect(() => {
-    if (!mounted || theme !== 'system') return;
+    if (theme !== 'system') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      const root = window.document.documentElement;
-      root.classList.remove('light', 'dark');
-      const newTheme = e.matches ? 'dark' : 'light';
-      root.classList.add(newTheme);
-      setEffectiveTheme(newTheme);
+
+    const handleChange = () => {
+      const effective = getSystemTheme();
+      setEffectiveTheme(effective);
+      applyTheme(effective);
     };
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme, mounted]);
+  }, [theme, getSystemTheme, applyTheme]);
 
-  const toggleTheme = () => {
-    const newTheme = effectiveTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-  };
+  // Set theme handler
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+  }, []);
 
-  const value = {
+  // Toggle between light and dark (or system preference opposite)
+  const toggleTheme = useCallback(() => {
+    setThemeState(current => {
+      if (current === 'light') return 'dark';
+      if (current === 'dark') return 'light';
+      // If system, toggle to opposite of current system preference
+      return getSystemTheme() === 'dark' ? 'light' : 'dark';
+    });
+  }, [getSystemTheme]);
+
+  const value = useMemo(() => ({
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage?.setItem(storageKey, theme);
-      setTheme(theme);
-    },
+    setTheme,
     effectiveTheme,
     toggleTheme,
-  };
+    isHydrated,
+  }), [theme, setTheme, effectiveTheme, toggleTheme, isHydrated]);
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider value={value}>
       {children}
     </ThemeProviderContext.Provider>
   );
@@ -110,8 +134,9 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
-  if (context === undefined)
+  if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
+  }
 
   return context;
 };

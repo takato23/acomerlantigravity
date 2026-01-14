@@ -42,20 +42,37 @@ export class ReceiptOCR {
   constructor() {
     const apiKey = geminiConfig.getApiKey() || geminiConfig.getApiKey();
     if (!apiKey) {
-      throw new Error('GOOGLE_AI_API_KEY or NEXT_PUBLIC_GEMINI_API_KEY is required for receipt OCR');
+      if (!geminiConfig.isMockMode || !geminiConfig.isMockMode()) {
+        throw new Error('GOOGLE_AI_API_KEY or NEXT_PUBLIC_GEMINI_API_KEY is required for receipt OCR');
+      }
     }
-    
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: geminiConfig.default.model });
+
+    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+      this.genAI = {} as any;
+      this.model = {} as any;
+    } else {
+      this.genAI = new GoogleGenerativeAI(apiKey!);
+      this.model = this.genAI.getGenerativeModel({ model: geminiConfig.default.model });
+    }
   }
 
   async processReceipt(imageFile: File): Promise<OCRResult> {
+    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+      logger.info('Returning MOCK receipt data', 'receiptOCR');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { MOCK_RECEIPT_DATA } = require('@/lib/services/mockData');
+      return {
+        success: true,
+        receipt: MOCK_RECEIPT_DATA
+      };
+    }
+
     try {
       // Generate cache key based on file content
       const imageBuffer = await imageFile.arrayBuffer();
       const imageHash = await this.generateImageHash(imageBuffer);
       const cacheKey = `receipt:${imageHash}`;
-      
+
       // Check cache first
       const cached = await cacheService.get<ReceiptData>(cacheKey);
       if (cached) {
@@ -65,22 +82,23 @@ export class ReceiptOCR {
         };
       }
 
-      // Convert image to base64
-      const base64Image = await this.fileToBase64(imageFile);
-      
+      // Convert file to base64
+      const base64Data = await this.fileToBase64(imageFile);
+      const mimeType = imageFile.type === 'application/pdf' ? 'application/pdf' : 'image/jpeg';
+
       // Process with Gemini
-      const result = await this.extractTextFromImage(base64Image);
-      
+      const result = await this.extractTextFromImage(base64Data, mimeType);
+
       if (!result.success) {
         return result;
       }
 
       // Parse the extracted text
       const parsedReceipt = await this.parseReceiptText(result.receipt!.rawText);
-      
+
       // Cache the result
       await cacheService.set(cacheKey, parsedReceipt, this.CACHE_TTL);
-      
+
       return {
         success: true,
         receipt: parsedReceipt
@@ -95,7 +113,7 @@ export class ReceiptOCR {
     }
   }
 
-  private async extractTextFromImage(base64Image: string): Promise<OCRResult> {
+  private async extractTextFromImage(base64Data: string, mimeType: string = 'image/jpeg'): Promise<OCRResult> {
     try {
       const prompt = `
         Analiza este ticket de compra argentino y extrae toda la información en formato JSON.
@@ -140,18 +158,18 @@ export class ReceiptOCR {
         prompt,
         {
           inlineData: {
-            data: base64Image,
-            mimeType: 'image/jpeg'
+            data: base64Data,
+            mimeType: mimeType
           }
         }
       ]);
 
       const response = await result.response;
       const text = response.text();
-      
+
       try {
         const jsonData = JSON.parse(text);
-        
+
         // Validate the response structure
         if (!jsonData.items || !Array.isArray(jsonData.items)) {
           throw new Error('Invalid response format');
@@ -202,20 +220,20 @@ export class ReceiptOCR {
   private async parseReceiptText(rawText: string): Promise<ReceiptData> {
     // This is a fallback parser if the AI response is not in JSON format
     const lines = rawText.split('\n').filter(line => line.trim());
-    
+
     const items: ReceiptItem[] = [];
     let total: number | undefined;
     let storeName: string | undefined;
     let date: string | undefined;
-    
+
     // Simple patterns for Argentine receipts
     const pricePattern = /\$?\s*(\d+[.,]\d{2})/;
     const totalPattern = /total|subtotal|importe/i;
     const datePattern = /\d{1,2}\/\d{1,2}\/\d{2,4}/;
-    
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      
+
       // Try to extract date
       if (!date) {
         const dateMatch = line.match(datePattern);
@@ -223,7 +241,7 @@ export class ReceiptOCR {
           date = dateMatch[0];
         }
       }
-      
+
       // Try to extract total
       if (totalPattern.test(line)) {
         const priceMatch = line.match(pricePattern);
@@ -231,18 +249,18 @@ export class ReceiptOCR {
           total = parseFloat(priceMatch[1].replace(',', '.'));
         }
       }
-      
+
       // Try to extract store name (usually in the first few lines)
       if (i < 3 && !storeName && line.length > 3 && !pricePattern.test(line)) {
         storeName = line;
       }
-      
+
       // Try to extract items (lines with prices)
       const priceMatch = line.match(pricePattern);
       if (priceMatch && !totalPattern.test(line)) {
         const price = parseFloat(priceMatch[1].replace(',', '.'));
         const productName = line.replace(pricePattern, '').trim();
-        
+
         if (productName.length > 1) {
           items.push({
             id: `item_${items.length}`,
@@ -259,7 +277,7 @@ export class ReceiptOCR {
         }
       }
     }
-    
+
     return {
       storeName,
       date,
@@ -272,15 +290,15 @@ export class ReceiptOCR {
 
   private calculateOverallConfidence(items: any[]): number {
     if (!items || items.length === 0) return 0;
-    
+
     const avgConfidence = items.reduce((sum, item) => sum + (item.confidence || 0.5), 0) / items.length;
-    
+
     // Boost confidence if we have good structure
     let structureBoost = 0;
     if (items.length > 1) structureBoost += 0.1;
     if (items.every(item => item.price > 0)) structureBoost += 0.1;
     if (items.every(item => item.name && item.name.length > 2)) structureBoost += 0.1;
-    
+
     return Math.min(avgConfidence + structureBoost, 1.0);
   }
 
@@ -314,7 +332,7 @@ export class ReceiptOCR {
         if (!item.name || item.name.length < 2) return false;
         if (item.price <= 0) return false;
         if (item.quantity <= 0) return false;
-        
+
         // Filter out non-food items
         const nonFoodKeywords = ['bolsa', 'descuento', 'impuesto', 'tarjeta', 'efectivo'];
         const lowerName = item.name.toLowerCase();

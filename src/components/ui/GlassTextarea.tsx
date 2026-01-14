@@ -16,7 +16,7 @@ export const GlassTextarea = forwardRef<HTMLTextAreaElement, GlassTextareaProps>
     return (
       <div className="space-y-2">
         {label && (
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-slate-700">
             {label}
           </label>
         )}
@@ -34,17 +34,17 @@ export const GlassTextarea = forwardRef<HTMLTextAreaElement, GlassTextareaProps>
             ref={ref}
             className={cn(
               "w-full px-4 py-3 rounded-xl",
-              "bg-white/10 dark:bg-gray-900/10",
+              "bg-white/80",
               "backdrop-blur-md",
-              "border border-white/20 dark:border-gray-700/20",
-              "text-gray-900 dark:text-gray-100",
-              "placeholder-gray-500 dark:placeholder-gray-400",
+              "border border-slate-200",
+              "text-slate-900",
+              "placeholder-slate-500",
               "transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-white/30 dark:focus:ring-gray-600/30",
-              "hover:bg-white/20 dark:hover:bg-gray-900/20",
+              "focus:outline-none focus:ring-2 focus:ring-slate-400/30",
+              "hover:bg-white/90 hover:border-slate-300",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               "resize-none",
-              "scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent",
+              "scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent",
               error && "border-red-500/50",
               className
             )}
@@ -61,7 +61,7 @@ export const GlassTextarea = forwardRef<HTMLTextAreaElement, GlassTextareaProps>
           <motion.p
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-500 dark:text-red-400"
+            className="text-sm text-red-500"
           >
             {error}
           </motion.p>

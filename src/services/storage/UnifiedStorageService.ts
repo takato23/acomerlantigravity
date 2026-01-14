@@ -30,7 +30,7 @@ import { OfflineManager } from './OfflineManager';
 
 export class UnifiedStorageService extends EventEmitter {
   private static instance: UnifiedStorageService;
-  
+
   private providers: Map<StorageProvider, StorageProviderInterface>;
   private config: Required<StorageConfig>;
   private cacheManager: CacheManager;
@@ -41,7 +41,7 @@ export class UnifiedStorageService extends EventEmitter {
 
   private constructor(config: StorageConfig = {}) {
     super();
-    
+
     this.config = {
       provider: 'local',
       localStorage: {
@@ -62,7 +62,7 @@ export class UnifiedStorageService extends EventEmitter {
     this.providers = new Map();
     this.initializeProviders();
 
-    this.cacheManager = new CacheManager(this.config.cache!);
+    this.cacheManager = new CacheManager(this.config.cache as any);
     this.syncManager = new SyncManager(this);
     this.offlineManager = new OfflineManager();
 
@@ -128,7 +128,7 @@ export class UnifiedStorageService extends EventEmitter {
   ): Promise<void> {
     try {
       const provider = this.getActiveProvider();
-      
+
       // If offline, queue the operation
       if (!this.isOnline && provider === this.providers.get('supabase')) {
         await this.offlineManager.queue({
@@ -160,7 +160,7 @@ export class UnifiedStorageService extends EventEmitter {
   async delete(key: string): Promise<void> {
     try {
       const provider = this.getActiveProvider();
-      
+
       // If offline, queue the operation
       if (!this.isOnline && provider === this.providers.get('supabase')) {
         await this.offlineManager.queue({
@@ -241,7 +241,7 @@ export class UnifiedStorageService extends EventEmitter {
   ): Promise<FileInfo> {
     try {
       const provider = this.getActiveProvider();
-      
+
       // Validate file
       if (options.maxSize && file.size > options.maxSize) {
         throw new StorageError(
@@ -253,14 +253,14 @@ export class UnifiedStorageService extends EventEmitter {
       // If offline and using Supabase, queue the operation
       if (!this.isOnline && provider === this.providers.get('supabase')) {
         const localResult = await this.providers.get('local')!.uploadFile(file, options);
-        
+
         await this.offlineManager.queue({
           type: 'upload',
           key: localResult.path,
           value: file,
           options,
         });
-        
+
         return localResult;
       }
 
@@ -355,7 +355,7 @@ export class UnifiedStorageService extends EventEmitter {
     if (!this.isOnline) return;
 
     const queue = this.offlineManager.getQueue();
-    
+
     for (const operation of queue.operations) {
       try {
         await this.executeQueuedOperation(operation);
@@ -406,7 +406,7 @@ export class UnifiedStorageService extends EventEmitter {
    */
   updateConfig(config: Partial<StorageConfig>): void {
     this.config = { ...this.config, ...config };
-    
+
     // Reinitialize providers if needed
     if (config.supabaseUrl || config.supabaseKey) {
       this.initializeProviders();
@@ -480,7 +480,7 @@ export class UnifiedStorageService extends EventEmitter {
 
     const message = error.message || `Storage ${operation} failed`;
     const code = this.mapErrorCode(error);
-    
+
     return new StorageError(
       key ? `${message} for key: ${key}` : message,
       code,
@@ -491,18 +491,18 @@ export class UnifiedStorageService extends EventEmitter {
 
   private mapErrorCode(error: any): StorageErrorCode {
     const message = error.message?.toLowerCase() || '';
-    
+
     if (message.includes('not found')) return 'NOT_FOUND';
     if (message.includes('permission') || message.includes('unauthorized')) return 'PERMISSION_DENIED';
     if (message.includes('quota') || message.includes('storage full')) return 'QUOTA_EXCEEDED';
     if (message.includes('network') || message.includes('fetch')) return 'NETWORK_ERROR';
     if (message.includes('invalid key')) return 'INVALID_KEY';
     if (message.includes('invalid value')) return 'INVALID_VALUE';
-    
+
     return 'UNKNOWN';
   }
 }
 
 // Export singleton getter
-export const getStorageService = (config?: StorageConfig) => 
+export const getStorageService = (config?: StorageConfig) =>
   UnifiedStorageService.getInstance(config);

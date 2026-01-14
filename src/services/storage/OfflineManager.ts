@@ -7,7 +7,7 @@ import { OfflineQueue, QueuedOperation } from './types';
 import { logger } from '@/services/logger';
 
 export class OfflineManager {
-  private queue: OfflineQueue = {
+  private internalQueue: OfflineQueue = {
     operations: [],
     retryCount: new Map(),
   };
@@ -26,21 +26,21 @@ export class OfflineManager {
       retries: 0,
     };
 
-    this.queue.operations.push(queuedOp);
+    this.internalQueue.operations.push(queuedOp);
     this.saveQueue();
   }
 
-  async remove(id: string): Promise<void> {
-    this.queue.operations = this.queue.operations.filter(op => op.id !== id);
-    this.queue.retryCount.delete(id);
+  public async remove(id: string): Promise<void> {
+    this.internalQueue.operations = this.internalQueue.operations.filter(op => op.id !== id);
+    this.internalQueue.retryCount.delete(id);
     this.saveQueue();
   }
 
-  async incrementRetry(id: string): Promise<boolean> {
-    const retries = (this.queue.retryCount.get(id) || 0) + 1;
-    this.queue.retryCount.set(id, retries);
-    
-    const operation = this.queue.operations.find(op => op.id === id);
+  public async incrementRetry(id: string): Promise<boolean> {
+    const retries = (this.internalQueue.retryCount.get(id) || 0) + 1;
+    this.internalQueue.retryCount.set(id, retries);
+
+    const operation = this.internalQueue.operations.find(op => op.id === id);
     if (operation) {
       operation.retries = retries;
     }
@@ -51,19 +51,19 @@ export class OfflineManager {
     return retries < this.maxRetries;
   }
 
-  getQueue(): OfflineQueue {
+  public getQueue(): OfflineQueue {
     return {
-      operations: [...this.queue.operations],
-      retryCount: new Map(this.queue.retryCount),
+      operations: [...this.internalQueue.operations],
+      retryCount: new Map(this.internalQueue.retryCount),
     };
   }
 
-  getQueueSize(): number {
-    return this.queue.operations.length;
+  public getQueueSize(): number {
+    return this.internalQueue.operations.length;
   }
 
-  clearQueue(): void {
-    this.queue = {
+  public clearQueue(): void {
+    this.internalQueue = {
       operations: [],
       retryCount: new Map(),
     };
@@ -77,11 +77,11 @@ export class OfflineManager {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
-        this.queue.operations = parsed.operations.map((op: any) => ({
+        this.internalQueue.operations = parsed.operations.map((op: any) => ({
           ...op,
           timestamp: new Date(op.timestamp),
         }));
-        this.queue.retryCount = new Map(parsed.retryCount);
+        this.internalQueue.retryCount = new Map(parsed.retryCount);
       }
     } catch (error: unknown) {
       logger.error('Failed to load offline queue:', 'OfflineManager', error);
@@ -93,8 +93,8 @@ export class OfflineManager {
 
     try {
       const toStore = {
-        operations: this.queue.operations,
-        retryCount: Array.from(this.queue.retryCount.entries()),
+        operations: this.internalQueue.operations,
+        retryCount: Array.from(this.internalQueue.retryCount.entries()),
       };
       localStorage.setItem(this.storageKey, JSON.stringify(toStore));
     } catch (error: unknown) {

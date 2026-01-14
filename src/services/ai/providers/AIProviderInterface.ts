@@ -10,6 +10,8 @@ import {
   AIImageRequest,
   AITextResponse,
   AIStreamResponse,
+  AIImageGenerationRequest,
+  AIImageGenerationResponse,
 } from '../types';
 
 export interface AIProviderCapabilities {
@@ -43,6 +45,14 @@ export abstract class AIProviderInterface {
     request: AITextRequest,
     config: AIServiceConfig
   ): Promise<AIStreamResponse>;
+
+  /**
+   * Generate image
+   */
+  abstract generateImage(
+    request: AIImageGenerationRequest,
+    config: AIServiceConfig
+  ): Promise<AIImageGenerationResponse>;
 
   /**
    * Analyze image

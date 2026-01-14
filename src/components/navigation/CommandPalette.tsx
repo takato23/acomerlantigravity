@@ -344,29 +344,29 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             transition={{ duration: 0.2 }}
             className="fixed inset-x-0 top-20 mx-auto max-w-2xl z-50 p-4"
           >
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
               {/* Search input */}
-              <div className="border-b border-gray-200 dark:border-gray-800">
+              <div className="border-b border-slate-200">
                 <div className="flex items-center px-4 py-3">
-                  <Search className="w-5 h-5 text-gray-400 mr-3" />
+                  <Search className="w-5 h-5 text-slate-400 mr-3" />
                   <input
                     ref={inputRef}
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Buscar o escribir un comando..."
-                    className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-500"
+                    className="flex-1 bg-transparent outline-none text-slate-900 placeholder-slate-500"
                   />
                   <button
                     onClick={onClose}
-                    className="ml-3 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="ml-3 p-1 rounded-md hover:bg-slate-100 transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-slate-500" />
                   </button>
                 </div>
 
                 {/* Quick shortcuts */}
-                <div className="px-4 pb-2 flex items-center space-x-4 text-xs text-gray-500">
+                <div className="px-4 pb-2 flex items-center space-x-4 text-xs text-slate-500">
                   <span>@páginas</span>
                   <span>#búsqueda</span>
                   <span>&gt;comandos</span>
@@ -379,7 +379,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 {Object.entries(groupedCommands).length > 0 ? (
                   Object.entries(groupedCommands).map(([category, items], groupIndex) => (
                     <div key={category}>
-                      <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center space-x-2">
+                      <div className="px-4 py-2 text-xs font-medium text-slate-500 flex items-center space-x-2">
                         {React.createElement(getCategoryIcon(category), { className: "w-3 h-3" })}
                         <span>{getCategoryLabel(category)}</span>
                       </div>
@@ -387,7 +387,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                         const globalIndex = Object.entries(groupedCommands)
                           .slice(0, groupIndex)
                           .reduce((acc, [, prevItems]) => acc + prevItems.length, 0) + itemIndex;
-                        
+
                         return (
                           <button
                             key={item.id}
@@ -396,23 +396,23 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                             className={cn(
                               "w-full px-4 py-3 flex items-center space-x-3 transition-colors",
                               selectedIndex === globalIndex
-                                ? "bg-orange-50 dark:bg-orange-900/20"
-                                : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                ? "bg-orange-50"
+                                : "hover:bg-slate-50"
                             )}
                           >
-                            <item.icon className="w-5 h-5 text-gray-400" />
+                            <item.icon className="w-5 h-5 text-slate-400" />
                             <div className="flex-1 text-left">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              <p className="text-sm font-medium text-slate-900">
                                 {item.title}
                               </p>
                               {item.description && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-slate-500">
                                   {item.description}
                                 </p>
                               )}
                             </div>
                             {item.shortcut && (
-                              <span className="text-xs text-gray-400 dark:text-gray-500">
+                              <span className="text-xs text-slate-400">
                                 {item.shortcut}
                               </span>
                             )}
@@ -422,7 +422,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                  <div className="px-4 py-8 text-center text-slate-500">
                     <p className="text-sm">No se encontraron resultados</p>
                     <p className="text-xs mt-1">Intenta con otra búsqueda</p>
                   </div>

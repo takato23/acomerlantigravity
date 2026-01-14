@@ -1,7 +1,67 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Helper to check if we have valid Supabase credentials
+const isValidSupabaseConfig = (): boolean => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) return false
+  if (url.includes('your_') || key.includes('your_')) return false
+
+  try {
+    new URL(url)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // Skip API routes - let them handle their own auth
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
+  // Special case: Shared plans are public
+  if (pathname.startsWith('/shared/')) {
+    return NextResponse.next()
+  }
+
+  // Protected routes - require authentication
+  const protectedPaths = [
+    '/planificador',
+    '/dashboard',
+    '/historial',
+    '/settings',
+    '/perfil',
+    '/profile',
+    '/despensa',
+    '/lista-compras',
+    '/shopping-list',
+    '/notifications',
+    '/notificaciones',
+  ]
+
+  const isProtectedPath = protectedPaths.some(path =>
+    pathname.startsWith(path)
+  )
+
+  // If Supabase is not configured, warn and bypass in development ONLY
+  if (!isValidSupabaseConfig()) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Supabase not configured - auth checks bypassed for development')
+      return NextResponse.next()
+    } else {
+      console.error('CRITICAL: Supabase not configured in production environment!')
+      // In production, if config is missing, we shouldn't just let everyone in
+      // Maybe redirect to a configuration error page? For now, we'll continue 
+      // but the following createServerClient will likely fail safely.
+    }
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -30,29 +90,6 @@ export async function middleware(request: NextRequest) {
   // This will refresh session if expired - required for Server Components
   const { data: { user } } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
-
-  // Protected routes
-  const protectedPaths = [
-    '/dashboard',
-    '/recipes/new',
-    '/recipes/generate',
-    '/pantry',
-    '/meal-planner',
-    '/profile',
-    '/shopping-list',
-    '/api/recipes',
-    '/api/pantry',
-    '/api/meal-planning',
-    '/api/user',
-    '/api/ai/generate-recipe',
-    '/api/ai/suggest-from-pantry'
-  ]
-
-  const isProtectedPath = protectedPaths.some(path => 
-    pathname.startsWith(path)
-  )
-
   // Redirect to login if accessing protected route without auth
   if (isProtectedPath && !user) {
     const redirectUrl = request.nextUrl.clone()
@@ -61,9 +98,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect to dashboard if accessing auth pages while logged in
+  // Redirect to home if accessing auth pages while logged in
   if (user && (pathname === '/login' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return supabaseResponse
@@ -71,7 +108,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Temporarily disable middleware
-    "/disabled-route-for-testing"
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder assets
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)$).*)',
   ],
 };

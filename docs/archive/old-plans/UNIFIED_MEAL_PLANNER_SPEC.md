@@ -17,7 +17,7 @@ Crear un sistema de planificación de comidas que:
 ## 🏗️ Arquitectura del Sistema
 
 ### Stack Tecnológico
-- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15.0.0, React, TypeScript, Tailwind CSS
 - **Animaciones**: Framer Motion
 - **Estado**: Zustand con persistencia
 - **IA**: Google Gemini API

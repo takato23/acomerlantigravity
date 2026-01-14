@@ -130,7 +130,7 @@ Understanding the project structure is crucial for effective contribution:
 
 ```
 kecarajocomer/
-├── app/                    # Next.js 15 App Router
+├── app/                    # Next.js 15.0.0 App Router
 │   ├── [locale]/          # Internationalized routes
 │   ├── api/               # API routes
 │   └── globals.css        # Global styles

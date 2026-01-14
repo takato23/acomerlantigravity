@@ -48,7 +48,7 @@ export function OptimizedImage({
 
   if (hasError) {
     return (
-      <div className={cn(containerClassName, 'bg-gray-200 dark:bg-gray-700 flex items-center justify-center')}>
+      <div className={cn(containerClassName, 'bg-slate-200 flex items-center justify-center')}>
         <div className="text-center p-4">
           <svg
             className="w-12 h-12 mx-auto text-gray-400 mb-2"
@@ -158,7 +158,7 @@ export function Avatar({
     return (
       <div
         className={cn(
-          'rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold',
+          'rounded-full bg-slate-600 flex items-center justify-center text-white font-semibold',
           sizes[size],
           className
         )}

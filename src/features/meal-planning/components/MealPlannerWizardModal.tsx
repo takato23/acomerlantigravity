@@ -38,7 +38,7 @@ const GlassCard = ({ children, className = '', variant = 'default', style = {} }
 }) => {
   const variants = {
     default: 'bg-white/5 border-white/10',
-    highlight: 'bg-purple-500/10 border-purple-400/20',
+    highlight: 'bg-slate-500/10 border-slate-400/20',
   };
   
   return (
@@ -58,7 +58,7 @@ const GlassButton = ({ children, onClick, variant = 'default', disabled = false,
 }) => {
   const variants = {
     default: 'bg-white/10 border-white/20 text-white hover:bg-white/20',
-    primary: 'bg-gradient-to-r from-purple-500 to-pink-500 border-purple-400/50 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25',
+    primary: 'bg-orange-500 border-orange-400/50 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/25',
     secondary: 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10'
   };
   
@@ -246,9 +246,9 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
         >
           {/* Background effects */}
           <div className="absolute -inset-10 overflow-hidden rounded-3xl pointer-events-none">
-            <div className="absolute -top-20 -right-20 w-60 h-60 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-            <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+            <div className="absolute -top-20 -right-20 w-60 h-60 bg-slate-700 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+            <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-slate-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-slate-700 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
           </div>
           
           <GlassCard className="relative overflow-hidden shadow-2xl" style={{
@@ -270,7 +270,7 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
             <div className="px-8 py-6 border-b border-white/10 relative overflow-hidden">
               {/* Animated gradient bar */}
               <motion.div
-                className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400"
+                className="absolute top-0 left-0 right-0 h-1 bg-orange-500"
                 animate={{ x: ['-100%', '100%'] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
               />
@@ -288,8 +288,8 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
                     }}
                     className="relative w-12 h-12"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl blur-md opacity-50"></div>
-                    <div className="relative w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="absolute inset-0 bg-orange-500 rounded-2xl blur-md opacity-50"></div>
+                    <div className="relative w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
                       <Sparkles className="w-6 h-6 text-white" />
                     </div>
                   </motion.div>
@@ -339,8 +339,8 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
                     <span className="font-medium">{Math.round(progress)}% Completado</span>
                   </div>
                   <div className="h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-                    <motion.div 
-                      className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
+                    <motion.div
+                      className="h-full bg-orange-500 rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
                       transition={{ duration: 0.5, ease: "easeOut" }}
@@ -367,7 +367,7 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.5, type: "spring" }}
-                        className="w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl"
+                        className="w-32 h-32 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl"
                       >
                         <ChefHat className="w-16 h-16 text-white" />
                       </motion.div>
@@ -422,7 +422,7 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
                       opacity: index === currentStep ? 1 : 0.3
                     }}
                     className={`w-2 h-2 rounded-full ${
-                      index <= currentStep ? 'bg-purple-400' : 'bg-white/20'
+                      index <= currentStep ? 'bg-orange-400' : 'bg-white/20'
                     }`}
                   />
                 ))}

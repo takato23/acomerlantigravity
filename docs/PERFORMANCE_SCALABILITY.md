@@ -22,7 +22,7 @@ Comprehensive performance optimization and scalability strategies for building a
 
 ## Frontend Performance
 
-### Next.js 15 Optimizations
+### Next.js 15.0.0 Optimizations
 
 ```typescript
 // next.config.js

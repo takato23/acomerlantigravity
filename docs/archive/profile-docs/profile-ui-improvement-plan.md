@@ -6,7 +6,7 @@ This document outlines a comprehensive plan to modernize the `/profile` page wit
 ## Current State Analysis
 
 ### Strengths
-- **Modern Tech Stack**: Next.js 15, React 18, TypeScript
+- **Modern Tech Stack**: Next.js 15.0.0, React 18, TypeScript
 - **Design System**: Sophisticated glassmorphism with iOS26-inspired aesthetics
 - **Responsive**: Well-implemented breakpoint system and adaptive layouts
 - **Component Architecture**: Modular, reusable components with Radix UI

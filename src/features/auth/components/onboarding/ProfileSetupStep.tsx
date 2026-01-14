@@ -26,14 +26,14 @@ const COOKING_PERSONAS = [
 export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
   const user = useAppStore((state) => state.user.profile);
   const { data, updateData, saveProfile } = useOnboardingStore();
-  
+
   const [formData, setFormData] = useState({
     display_name: data.profile?.display_name || user?.name || '',
     bio: data.profile?.bio || '',
     avatar_url: data.profile?.avatar_url || '',
     cooking_persona: data.profile?.cooking_persona || ''
   });
-  
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
@@ -41,15 +41,15 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.display_name.trim()) {
       newErrors.display_name = 'El nombre es obligatorio';
     }
-    
+
     if (!formData.cooking_persona) {
       newErrors.cooking_persona = 'Por favor selecciona tu estilo de cocina';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -85,10 +85,10 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
       
       Responde SOLO con un JSON array de 3 strings, sin markdown ni explicaciones adicionales.`;
 
-      const result = await aiService.generateText({ prompt: prompt);
+      const result = await aiService.generateText({ prompt: prompt });
       const response = await result.response;
       let text = response.text().trim();
-      
+
       // Clean markdown if present
       if (text.startsWith('```json')) {
         text = text.slice(7);
@@ -99,7 +99,7 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
       if (text.endsWith('```')) {
         text = text.slice(0, -3);
       }
-      
+
       const suggestions = JSON.parse(text.trim());
       setBioSuggestions(suggestions);
     } catch (error) {
@@ -123,9 +123,9 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
     try {
       await saveProfile(formData);
@@ -154,7 +154,7 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
@@ -169,7 +169,7 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Avatar Upload */}
-        <motion.div 
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -178,9 +178,9 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
           <div className="relative">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-white/10 backdrop-blur-xl border-2 border-white/20 flex items-center justify-center">
               {formData.avatar_url ? (
-                <img 
-                  src={formData.avatar_url} 
-                  alt="Avatar" 
+                <img
+                  src={formData.avatar_url}
+                  alt="Avatar"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -213,9 +213,8 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
             type="text"
             value={formData.display_name}
             onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-            className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all ${
-              errors.display_name ? 'border-red-400' : 'border-white/20'
-            }`}
+            className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-all ${errors.display_name ? 'border-red-400' : 'border-white/20'
+              }`}
             placeholder="Tu nombre"
           />
           {errors.display_name && (
@@ -239,18 +238,15 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
                   transition={{ duration: 0.3, delay: 0.1 * index }}
                   type="button"
                   onClick={() => setFormData({ ...formData, cooking_persona: persona.id })}
-                  className={`p-4 rounded-xl border-2 transition-all backdrop-blur-xl ${
-                    formData.cooking_persona === persona.id
+                  className={`p-4 rounded-xl border-2 transition-all backdrop-blur-xl ${formData.cooking_persona === persona.id
                       ? 'border-purple-400 bg-purple-500/20'
                       : 'border-white/20 bg-white/5 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
-                  <Icon className={`w-8 h-8 mx-auto mb-2 ${
-                    formData.cooking_persona === persona.id ? 'text-purple-400' : 'text-white/60'
-                  }`} />
-                  <h3 className={`font-medium text-sm ${
-                    formData.cooking_persona === persona.id ? 'text-white' : 'text-white/80'
-                  }`}>
+                  <Icon className={`w-8 h-8 mx-auto mb-2 ${formData.cooking_persona === persona.id ? 'text-purple-400' : 'text-white/60'
+                    }`} />
+                  <h3 className={`font-medium text-sm ${formData.cooking_persona === persona.id ? 'text-white' : 'text-white/80'
+                    }`}>
                     {persona.label}
                   </h3>
                   <p className="text-xs text-white/60 mt-1">{persona.description}</p>
@@ -282,10 +278,10 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
               </button>
             )}
           </div>
-          
+
           {/* AI Suggestions */}
           {bioSuggestions.length > 0 && !formData.bio && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mb-3 space-y-2"
@@ -309,7 +305,7 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
               ))}
             </motion.div>
           )}
-          
+
           <textarea
             id="bio"
             rows={3}
@@ -343,7 +339,7 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
             <ArrowLeft className="w-4 h-4" />
             Atrás
           </GlassButton>
-          
+
           <GlassButton
             type="submit"
             disabled={isLoading}

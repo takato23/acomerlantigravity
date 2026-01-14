@@ -6,11 +6,7 @@
 import type {
   UserProfile,
   UserPreferences,
-  DietaryRestriction,
-  Allergy,
-  HouseholdMember,
-  TasteProfile,
-  NutritionalGoals
+  DietaryRestriction
 } from './index';
 
 // ============================================================================
@@ -25,7 +21,7 @@ export function isIngredientCompatible(
   restrictions: DietaryRestriction[]
 ): { compatible: boolean; reason?: string } {
   const lower = ingredient.toLowerCase();
-  
+
   for (const restriction of restrictions) {
     const check = DIETARY_CHECKS[restriction];
     if (check && !check(lower)) {
@@ -35,7 +31,7 @@ export function isIngredientCompatible(
       };
     }
   }
-  
+
   return { compatible: true };
 }
 
@@ -53,7 +49,7 @@ const DIETARY_CHECKS: Record<DietaryRestriction, (ingredient: string) => boolean
   egg_free: (ing) => !isEgg(ing),
   soy_free: (ing) => !hasSoy(ing),
   pescatarian: (ing) => !isMeat(ing),
-  paleo: (ing) => !hasGrains(ing) && !hasDairy(ing) && !hasLegumes(ing),
+  paleo: (ing) => !hasGrains(ing) && !isDairy(ing) && !hasLegumes(ing),
   keto: (ing) => !hasHighCarbs(ing),
   low_carb: (ing) => !hasHighCarbs(ing),
   low_sodium: (ing) => !hasHighSodium(ing),
@@ -62,7 +58,7 @@ const DIETARY_CHECKS: Record<DietaryRestriction, (ingredient: string) => boolean
   kosher: (ing) => !isPork(ing) && !hasShellfish(ing) && !hasMixedMeatDairy(ing),
   diabetic: (ing) => !hasHighSugar(ing),
   raw_food: (ing) => isRawCompatible(ing),
-  whole30: (ing) => !hasGrains(ing) && !hasDairy(ing) && !hasLegumes(ing) && !hasSugar(ing)
+  whole30: (ing) => !hasGrains(ing) && !isDairy(ing) && !hasLegumes(ing) && !hasSugar(ing)
 };
 
 // ============================================================================
@@ -239,11 +235,11 @@ export function getHouseholdDietaryRestrictions(
   profile: UserProfile
 ): DietaryRestriction[] {
   const restrictions = new Set(profile.dietaryRestrictions);
-  
+
   profile.householdMembers.forEach(member => {
     member.dietaryRestrictions?.forEach(r => restrictions.add(r));
   });
-  
+
   return Array.from(restrictions);
 }
 
@@ -254,11 +250,11 @@ export function getHouseholdAllergies(
   profile: UserProfile
 ): string[] {
   const allergies = new Set(profile.allergies);
-  
+
   profile.householdMembers.forEach(member => {
     member.allergies?.forEach(a => allergies.add(a));
   });
-  
+
   return Array.from(allergies);
 }
 
@@ -269,10 +265,10 @@ export function calculateHouseholdCalorieNeeds(
   profile: UserProfile
 ): number {
   let totalCalories = 0;
-  
+
   // Base calories for main user
   totalCalories += profile.nutritionalGoals.caloriesPerDay || 2000;
-  
+
   // Add calories for household members based on age
   profile.householdMembers.forEach(member => {
     if (member.age) {
@@ -285,7 +281,7 @@ export function calculateHouseholdCalorieNeeds(
       totalCalories += 2000; // Default adult calories
     }
   });
-  
+
   return totalCalories;
 }
 
@@ -294,29 +290,29 @@ export function calculateHouseholdCalorieNeeds(
  */
 export function getCuisineSuggestions(profile: UserProfile): string[] {
   const suggestions = new Set<string>();
-  
+
   // Add preferred cuisines
   profile.preferredCuisines.forEach(c => suggestions.add(c));
-  
+
   // Add complementary cuisines based on dietary restrictions
-  if (profile.dietaryRestrictions.includes('vegetarian') || 
-      profile.dietaryRestrictions.includes('vegan')) {
+  if (profile.dietaryRestrictions.includes('vegetarian') ||
+    profile.dietaryRestrictions.includes('vegan')) {
     suggestions.add('Indian');
     suggestions.add('Mediterranean');
     suggestions.add('Thai');
   }
-  
+
   if (profile.dietaryRestrictions.includes('gluten_free')) {
     suggestions.add('Mexican');
     suggestions.add('Japanese');
   }
-  
-  if (profile.dietaryRestrictions.includes('keto') || 
-      profile.dietaryRestrictions.includes('low_carb')) {
+
+  if (profile.dietaryRestrictions.includes('keto') ||
+    profile.dietaryRestrictions.includes('low_carb')) {
     suggestions.add('Greek');
     suggestions.add('Brazilian');
   }
-  
+
   return Array.from(suggestions);
 }
 
@@ -328,7 +324,7 @@ export function getMealComplexity(
   timeAvailable: number
 ): 'simple' | 'moderate' | 'complex' {
   if (timeAvailable < 20) return 'simple';
-  
+
   switch (skillLevel) {
     case 'beginner':
       return timeAvailable < 45 ? 'simple' : 'moderate';
@@ -347,16 +343,16 @@ export function calculateBudgetPerMeal(
   profile: UserProfile,
   preferences?: UserPreferences
 ): number {
-  const mealsPerDay = preferences?.mealSchedule ? 
+  const mealsPerDay = preferences?.mealSchedule ?
     [
       preferences.mealSchedule.breakfast.enabled,
       preferences.mealSchedule.lunch.enabled,
       preferences.mealSchedule.dinner.enabled
     ].filter(Boolean).length : 3;
-    
+
   const daysInMonth = 30;
   const totalMeals = mealsPerDay * daysInMonth * profile.householdSize;
-  
+
   return profile.monthlyBudget / totalMeals;
 }
 
@@ -365,7 +361,7 @@ export function calculateBudgetPerMeal(
  */
 export function getIngredientRestrictions(profile: UserProfile): string[] {
   const restricted: string[] = [];
-  
+
   // Add ingredients based on dietary restrictions
   profile.dietaryRestrictions.forEach(restriction => {
     switch (restriction) {
@@ -396,13 +392,13 @@ export function getIngredientRestrictions(profile: UserProfile): string[] {
         break;
     }
   });
-  
+
   // Add allergies
   restricted.push(...profile.allergies);
-  
+
   // Add disliked ingredients
   restricted.push(...profile.dislikedIngredients);
-  
+
   // Remove duplicates
   return Array.from(new Set(restricted));
 }
@@ -412,9 +408,9 @@ export function getIngredientRestrictions(profile: UserProfile): string[] {
  */
 export function needsOnboarding(profile: Partial<UserProfile>): boolean {
   return !profile.cookingSkillLevel ||
-         !profile.householdSize ||
-         !profile.dietaryRestrictions ||
-         profile.preferredCuisines?.length === 0;
+    !profile.householdSize ||
+    !profile.dietaryRestrictions ||
+    profile.preferredCuisines?.length === 0;
 }
 
 /**
@@ -426,7 +422,7 @@ export function getProfileRecommendations(profile: UserProfile): {
   priority: 'low' | 'medium' | 'high';
 }[] {
   const recommendations = [];
-  
+
   if (!profile.nutritionalGoals.caloriesPerDay) {
     recommendations.push({
       message: 'Set your daily calorie goals for better meal planning',
@@ -434,7 +430,7 @@ export function getProfileRecommendations(profile: UserProfile): {
       priority: 'medium' as const
     });
   }
-  
+
   if (profile.preferredCuisines.length === 0) {
     recommendations.push({
       message: 'Add your favorite cuisines for personalized recipes',
@@ -442,7 +438,7 @@ export function getProfileRecommendations(profile: UserProfile): {
       priority: 'high' as const
     });
   }
-  
+
   if (!profile.avatarUrl) {
     recommendations.push({
       message: 'Add a profile photo to personalize your account',
@@ -450,7 +446,7 @@ export function getProfileRecommendations(profile: UserProfile): {
       priority: 'low' as const
     });
   }
-  
+
   if (profile.householdMembers.length === 0 && profile.householdSize > 1) {
     recommendations.push({
       message: 'Add household members for better meal planning',
@@ -458,6 +454,6 @@ export function getProfileRecommendations(profile: UserProfile): {
       priority: 'medium' as const
     });
   }
-  
+
   return recommendations;
 }

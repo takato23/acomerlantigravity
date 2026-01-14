@@ -35,7 +35,7 @@ const GlassCard = ({ children, className = '', variant = 'default', style }: {
 }) => {
   const variants = {
     default: 'bg-white/5 border-white/10',
-    highlight: 'bg-purple-500/10 border-purple-400/20',
+    highlight: 'bg-slate-500/10 border-slate-400/20',
   };
   
   return (
@@ -57,7 +57,7 @@ const GlassButton = ({ children, onClick, variant = 'default', disabled = false,
 }) => {
   const variants = {
     default: 'bg-white/10 border-white/20 text-white hover:bg-white/20',
-    primary: 'bg-gradient-to-r from-purple-500 to-pink-500 border-purple-400/50 text-white hover:from-purple-600 hover:to-pink-600',
+    primary: 'bg-orange-500 border-orange-400/50 text-white hover:bg-orange-600',
     secondary: 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10'
   };
   
@@ -166,12 +166,12 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-pink-900 z-50 flex items-center justify-center p-4 overflow-hidden">
+    <div className="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-slate-700 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-slate-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-slate-700 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
       
       <motion.div 
@@ -187,7 +187,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
           <div className="px-8 py-6 border-b border-white/10 relative overflow-hidden">
             {/* Animated gradient bar */}
             <motion.div
-              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400"
+              className="absolute top-0 left-0 right-0 h-1 bg-orange-500"
               animate={{ x: ['-100%', '100%'] }}
               transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
             />
@@ -205,8 +205,8 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                   }}
                   className="relative w-12 h-12"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl blur-md opacity-50"></div>
-                  <div className="relative w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="absolute inset-0 bg-orange-500 rounded-2xl blur-md opacity-50"></div>
+                  <div className="relative w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
                     <Sparkles className="w-6 h-6 text-white" />
                   </div>
                 </motion.div>
@@ -239,8 +239,8 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                     scale: index === currentStep ? 1.05 : 1
                   }}
                   className={`relative flex-1 h-3 rounded-full overflow-hidden transition-all duration-300 ${
-                    index <= currentStep 
-                      ? '' 
+                    index <= currentStep
+                      ? ''
                       : 'bg-white/10'
                   }`}
                 >
@@ -249,7 +249,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                       initial={{ x: '-100%' }}
                       animate={{ x: '0%' }}
                       transition={{ duration: 0.5, ease: "easeOut" }}
-                      className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400"
+                      className="absolute inset-0 bg-orange-500"
                     />
                   )}
                 </motion.div>
@@ -273,7 +273,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.5, type: "spring" }}
-                      className="w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl"
+                      className="w-32 h-32 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl"
                     >
                       <motion.div
                         animate={{ 
@@ -296,22 +296,22 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                         {
                           icon: <Rocket className="w-6 h-6" />,
                           title: 'Personalizado',
-                          description: 'Planes únicos para ti',
-                          color: 'from-blue-400 to-cyan-400',
+                          description: 'Planes unicos para ti',
+                          color: 'bg-slate-600',
                           delay: 0
                         },
                         {
                           icon: <Diamond className="w-6 h-6" />,
                           title: 'Premium',
                           description: 'Experiencia gourmet',
-                          color: 'from-purple-400 to-pink-400',
+                          color: 'bg-slate-700',
                           delay: 0.1
                         },
                         {
                           icon: <Crown className="w-6 h-6" />,
                           title: 'Exclusivo',
-                          description: 'Recetas únicas',
-                          color: 'from-amber-400 to-orange-400',
+                          description: 'Recetas unicas',
+                          color: 'bg-orange-500',
                           delay: 0.2
                         }
                       ].map((feature, index) => (
@@ -332,8 +332,8 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                           className="relative group transform-gpu"
                           style={{ transformStyle: 'preserve-3d' }}
                         >
-                          <motion.div 
-                            className={`absolute inset-0 bg-gradient-to-br ${feature.color} rounded-2xl blur-xl opacity-50`}
+                          <motion.div
+                            className={`absolute inset-0 ${feature.color} rounded-2xl blur-xl opacity-50`}
                             animate={{ 
                               scale: [1, 1.2, 1],
                               opacity: [0.5, 0.7, 0.5]
@@ -357,8 +357,8 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                                 delay: feature.delay
                               }}
                             />
-                            <motion.div 
-                              className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}
+                            <motion.div
+                              className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}
                               whileHover={{ rotate: 360 }}
                               transition={{ duration: 0.5 }}
                             >
@@ -387,10 +387,10 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                       </p>
                       <div className="grid grid-cols-2 gap-3">
                         {[
-                          { value: 'omnivora', label: 'Omnívora', icon: '🍖', color: 'from-red-400 to-orange-400' },
-                          { value: 'vegetariana', label: 'Vegetariana', icon: '🥦', color: 'from-green-400 to-emerald-400' },
-                          { value: 'vegana', label: 'Vegana', icon: '🌱', color: 'from-green-500 to-lime-400' },
-                          { value: 'pescetariana', label: 'Pescetariana', icon: '🐟', color: 'from-blue-400 to-cyan-400' }
+                          { value: 'omnivora', label: 'Omnivora', icon: '🍖', color: 'bg-slate-600' },
+                          { value: 'vegetariana', label: 'Vegetariana', icon: '🥦', color: 'bg-green-600' },
+                          { value: 'vegana', label: 'Vegana', icon: '🌱', color: 'bg-green-700' },
+                          { value: 'pescetariana', label: 'Pescetariana', icon: '🐟', color: 'bg-slate-600' }
                         ].map((diet) => (
                           <motion.button
                             key={diet.value}
@@ -406,15 +406,15 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                             aria-pressed={data.dietaryPreferences.includes(diet.value)}
                             className={`relative overflow-hidden p-4 rounded-xl border-2 backdrop-blur-xl transition-all ${
                               data.dietaryPreferences.includes(diet.value)
-                                ? 'border-purple-400 bg-purple-500/20'
+                                ? 'border-orange-400 bg-orange-500/20'
                                 : 'border-white/20 bg-white/5 hover:bg-white/10'
                             }`}
                           >
                             {data.dietaryPreferences.includes(diet.value) && (
-                              <motion.div 
+                              <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className={`absolute inset-0 bg-gradient-to-br ${diet.color} opacity-20`}
+                                className={`absolute inset-0 ${diet.color} opacity-20`}
                               />
                             )}
                             <div className="relative z-10">
@@ -467,17 +467,17 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                     {/* Cuisine Preferences */}
                     <div>
                       <p className="font-semibold text-white mb-4 flex items-center gap-2">
-                        <Globe className="w-5 h-5 text-purple-400" />
+                        <Globe className="w-5 h-5 text-orange-400" />
                         Cocinas favoritas
                       </p>
                       <div className="grid grid-cols-3 gap-3">
                         {[
-                          { value: 'italiana', label: 'Italiana', icon: <Pizza className="w-5 h-5" />, glow: 'shadow-red-500/50' },
-                          { value: 'mexicana', label: 'Mexicana', icon: '🌮', glow: 'shadow-orange-500/50' },
-                          { value: 'asiatica', label: 'Asiática', icon: '🥢', glow: 'shadow-yellow-500/50' },
-                          { value: 'mediterranea', label: 'Mediterránea', icon: <Salad className="w-5 h-5" />, glow: 'shadow-green-500/50' },
-                          { value: 'argentina', label: 'Argentina', icon: '🥩', glow: 'shadow-red-600/50' },
-                          { value: 'japonesa', label: 'Japonesa', icon: <Fish className="w-5 h-5" />, glow: 'shadow-blue-500/50' }
+                          { value: 'italiana', label: 'Italiana', icon: <Pizza className="w-5 h-5" />, glow: 'shadow-slate-500/50' },
+                          { value: 'mexicana', label: 'Mexicana', icon: '🌮', glow: 'shadow-slate-500/50' },
+                          { value: 'asiatica', label: 'Asiatica', icon: '🥢', glow: 'shadow-slate-500/50' },
+                          { value: 'mediterranea', label: 'Mediterranea', icon: <Salad className="w-5 h-5" />, glow: 'shadow-slate-500/50' },
+                          { value: 'argentina', label: 'Argentina', icon: '🥩', glow: 'shadow-slate-500/50' },
+                          { value: 'japonesa', label: 'Japonesa', icon: <Fish className="w-5 h-5" />, glow: 'shadow-slate-500/50' }
                         ].map((cuisine) => (
                           <motion.button
                             key={cuisine.value}
@@ -491,7 +491,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                             }))}
                             className={`p-3 rounded-xl border backdrop-blur-xl transition-all transform hover:-translate-y-1 ${
                               data.cuisinePreferences.includes(cuisine.value)
-                                ? `border-purple-400/50 bg-purple-500/20 shadow-lg ${cuisine.glow}`
+                                ? `border-orange-400/50 bg-orange-500/20 shadow-lg ${cuisine.glow}`
                                 : 'border-white/20 bg-white/5 hover:bg-white/10'
                             }`}
                           >
@@ -519,31 +519,31 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                     {/* Cooking Skill */}
                     <div className="mb-8">
                       <p className="font-semibold text-white mb-4 flex items-center gap-2">
-                        <ChefHat className="w-5 h-5 text-purple-400" />
+                        <ChefHat className="w-5 h-5 text-orange-400" />
                         Nivel de habilidad
                       </p>
                       <div className="grid grid-cols-3 gap-4">
                         {[
-                          { 
-                            key: 'beginner', 
+                          {
+                            key: 'beginner',
                             label: 'Principiante',
                             description: 'Recetas simples',
                             icon: '👶',
-                            color: 'from-green-400 to-emerald-400'
+                            color: 'bg-green-600'
                           },
-                          { 
-                            key: 'intermediate', 
+                          {
+                            key: 'intermediate',
                             label: 'Intermedio',
                             description: 'Platos elaborados',
                             icon: '🧑‍🍳',
-                            color: 'from-blue-400 to-cyan-400'
+                            color: 'bg-slate-600'
                           },
-                          { 
-                            key: 'advanced', 
+                          {
+                            key: 'advanced',
                             label: 'Avanzado',
                             description: 'Chef experto',
                             icon: '👨‍🍳',
-                            color: 'from-purple-400 to-pink-400'
+                            color: 'bg-orange-500'
                           }
                         ].map((level) => (
                           <motion.button
@@ -553,15 +553,15 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                             onClick={() => setData(prev => ({ ...prev, cookingSkill: level.key as WizardData['cookingSkill'] }))}
                             className={`relative overflow-hidden p-6 rounded-xl border-2 backdrop-blur-xl transition-all ${
                               data.cookingSkill === level.key
-                                ? 'border-purple-400 bg-purple-500/20'
+                                ? 'border-orange-400 bg-orange-500/20'
                                 : 'border-white/20 bg-white/5 hover:bg-white/10'
                             }`}
                           >
                             {data.cookingSkill === level.key && (
-                              <motion.div 
+                              <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className={`absolute inset-0 bg-gradient-to-br ${level.color} opacity-20`}
+                                className={`absolute inset-0 ${level.color} opacity-20`}
                               />
                             )}
                             <div className="relative z-10 text-center">
@@ -582,7 +582,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                       </p>
                       <GlassCard className="p-6 relative overflow-hidden">
                         <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10"
+                          className="absolute inset-0 bg-slate-700/20"
                           animate={{ x: ['-100%', '100%'] }}
                           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                         />
@@ -611,11 +611,11 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                               onChange={(e) => setData(prev => ({ ...prev, maxCookingTime: parseInt(e.target.value) }))}
                               className="w-full h-3 bg-white/20 rounded-lg appearance-none cursor-pointer slider relative z-10"
                               style={{
-                                background: `linear-gradient(to right, #a855f7 0%, #ec4899 ${((data.maxCookingTime - 15) / 105) * 100}%, #ffffff33 ${((data.maxCookingTime - 15) / 105) * 100}%, #ffffff33 100%)`
+                                background: `linear-gradient(to right, #f97316 0%, #ea580c ${((data.maxCookingTime - 15) / 105) * 100}%, #ffffff33 ${((data.maxCookingTime - 15) / 105) * 100}%, #ffffff33 100%)`
                               }}
                             />
                             <motion.div
-                              className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full shadow-lg pointer-events-none"
+                              className="absolute top-1/2 -translate-y-1/2 w-6 h-6 bg-orange-500 rounded-full shadow-lg pointer-events-none"
                               style={{ left: `${((data.maxCookingTime - 15) / 105) * 100}%` }}
                               initial={false}
                               animate={{ scale: [1, 1.2, 1] }}
@@ -639,26 +639,26 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                       </p>
                       <div className="grid grid-cols-3 gap-4">
                         {[
-                          { 
-                            key: 'low', 
-                            label: 'Económico',
+                          {
+                            key: 'low',
+                            label: 'Economico',
                             icon: '💰',
                             description: 'Comidas baratas',
-                            color: 'from-green-400 to-emerald-400'
+                            color: 'bg-green-600'
                           },
-                          { 
-                            key: 'medium', 
+                          {
+                            key: 'medium',
                             label: 'Moderado',
                             icon: '💸',
                             description: 'Balance precio-calidad',
-                            color: 'from-blue-400 to-cyan-400'
+                            color: 'bg-slate-600'
                           },
-                          { 
-                            key: 'high', 
+                          {
+                            key: 'high',
                             label: 'Premium',
                             icon: '💎',
                             description: 'Ingredientes gourmet',
-                            color: 'from-purple-400 to-pink-400'
+                            color: 'bg-orange-500'
                           }
                         ].map((budget) => (
                           <motion.button
@@ -668,15 +668,15 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                             onClick={() => setData(prev => ({ ...prev, budgetLevel: budget.key as WizardData['budgetLevel'] }))}
                             className={`relative overflow-hidden p-4 rounded-xl border-2 backdrop-blur-xl transition-all ${
                               data.budgetLevel === budget.key
-                                ? 'border-purple-400 bg-purple-500/20'
+                                ? 'border-orange-400 bg-orange-500/20'
                                 : 'border-white/20 bg-white/5 hover:bg-white/10'
                             }`}
                           >
                             {data.budgetLevel === budget.key && (
-                              <motion.div 
+                              <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className={`absolute inset-0 bg-gradient-to-br ${budget.color} opacity-20`}
+                                className={`absolute inset-0 ${budget.color} opacity-20`}
                               />
                             )}
                             <div className="relative z-10 text-center">
@@ -700,11 +700,11 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                       className="relative w-24 h-24 mx-auto mb-6"
                     >
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full blur-xl"
+                        className="absolute inset-0 bg-green-500 rounded-full blur-xl"
                         animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
-                      <div className="relative w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center shadow-xl">
+                      <div className="relative w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-xl">
                         <motion.div
                           initial={{ scale: 0, rotate: -180 }}
                           animate={{ scale: 1, rotate: 0 }}
@@ -746,7 +746,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                           </div>
                         )}
                         <div className="flex items-start gap-3">
-                          <ChefHat className="w-5 h-5 text-purple-400 mt-0.5" />
+                          <ChefHat className="w-5 h-5 text-orange-400 mt-0.5" />
                           <div>
                             <p className="text-sm text-white/60">Nivel:</p>
                             <p className="text-white capitalize">{data.cookingSkill}</p>
@@ -776,7 +776,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                       className="mt-8"
                     >
                       <p className="text-sm text-white/60 mb-4">¿Listo para generar tu plan?</p>
-                      <div className="flex items-center justify-center gap-2 text-purple-300">
+                      <div className="flex items-center justify-center gap-2 text-orange-300">
                         <Sparkles className="w-5 h-5 animate-pulse" />
                         <span className="font-medium">La IA está esperando...</span>
                         <Sparkles className="w-5 h-5 animate-pulse" />
@@ -824,7 +824,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
                     opacity: index === currentStep ? 1 : 0.3
                   }}
                   className={`w-2 h-2 rounded-full ${
-                    index <= currentStep ? 'bg-purple-400' : 'bg-white/20'
+                    index <= currentStep ? 'bg-orange-400' : 'bg-white/20'
                   }`}
                 />
               ))}
@@ -894,33 +894,33 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
           appearance: none;
           width: 24px;
           height: 24px;
-          background: linear-gradient(to br, #a855f7, #ec4899);
+          background: linear-gradient(to br, #f97316, #ea580c);
           border-radius: 50%;
           cursor: pointer;
-          box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+          box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
           border: 2px solid rgba(255, 255, 255, 0.2);
           transition: all 0.2s;
         }
         
         .slider::-webkit-slider-thumb:hover {
           transform: scale(1.2);
-          box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+          box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
         }
         
         .slider::-moz-range-thumb {
           width: 24px;
           height: 24px;
-          background: linear-gradient(to br, #a855f7, #ec4899);
+          background: linear-gradient(to br, #f97316, #ea580c);
           border-radius: 50%;
           cursor: pointer;
-          box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+          box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
           border: 2px solid rgba(255, 255, 255, 0.2);
           transition: all 0.2s;
         }
-        
+
         .slider::-moz-range-thumb:hover {
           transform: scale(1.2);
-          box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+          box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
         }
       `}</style>
     </div>

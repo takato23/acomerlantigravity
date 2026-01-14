@@ -42,54 +42,46 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantClasses = {
       primary: [
-        'bg-food-fresh-500 text-white border border-food-fresh-600',
-        'hover:bg-food-fresh-600 hover:shadow-glow-fresh',
-        'focus:ring-food-fresh-300',
-        'active:bg-food-fresh-700',
+        'bg-slate-700 text-white border border-slate-800',
+        'hover:bg-slate-800 hover:shadow-lg',
+        'focus:ring-slate-300',
+        'active:bg-slate-900',
       ],
       secondary: [
-        'bg-neutral-100 text-neutral-900 border border-neutral-200',
-        'hover:bg-neutral-200 hover:shadow-md',
-        'focus:ring-neutral-300',
-        'active:bg-neutral-300',
-        'dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-700',
-        'dark:hover:bg-neutral-700',
+        'bg-slate-100 text-slate-900 border border-slate-200',
+        'hover:bg-slate-200 hover:shadow-md',
+        'focus:ring-slate-300',
+        'active:bg-slate-300',
       ],
       ghost: [
-        'bg-transparent text-neutral-700 border border-transparent',
-        'hover:bg-neutral-100 hover:text-neutral-900',
-        'focus:ring-neutral-300',
-        'dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100',
+        'bg-transparent text-slate-700 border border-transparent',
+        'hover:bg-slate-100 hover:text-slate-900',
+        'focus:ring-slate-300',
       ],
       glass: [
-        'glass-interactive text-neutral-900',
+        'glass-interactive text-slate-900',
         'hover:transform hover:-translate-y-0.5',
-        'focus:ring-neutral-300',
-        'dark:text-neutral-100',
+        'focus:ring-slate-300',
       ],
       fresh: [
         'glass-fresh text-food-fresh-700 border-food-fresh-200',
         'hover:bg-food-fresh-100 hover:text-food-fresh-800',
         'focus:ring-food-fresh-300',
-        'dark:text-food-fresh-300 dark:hover:text-food-fresh-200',
       ],
       warm: [
         'glass-warm text-food-warm-700 border-food-warm-200',
         'hover:bg-food-warm-100 hover:text-food-warm-800',
         'focus:ring-food-warm-300',
-        'dark:text-food-warm-300 dark:hover:text-food-warm-200',
       ],
       rich: [
         'glass-rich text-food-rich-700 border-food-rich-200',
         'hover:bg-food-rich-100 hover:text-food-rich-800',
         'focus:ring-food-rich-300',
-        'dark:text-food-rich-300 dark:hover:text-food-rich-200',
       ],
       golden: [
         'glass-golden text-food-golden-700 border-food-golden-200',
         'hover:bg-food-golden-100 hover:text-food-golden-800',
         'focus:ring-food-golden-300',
-        'dark:text-food-golden-300 dark:hover:text-food-golden-200',
       ],
     };
 

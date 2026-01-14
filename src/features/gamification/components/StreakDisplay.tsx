@@ -33,11 +33,11 @@ export function StreakDisplay({ streak, showDetails = true, className = '' }: St
     };
 
     const typeColors = {
-      [StreakType.DAILY_LOGIN]: 'from-blue-400 to-blue-600',
-      [StreakType.MEAL_PLANNING]: 'from-green-400 to-green-600',
+      [StreakType.DAILY_LOGIN]: 'from-slate-500 to-slate-700',
+      [StreakType.MEAL_PLANNING]: 'from-green-500 to-green-600',
       [StreakType.COOKING]: 'from-orange-400 to-orange-600',
-      [StreakType.NUTRITION_GOALS]: 'from-purple-400 to-purple-600',
-      [StreakType.PANTRY_MANAGEMENT]: 'from-yellow-400 to-yellow-600'
+      [StreakType.NUTRITION_GOALS]: 'from-slate-600 to-slate-700',
+      [StreakType.PANTRY_MANAGEMENT]: 'from-amber-400 to-amber-600'
     };
 
     return {
@@ -60,10 +60,10 @@ export function StreakDisplay({ streak, showDetails = true, className = '' }: St
   const intensity = getStreakIntensity(streak.current_count);
   const intensityColors = {
     starting: 'text-gray-600',
-    good: 'text-blue-600',
+    good: 'text-slate-600',
     strong: 'text-green-600',
-    epic: 'text-purple-600',
-    legendary: 'text-yellow-600'
+    epic: 'text-slate-700',
+    legendary: 'text-amber-600'
   };
 
   return (
@@ -136,12 +136,12 @@ export function StreakDisplay({ streak, showDetails = true, className = '' }: St
 
           {/* Next Milestone */}
           {streak.is_active && (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
               <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">Next Milestone</span>
+                <Target className="w-4 h-4 text-slate-600" />
+                <span className="text-sm font-medium text-slate-800">Next Milestone</span>
               </div>
-              <span className="text-sm font-bold text-blue-800">
+              <span className="text-sm font-bold text-slate-800">
                 {streakData.daysUntilMilestone} to {streakData.nextMilestone}
               </span>
             </div>
@@ -216,7 +216,7 @@ export function StreakSummary({ streaks, className = '' }: StreakSummaryProps) {
   const longestStreak = Math.max(...streaks.map(s => s.longest_count), 0);
 
   return (
-    <div className={`bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4 ${className}`}>
+    <div className={`bg-slate-50 rounded-lg p-4 ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <Flame className="w-5 h-5 text-orange-500" />

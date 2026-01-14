@@ -4,20 +4,20 @@
 
 ### Información Crítica para Continuidad
 - **Proyecto**: KeCarajoComér - Sistema Holístico de Gestión de Comidas
-- **Ubicación**: `/Users/santiagobalosky/kecarajocomer`
-- **Stack**: Next.js 14 + Supabase + TypeScript + Tailwind + iOS26 Glassmorphism
+- **Ubicación**: `/Users/santiagobalosky/Documents/kecarajocomo`
+- **Stack**: Next.js 15.0.0 + Supabase + TypeScript + Tailwind + iOS26 Glassmorphism
 - **Fecha Inicio**: 2025-07-18
 
 ### 📊 Progreso Actual
 
 #### ✅ Completado:
 1. **Documentación y Planificación**
-   - IMPLEMENTATION_PLAN.md
-   - ARCHITECTURE_DESIGN.md
-   - FEATURES_SPECIFICATION.md
-   - UI_COMPONENTS_SPEC.md
-   - AUTONOMOUS_IMPLEMENTATION_PLAN.md
-   - TASK_HIERARCHY.md
+   - docs/SYSTEM_ARCHITECTURE.md
+   - docs/FEATURES_SPECIFICATION.md
+   - docs/FEATURES_DOCUMENTATION.md
+   - docs/COMPONENT_ARCHITECTURE.md
+   - docs/NAVIGATION_SYSTEM.md
+   - docs/DEVELOPMENT_GUIDELINES.md
    - PROJECT_CONTEXT.md (este archivo)
 
 2. **Configuración Inicial**
@@ -117,7 +117,7 @@ Scanner Tickets → Parser IA → Despensa → Planificador ML → Lista Compras
 
 ```bash
 # Para continuar el desarrollo
-cd /Users/santiagobalosky/kecarajocomer
+cd /Users/santiagobalosky/Documents/kecarajocomo
 
 # Analizar proyecto con Gemini
 gemini -p "@./ Dame un resumen del estado actual del proyecto KeCarajoComér"
@@ -133,7 +133,7 @@ ls -la src/
 
 Si cambias de conversación, usa este archivo como referencia:
 1. Lee PROJECT_CONTEXT.md
-2. Revisa TASK_HIERARCHY.md para ver qué sigue
+2. Revisa docs/DEVELOPMENT_ROADMAP.md para ver qué sigue
 3. Usa Gemini para analizar el código actual
 4. Continúa con la siguiente tarea pendiente
 

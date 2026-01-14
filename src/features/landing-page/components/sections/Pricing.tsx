@@ -8,18 +8,18 @@ import { GlassPricingCard } from '../ui/GlassCard';
 import { CTAButton, SecondaryButton } from '../ui/GradientButton';
 import { ValuePropositionIllustration } from '../ui/FlatIllustrations';
 
-const limePurpleColors = {
-  primary: '#84cc16',
-  secondary: '#a855f7',
-  accent: '#22d3ee'
+const slateColors = {
+  primary: '#1e293b',
+  secondary: '#334155',
+  accent: '#f97316'
 };
 
 const progressLevels = [
-  { level: 1, name: 'Beginner Chef', color: 'from-gray-400 to-gray-600', recipes: 10 },
-  { level: 2, name: 'Home Cook', color: 'from-green-400 to-green-600', recipes: 50 },
-  { level: 3, name: 'Kitchen Pro', color: 'from-blue-400 to-blue-600', recipes: 200 },
-  { level: 4, name: 'Culinary Expert', color: 'from-purple-400 to-purple-600', recipes: 500 },
-  { level: 5, name: 'Master Chef', color: 'from-orange-400 to-orange-600', recipes: 1000 }
+  { level: 1, name: 'Beginner Chef', color: 'from-slate-500 to-slate-600', recipes: 10 },
+  { level: 2, name: 'Home Cook', color: 'from-slate-400 to-slate-500', recipes: 50 },
+  { level: 3, name: 'Kitchen Pro', color: 'from-slate-400 to-slate-500', recipes: 200 },
+  { level: 4, name: 'Culinary Expert', color: 'from-slate-300 to-slate-400', recipes: 500 },
+  { level: 5, name: 'Master Chef', color: 'from-orange-400 to-orange-500', recipes: 1000 }
 ];
 
 interface ProgressBarProps {
@@ -36,14 +36,14 @@ function ProgressBar({ level, recipes, className }: ProgressBarProps) {
   return (
     <div className={cn('space-y-2', className)}>
       <div className="flex justify-between items-center">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span className="text-sm font-medium text-slate-300">
           {currentLevel.name}
         </span>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-slate-500">
           {recipes} / {nextLevel?.recipes || recipes} recipes
         </span>
       </div>
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+      <div className="w-full bg-slate-700 rounded-full h-2">
         <motion.div
           className={cn(
             'h-2 rounded-full bg-gradient-to-r',
@@ -55,7 +55,7 @@ function ProgressBar({ level, recipes, className }: ProgressBarProps) {
         />
       </div>
       {nextLevel && (
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-xs text-slate-500">
           {nextLevel.recipes - recipes} recipes to reach {nextLevel.name}
         </div>
       )}
@@ -73,18 +73,18 @@ function PricingToggle({ billing, onChange }: PricingToggleProps) {
     <div className="flex items-center justify-center space-x-4 mb-8">
       <span className={cn(
         'text-sm font-medium transition-colors',
-        billing === 'monthly' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
+        billing === 'monthly' ? 'text-white' : 'text-slate-500'
       )}>
         Monthly
       </span>
       <div className="relative">
         <motion.button
-          className="w-14 h-7 bg-gray-200 dark:bg-gray-700 rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2"
+          className="w-14 h-7 bg-slate-700 rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-slate-900"
           onClick={() => onChange(billing === 'monthly' ? 'yearly' : 'monthly')}
           whileTap={{ scale: 0.95 }}
         >
           <motion.div
-            className="w-5 h-5 bg-gradient-to-r from-lime-500 to-purple-500 rounded-full"
+            className="w-5 h-5 bg-orange-500 rounded-full"
             animate={{
               x: billing === 'yearly' ? 28 : 0
             }}
@@ -94,10 +94,10 @@ function PricingToggle({ billing, onChange }: PricingToggleProps) {
       </div>
       <span className={cn(
         'text-sm font-medium transition-colors',
-        billing === 'yearly' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
+        billing === 'yearly' ? 'text-white' : 'text-slate-500'
       )}>
         Yearly
-        <span className="ml-1 text-xs bg-lime-100 dark:bg-lime-900 text-lime-600 dark:text-lime-400 px-2 py-1 rounded-full">
+        <span className="ml-1 text-xs bg-slate-800 text-orange-500 px-2 py-1 rounded-full">
           Save 20%
         </span>
       </span>
@@ -120,8 +120,7 @@ export function Pricing({
     <section
       className={cn(
         'py-20 lg:py-24',
-        'bg-gradient-to-b from-purple-50/30 via-white to-lime-50/30',
-        'dark:from-gray-900 dark:via-gray-900/95 dark:to-gray-900',
+        'bg-slate-900',
         className
       )}
       {...props}
@@ -137,11 +136,11 @@ export function Pricing({
           className="text-center mb-12"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-lime-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+            <span className="text-white">
               {title}
             </span>
           </h2>
-          <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto">
             {subtitle}
           </p>
         </motion.div>
@@ -170,7 +169,7 @@ export function Pricing({
                 {/* Popular Badge */}
                 {plan.popular && (
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="bg-gradient-to-r from-lime-500 to-purple-500 text-white px-6 py-1 rounded-full text-sm font-medium">
+                    <div className="bg-orange-500 text-white px-6 py-1 rounded-full text-sm font-medium">
                       Most Popular
                     </div>
                   </div>
@@ -178,32 +177,32 @@ export function Pricing({
 
                 <div className="p-8 text-center">
                   {/* Plan Icon */}
-                  <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center rounded-2xl bg-gradient-to-br from-white/20 to-white/5 border border-white/20">
+                  <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center rounded-2xl bg-slate-800 border border-slate-700">
                     {plan.icon}
                   </div>
 
                   {/* Plan Name */}
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-2xl font-bold text-white mb-2">
                     {plan.name}
                   </h3>
 
                   {/* Plan Description */}
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  <p className="text-slate-400 mb-6">
                     {plan.description}
                   </p>
 
                   {/* Pricing */}
                   <div className="mb-6">
                     <div className="flex items-baseline justify-center">
-                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                      <span className="text-4xl font-bold text-white">
                         ${billing === 'yearly' ? Math.floor(plan.price * 0.8) : plan.price}
                       </span>
-                      <span className="text-gray-500 dark:text-gray-400 ml-1">
+                      <span className="text-slate-500 ml-1">
                         /{plan.period}
                       </span>
                     </div>
                     {billing === 'yearly' && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <div className="text-sm text-slate-500 mt-1">
                         Save ${(plan.price * 12) - (Math.floor(plan.price * 0.8) * 12)} per year
                       </div>
                     )}
@@ -254,12 +253,12 @@ export function Pricing({
                         transition={{ duration: 0.4, delay: featureIndex * 0.1 }}
                         className="flex items-start space-x-3"
                       >
-                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-lime-500 to-purple-500 flex items-center justify-center mt-0.5">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center mt-0.5">
+                          <svg className="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-sm text-slate-400">
                           {feature}
                         </span>
                       </motion.div>
@@ -274,7 +273,7 @@ export function Pricing({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 bg-gradient-to-r from-lime-500/5 via-purple-500/5 to-cyan-500/5 rounded-xl"
+                      className="absolute inset-0 bg-slate-800/50 rounded-xl"
                     />
                   )}
                 </AnimatePresence>
@@ -294,7 +293,7 @@ export function Pricing({
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h3 className="text-2xl font-bold text-white">
                   Why Choose Premium?
                 </h3>
                 <div className="space-y-4 text-left">
@@ -313,15 +312,15 @@ export function Pricing({
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       className="flex items-center space-x-3"
                     >
-                      <div className="w-2 h-2 bg-gradient-to-r from-lime-500 to-purple-500 rounded-full" />
-                      <span className="text-gray-600 dark:text-gray-300">{benefit}</span>
+                      <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                      <span className="text-slate-400">{benefit}</span>
                     </motion.div>
                   ))}
                 </div>
               </div>
               <div className="flex justify-center">
                 <ValuePropositionIllustration
-                  colors={limePurpleColors}
+                  colors={slateColors}
                   size="lg"
                   animated={true}
                 />
@@ -339,10 +338,10 @@ export function Pricing({
           className="mt-16 text-center"
         >
           <div className="max-w-2xl mx-auto">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-xl font-bold text-white mb-4">
               Have Questions?
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-slate-400 mb-6">
               Check out our frequently asked questions or contact our support team.
             </p>
             <SecondaryButton
@@ -386,10 +385,10 @@ export function ProductPricing({
         'Mobile app access'
       ],
       popular: false,
-      gradient: 'bg-gradient-to-br from-gray-400/20 via-gray-500/20 to-gray-600/20',
+      gradient: 'bg-slate-800',
       buttonText: 'Get Started Free',
       icon: (
-        <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
       )
@@ -410,10 +409,10 @@ export function ProductPricing({
         'Priority support'
       ],
       popular: true,
-      gradient: 'bg-gradient-to-br from-lime-400/20 via-green-500/20 to-emerald-400/20',
+      gradient: 'bg-slate-800',
       buttonText: 'Start Pro Trial',
       icon: (
-        <svg className="w-8 h-8 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       )
@@ -435,10 +434,10 @@ export function ProductPricing({
         'Premium support'
       ],
       popular: false,
-      gradient: 'bg-gradient-to-br from-purple-400/20 via-pink-500/20 to-rose-400/20',
+      gradient: 'bg-slate-800',
       buttonText: 'Try Family Plan',
       icon: (
-        <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       )

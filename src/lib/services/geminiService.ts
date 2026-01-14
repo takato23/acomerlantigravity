@@ -90,11 +90,11 @@ class RateLimiter {
   async checkLimit(): Promise<boolean> {
     const now = Date.now();
     this.requests = this.requests.filter(time => now - time < this.windowMs);
-    
+
     if (this.requests.length >= this.maxRequests) {
       return false;
     }
-    
+
     this.requests.push(now);
     return true;
   }
@@ -129,17 +129,25 @@ export class GeminiService {
 
   constructor(apiKey?: string, config?: Partial<GeminiConfig>) {
     const key = apiKey || geminiConfig.getApiKey() || geminiConfig.getApiKey();
-    
+
     if (!key) {
-      throw new Error('Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.');
+      if (!geminiConfig.isMockMode || !geminiConfig.isMockMode()) {
+        throw new Error('Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.');
+      }
     }
 
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.genAI = new GoogleGenerativeAI(key);
-    this.model = this.genAI.getGenerativeModel({ 
-      model: this.config.model,
-      generationConfig: this.createGenerationConfig()
-    });
+
+    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+      this.genAI = {} as any;
+      this.model = {} as any;
+    } else {
+      this.genAI = new GoogleGenerativeAI(key!);
+      this.model = this.genAI.getGenerativeModel({
+        model: this.config.model,
+        generationConfig: this.createGenerationConfig()
+      });
+    }
     this.rateLimiter = new RateLimiter();
   }
 
@@ -183,7 +191,7 @@ export class GeminiService {
 
         const retryDelay = GeminiErrorHandler.getRetryDelay(geminiError, attempt + 1);
         logger.info(`Retrying Gemini request after ${retryDelay}ms (attempt ${attempt + 1}/${retryConfig.maxRetries})`, 'geminiService');
-        
+
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
     }
@@ -197,7 +205,7 @@ export class GeminiService {
   private async generateContent(prompt: string, timeoutMs: number = 30000): Promise<string> {
     const result = await Promise.race([
       this.model.generateContent(prompt),
-      new Promise<never>((_, reject) => 
+      new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Gemini request timeout')), timeoutMs)
       )
     ]);
@@ -219,7 +227,7 @@ export class GeminiService {
     try {
       // Clean up response if needed
       let cleanText = text.trim();
-      
+
       // Remove markdown code blocks if present
       if (cleanText.startsWith('```json')) {
         cleanText = cleanText.slice(7);
@@ -230,24 +238,24 @@ export class GeminiService {
       if (cleanText.endsWith('```')) {
         cleanText = cleanText.slice(0, -3);
       }
-      
+
       const parsed = JSON.parse(cleanText.trim());
-      logger.debug('Parsed response:', 'geminiService', { 
+      logger.debug('Parsed response:', 'geminiService', {
         keys: Object.keys(parsed || {}),
         hasDaily: parsed?.daily_plans ? 'yes' : 'no',
         dailyLength: parsed?.daily_plans?.length || 0
       });
-      
+
       return schema.parse(parsed);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        logger.error('Validation error:', 'geminiService', { 
+        logger.error('Validation error:', 'geminiService', {
           errors: error.errors,
           rawText: text.substring(0, 500) + (text.length > 500 ? '...' : '')
         });
         throw new Error(`Invalid response format: ${error.errors.map(e => e.message).join(', ')}`);
       }
-      logger.error('JSON parse error:', 'geminiService', { 
+      logger.error('JSON parse error:', 'geminiService', {
         error: error instanceof Error ? error.message : 'Unknown error',
         rawText: text.substring(0, 500) + (text.length > 500 ? '...' : '')
       });
@@ -268,7 +276,13 @@ export class GeminiService {
       constraints,
       options?.pantryItems
     );
-    
+
+    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+      logger.info('Returning MOCK meal plan', 'geminiService');
+      const { MOCK_MEAL_PLAN } = require('@/lib/services/mockData');
+      return MOCK_MEAL_PLAN;
+    }
+
     const response = await this.executeWithRetry(
       () => this.generateContent(prompt, options?.timeout),
       options?.retryConfig
@@ -287,7 +301,7 @@ export class GeminiService {
     options?: { timeout?: number; retryConfig?: RetryConfig }
   ): Promise<GeminiMealPlanResponse> {
     const prompt = this.createDailyMealPrompt(preferences, currentPlan, focusDay);
-    
+
     const response = await this.executeWithRetry(
       () => this.generateContent(prompt, options?.timeout),
       options?.retryConfig
@@ -306,7 +320,7 @@ export class GeminiService {
     options?: { timeout?: number; retryConfig?: RetryConfig; avoidRecipes?: string[] }
   ): Promise<z.infer<typeof GeminiMealSchema>> {
     const dayOfWeek = new Date(constraints.startDate).toLocaleDateString('en-US', { weekday: 'long' });
-    
+
     const prompt = GeminiPromptTemplates.createRegenerateMealPrompt(
       mealType,
       dayOfWeek,
@@ -314,7 +328,7 @@ export class GeminiService {
       constraints,
       options?.avoidRecipes
     );
-    
+
     const response = await this.executeWithRetry(
       () => this.generateContent(prompt, options?.timeout),
       options?.retryConfig
@@ -342,7 +356,7 @@ export class GeminiService {
       preferences,
       options?.mealTypes
     );
-    
+
     const response = await this.executeWithRetry(
       () => this.generateContent(prompt, options?.timeout),
       options?.retryConfig
@@ -362,11 +376,11 @@ export class GeminiService {
   async generateShoppingList(
     mealPlan: any,
     pantryItems: any[],
-    options?: { 
-      timeout?: number; 
-      retryConfig?: RetryConfig; 
-      budget?: number; 
-      preferredStores?: string[] 
+    options?: {
+      timeout?: number;
+      retryConfig?: RetryConfig;
+      budget?: number;
+      preferredStores?: string[]
     }
   ): Promise<any> {
     const prompt = GeminiPromptTemplates.createShoppingListPrompt(
@@ -375,7 +389,13 @@ export class GeminiService {
       options?.budget,
       options?.preferredStores
     );
-    
+
+    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+      logger.info('Returning MOCK shopping list', 'geminiService');
+      const { MOCK_SHOPPING_LIST } = require('@/lib/services/mockData');
+      return MOCK_SHOPPING_LIST;
+    }
+
     const response = await this.executeWithRetry(
       () => this.generateContent(prompt, options?.timeout),
       options?.retryConfig
@@ -413,7 +433,7 @@ export class GeminiService {
       mealPlan,
       nutritionalGoals
     );
-    
+
     const response = await this.executeWithRetry(
       () => this.generateContent(prompt, options?.timeout),
       options?.retryConfig

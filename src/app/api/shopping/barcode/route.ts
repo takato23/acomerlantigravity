@@ -4,13 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '@/lib/supabase/client';
 import { logger } from '@/services/logger';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = createServerSupabaseClient();
 
 // External barcode API configuration
 const OPENFOODFACTS_API = 'https://world.openfoodfacts.org/api/v0/product';
@@ -74,7 +71,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Fetch from external APIs
       productInfo = await fetchProductFromExternalAPIs(barcode);
-      
+
       // Save to our database for future use
       if (productInfo.name) {
         await supabase
@@ -138,13 +135,13 @@ async function fetchProductFromExternalAPIs(barcode: string): Promise<ProductInf
   try {
     // Try Open Food Facts first (free, comprehensive for food products)
     const openFoodFactsResponse = await fetch(`${OPENFOODFACTS_API}/${barcode}.json`);
-    
+
     if (openFoodFactsResponse.ok) {
       const data = await openFoodFactsResponse.json();
-      
+
       if (data.status === 1 && data.product) {
         const product = data.product;
-        
+
         productInfo = {
           barcode,
           name: product.product_name || product.product_name_es || 'Producto sin nombre',
@@ -182,10 +179,10 @@ async function fetchProductFromExternalAPIs(barcode: string): Promise<ProductInf
 
       if (barcodeResponse.ok) {
         const data = await barcodeResponse.json();
-        
+
         if (data.products && data.products.length > 0) {
           const product = data.products[0];
-          
+
           productInfo = {
             barcode,
             name: product.title || product.product_name,
@@ -211,7 +208,7 @@ async function fetchProductFromExternalAPIs(barcode: string): Promise<ProductInf
 
   // If no product found, return minimal info
   logger.warn('Product not found in external APIs', 'fetchProductFromExternalAPIs', { barcode });
-  
+
   return {
     barcode,
     name: `Producto ${barcode.slice(-4)}`,
@@ -236,7 +233,7 @@ function mapCategoryToStandard(externalCategory?: string): string {
     'beverages': 'beverages',
     'cereals': 'grains',
     'frozen': 'frozen',
-    
+
     // General categories
     'food': 'pantry',
     'grocery': 'pantry',
@@ -246,7 +243,7 @@ function mapCategoryToStandard(externalCategory?: string): string {
   };
 
   const category = externalCategory.toLowerCase();
-  
+
   for (const [key, value] of Object.entries(categoryMap)) {
     if (category.includes(key)) {
       return value;

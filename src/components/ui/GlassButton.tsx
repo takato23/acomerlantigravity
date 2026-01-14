@@ -13,33 +13,33 @@ interface GlassButtonProps extends HTMLMotionProps<"button"> {
 
 const variantStyles = {
   default: {
-    base: 'bg-white/10 dark:bg-gray-800/10 text-gray-900 dark:text-gray-100',
-    hover: 'hover:bg-white/20 dark:hover:bg-gray-800/20',
-    glow: 'rgba(156, 163, 175, 0.3)'
+    base: 'bg-slate-100/80 dark:bg-white/10 text-slate-900 dark:text-white',
+    hover: 'hover:bg-slate-200/80 dark:hover:bg-white/20',
+    glow: 'rgba(148, 163, 184, 0.3)'
   },
   primary: {
-    base: 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white',
-    hover: 'hover:from-blue-600 hover:to-cyan-700',
-    glow: 'rgba(59, 130, 246, 0.4)'
+    base: 'bg-slate-700 dark:bg-white text-white dark:text-slate-900',
+    hover: 'hover:bg-slate-800 dark:hover:bg-white/90',
+    glow: 'rgba(71, 85, 105, 0.4)'
   },
   secondary: {
-    base: 'bg-gradient-to-r from-purple-500 to-pink-600 text-white',
-    hover: 'hover:from-purple-600 hover:to-pink-700',
-    glow: 'rgba(168, 85, 247, 0.4)'
+    base: 'bg-slate-500 dark:bg-slate-600 text-white',
+    hover: 'hover:bg-slate-600 dark:hover:bg-slate-500',
+    glow: 'rgba(100, 116, 139, 0.4)'
   },
   danger: {
-    base: 'bg-gradient-to-r from-red-500 to-rose-600 text-white',
-    hover: 'hover:from-red-600 hover:to-rose-700',
+    base: 'bg-red-500 text-white',
+    hover: 'hover:bg-red-600',
     glow: 'rgba(239, 68, 68, 0.4)'
   },
   success: {
-    base: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white',
-    hover: 'hover:from-green-600 hover:to-emerald-700',
+    base: 'bg-green-500 text-white',
+    hover: 'hover:bg-green-600',
     glow: 'rgba(34, 197, 94, 0.4)'
   },
   ghost: {
-    base: 'bg-transparent text-gray-700 dark:text-gray-300',
-    hover: 'hover:bg-white/10 dark:hover:bg-gray-800/10',
+    base: 'bg-transparent text-slate-700 dark:text-gray-300',
+    hover: 'hover:bg-slate-100/50 dark:hover:bg-white/10',
     glow: 'transparent'
   }
 };
@@ -72,7 +72,7 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
         // Base styles
         "relative inline-flex items-center justify-center font-medium rounded-xl",
         "transition-all duration-300 overflow-hidden",
-        "backdrop-blur-xl border border-white/10 dark:border-gray-700/10",
+        "backdrop-blur-xl border border-slate-200/50 dark:border-white/10",
         "shadow-lg",
         
         // Size
@@ -108,7 +108,7 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
       )}
       
       {/* Glass overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-white/0 via-white/5 to-white/10 dark:from-gray-100/0 dark:via-gray-100/5 dark:to-gray-100/10 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/0 via-white/5 to-white/10 pointer-events-none" />
       
       {/* Shimmer effect */}
       <motion.div

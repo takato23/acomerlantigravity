@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase/client';
 import { logger } from '@/services/logger';
 
 import type { Database } from '@/types/database';
@@ -59,13 +59,14 @@ export class ShoppingOptimizer {
   private supabase;
   private geminiService;
   private profileManager;
-  
+
   constructor(private system: HolisticFoodSystem) {
-    this.supabase = createClientComponentClient<Database>();
+    // Use centralized Supabase client with mock fallback
+    this.supabase = supabase;
     this.geminiService = getGeminiService();
     this.profileManager = getProfileManager(system);
   }
-  
+
   /**
    * Generar lista de compras inteligente desde plan de comidas
    */
@@ -81,25 +82,25 @@ export class ShoppingOptimizer {
       // 0. Obtener perfil del usuario para restricciones y presupuesto
       const userProfile = await this.profileManager.getUserProfile(params.userId);
       const userBudget = params.budget || (userProfile?.monthlyBudget ? userProfile.monthlyBudget / 4 : 50000);
-      
+
       // 1. Obtener items necesarios
-      const requiredItems = params.mealPlan 
+      const requiredItems = params.mealPlan
         ? this.extractItemsFromMealPlan(params.mealPlan)
         : await this.generateEssentialsList(params.pantryItems);
-      
+
       // 2. Filtrar items que ya tenemos
       const neededItems = this.filterExistingItems(requiredItems, params.pantryItems);
-      
+
       // 3. Filtrar items según restricciones dietéticas y alergias
       const safeItems = await this.filterByDietaryRestrictions(
         neededItems,
         userProfile?.dietaryRestrictions || [],
         userProfile?.allergies || []
       );
-      
+
       // 4. Categorizar y priorizar
       const categorizedItems = await this.categorizeAndPrioritize(safeItems);
-      
+
       // 5. Optimizar precios y tiendas con presupuesto del usuario
       const optimizedItems = await this.optimizeItemsWithAI(
         categorizedItems,
@@ -109,13 +110,13 @@ export class ShoppingOptimizer {
           optimizeFor: params.optimization?.optimizeFor || 'balanced'
         }
       );
-      
+
       // 6. Generar rutas optimizadas
       const optimizedRoutes = await this.generateOptimizedRoutes(
         optimizedItems,
         params.optimization?.preferredStores || userProfile?.preferredStores
       );
-      
+
       // 7. Crear lista final
       const shoppingList: ShoppingList = {
         id: this.generateListId(),
@@ -129,25 +130,25 @@ export class ShoppingOptimizer {
         relatedMealPlan: params.mealPlan?.id,
         status: 'active'
       };
-      
+
       // 8. Validar contra presupuesto
       if (shoppingList.totalEstimated > userBudget) {
         logger.warn(`⚠️ Lista excede presupuesto: $${shoppingList.totalEstimated} > $${userBudget}`, 'ShoppingOptimizer');
         // Marcar items opcionales si excede presupuesto
         this.adjustForBudget(shoppingList.items, userBudget);
       }
-      
+
       // 9. Guardar en base de datos
       await this.saveList(shoppingList);
 
       return shoppingList;
-      
+
     } catch (error: unknown) {
       logger.error('Error generando lista:', 'ShoppingOptimizer', error);
       throw new Error('Error al generar lista de compras');
     }
   }
-  
+
   /**
    * Agregar item manual a la lista
    */
@@ -168,7 +169,7 @@ export class ShoppingOptimizer {
         notes: item.notes,
         ...item
       };
-      
+
       // Guardar en base de datos
       const { data, error } = await this.supabase
         .from('shopping_items')
@@ -196,18 +197,18 @@ export class ShoppingOptimizer {
 
       // Actualizar el total estimado de la lista
       await this.updateListTotal(listId);
-      
+
       return {
         ...newItem,
         id: data.id
       };
-      
+
     } catch (error: unknown) {
       logger.error('Error agregando item:', 'ShoppingOptimizer', error);
       throw new Error('Error al agregar item');
     }
   }
-  
+
   /**
    * Marcar item como comprado
    */
@@ -247,7 +248,7 @@ export class ShoppingOptimizer {
       throw error;
     }
   }
-  
+
   /**
    * Obtener listas del usuario
    */
@@ -305,17 +306,17 @@ export class ShoppingOptimizer {
       return [];
     }
   }
-  
+
   /**
    * Extraer items del plan de comidas
    */
   private extractItemsFromMealPlan(mealPlan: MealPlan): ShoppingItem[] {
     const itemsMap = new Map<string, ShoppingItem>();
-    
+
     // Agregar items de la lista de compras del plan
     for (const item of mealPlan.shoppingList) {
       const key = item.ingredient.toLowerCase();
-      
+
       if (itemsMap.has(key)) {
         const existing = itemsMap.get(key)!;
         existing.quantity += item.quantity;
@@ -332,21 +333,21 @@ export class ShoppingOptimizer {
         });
       }
     }
-    
+
     return Array.from(itemsMap.values());
   }
-  
+
   /**
    * Generar lista de esenciales basada en despensa
    */
   private async generateEssentialsList(pantryItems: PantryItem[]): Promise<ShoppingItem[]> {
     const essentials: ShoppingItem[] = [];
-    
+
     // Items vencidos o por vencer
     const expiredItems = pantryItems.filter(
       item => item.status === 'expired' || item.status === 'expiring_soon'
     );
-    
+
     for (const item of expiredItems) {
       essentials.push({
         id: this.generateItemId(),
@@ -360,10 +361,10 @@ export class ShoppingOptimizer {
         notes: `Reemplazar - ${item.status === 'expired' ? 'Vencido' : 'Por vencer'}`
       });
     }
-    
+
     // Items con stock bajo
     const lowStockItems = pantryItems.filter(item => item.status === 'low_stock');
-    
+
     for (const item of lowStockItems) {
       essentials.push({
         id: this.generateItemId(),
@@ -377,10 +378,10 @@ export class ShoppingOptimizer {
         notes: 'Stock bajo'
       });
     }
-    
+
     return essentials;
   }
-  
+
   /**
    * Filtrar items que ya tenemos
    */
@@ -391,21 +392,21 @@ export class ShoppingOptimizer {
     return required.filter(reqItem => {
       const pantryItem = pantryItems.find(
         p => p.name.toLowerCase() === reqItem.name.toLowerCase() &&
-             p.status !== 'expired'
+          p.status !== 'expired'
       );
-      
+
       if (!pantryItem) return true;
-      
+
       // Si tenemos menos de lo necesario, ajustar cantidad
       if (pantryItem.quantity < reqItem.quantity) {
         reqItem.quantity -= pantryItem.quantity;
         return true;
       }
-      
+
       return false;
     });
   }
-  
+
   /**
    * Categorizar y priorizar items
    */
@@ -420,19 +421,19 @@ export class ShoppingOptimizer {
         
         Responde con un JSON objeto donde las keys son los nombres de productos y los valores son las categorías.
       `;
-      
+
       // Por ahora usar categorización simple
       return items.map(item => ({
         ...item,
         category: this.guessCategory(item.name)
       }));
-      
+
     } catch (error: unknown) {
       logger.error('Error categorizando:', 'ShoppingOptimizer', error);
       return items;
     }
   }
-  
+
   /**
    * Optimizar items con IA
    */
@@ -447,12 +448,12 @@ export class ShoppingOptimizer {
           item.estimatedPrice = this.estimatePrice(item);
         }
       }
-      
+
       // Si hay presupuesto, ajustar prioridades
       if (optimization.budget) {
         const currentTotal = this.calculateTotal(items);
         const budgetRatio = optimization.budget / currentTotal;
-        
+
         if (budgetRatio < 1) {
           // Si excede presupuesto, marcar items según ratio
           items.forEach(item => {
@@ -465,12 +466,12 @@ export class ShoppingOptimizer {
           });
         }
       }
-      
+
       // Sugerir alternativas si está habilitado
       if (optimization.includeAlternatives) {
         // TODO: Usar IA para sugerir alternativas más baratas
       }
-      
+
       // Ordenar por prioridad y categoría
       return items.sort((a, b) => {
         const priorityOrder = { essential: 0, recommended: 1, optional: 2 };
@@ -479,13 +480,13 @@ export class ShoppingOptimizer {
         }
         return a.category.localeCompare(b.category);
       });
-      
+
     } catch (error: unknown) {
       logger.error('Error optimizando:', 'ShoppingOptimizer', error);
       return items;
     }
   }
-  
+
   /**
    * Generar rutas optimizadas por tienda
    */
@@ -501,16 +502,16 @@ export class ShoppingOptimizer {
       estimatedTime: Math.round(items.length * 2 + 15), // 2 min por item + 15 min base
       aisleOrder: this.getAisleOrder()
     };
-    
+
     return [defaultStore];
   }
-  
+
   /**
    * Categorización simple
    */
   private guessCategory(name: string): string {
     const lower = name.toLowerCase();
-    
+
     const categories: Record<string, string[]> = {
       'Lácteos': ['leche', 'queso', 'yogur', 'manteca', 'crema'],
       'Carnes': ['carne', 'pollo', 'cerdo', 'pescado', 'milanesa'],
@@ -521,16 +522,16 @@ export class ShoppingOptimizer {
       'Limpieza': ['detergente', 'lavandina', 'esponja', 'jabón'],
       'Almacén': ['arroz', 'fideos', 'aceite', 'sal', 'azúcar']
     };
-    
+
     for (const [category, keywords] of Object.entries(categories)) {
       if (keywords.some(keyword => lower.includes(keyword))) {
         return category;
       }
     }
-    
+
     return 'Otros';
   }
-  
+
   /**
    * Estimar precio de item
    */
@@ -547,11 +548,11 @@ export class ShoppingOptimizer {
       'Almacén': 400,
       'Otros': 500
     };
-    
+
     const basePrice = basePrices[item.category] || 500;
     return Math.round(basePrice * item.quantity);
   }
-  
+
   /**
    * Obtener orden de pasillos típico
    */
@@ -567,14 +568,14 @@ export class ShoppingOptimizer {
       'Caja'
     ];
   }
-  
+
   /**
    * Calcular total estimado
    */
   private calculateTotal(items: ShoppingItem[]): number {
     return items.reduce((total, item) => total + item.estimatedPrice, 0);
   }
-  
+
   /**
    * Guardar lista en base de datos
    */
@@ -638,18 +639,18 @@ export class ShoppingOptimizer {
       throw new Error('Error al guardar lista de compras');
     }
   }
-  
+
   /**
    * Utilidades
    */
   private generateListId(): string {
     return `list_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-  
+
   private generateItemId(): string {
     return `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-  
+
   /**
    * Filtrar items según restricciones dietéticas y alergias
    */
@@ -661,10 +662,10 @@ export class ShoppingOptimizer {
     if (dietaryRestrictions.length === 0 && allergies.length === 0) {
       return items;
     }
-    
+
     return items.filter(item => {
       const itemLower = item.name.toLowerCase();
-      
+
       // Filtrar por alergias
       for (const allergy of allergies) {
         if (this.containsAllergen(itemLower, allergy)) {
@@ -672,7 +673,7 @@ export class ShoppingOptimizer {
           return false;
         }
       }
-      
+
       // Filtrar por restricciones dietéticas
       for (const restriction of dietaryRestrictions) {
         if (!this.compliesWithRestriction(itemLower, restriction)) {
@@ -680,11 +681,11 @@ export class ShoppingOptimizer {
           return false;
         }
       }
-      
+
       return true;
     });
   }
-  
+
   /**
    * Verificar si un item contiene un alérgeno
    */
@@ -697,11 +698,11 @@ export class ShoppingOptimizer {
       'Huevos': ['huevo', 'mayonesa', 'flan', 'merengue'],
       'Soja': ['soja', 'tofu', 'miso', 'tempeh']
     };
-    
+
     const keywords = allergenKeywords[allergy] || [allergy.toLowerCase()];
     return keywords.some(keyword => itemName.includes(keyword));
   }
-  
+
   /**
    * Verificar si un item cumple con una restricción dietética
    */
@@ -713,24 +714,24 @@ export class ShoppingOptimizer {
       'Kosher': ['cerdo', 'mariscos', 'jamón'],
       'Sin azúcar': ['azúcar', 'dulce', 'chocolate', 'caramelo', 'torta', 'helado']
     };
-    
+
     const forbidden = restrictionRules[restriction] || [];
     return !forbidden.some(keyword => itemName.includes(keyword));
   }
-  
+
   /**
    * Ajustar lista según presupuesto
    */
   private adjustForBudget(items: ShoppingItem[], budget: number): void {
     let currentTotal = this.calculateTotal(items);
-    
+
     // Primero marcar items opcionales
     items.forEach(item => {
       if (item.priority === 'optional' && currentTotal > budget) {
         item.notes = `⚠️ Excede presupuesto - ${item.notes || ''}`.trim();
       }
     });
-    
+
     // Si aún excede, marcar recomendados
     if (currentTotal > budget) {
       items.forEach(item => {
@@ -741,7 +742,7 @@ export class ShoppingOptimizer {
       });
     }
   }
-  
+
   /**
    * Actualizar total de la lista
    */
@@ -904,7 +905,7 @@ export class ShoppingOptimizer {
           // Actualizar cantidad existente
           await this.supabase
             .from('pantry_items')
-            .update({ 
+            .update({
               quantity: pantryItem.quantity + item.quantity,
               status: 'good',
               updated_at: new Date().toISOString()
@@ -929,20 +930,20 @@ export class ShoppingOptimizer {
     const encodedText = encodeURIComponent(text);
     return `https://wa.me/?text=${encodedText}`;
   }
-  
+
   /**
    * Formatear lista para compartir
    */
   private formatListForSharing(list: ShoppingList): string {
     let text = `🛒 *${list.name}*\n\n`;
-    
+
     // Agrupar por categoría
     const byCategory = list.items.reduce((acc, item) => {
       if (!acc[item.category]) acc[item.category] = [];
       acc[item.category].push(item);
       return acc;
     }, {} as Record<string, ShoppingItem[]>);
-    
+
     for (const [category, items] of Object.entries(byCategory)) {
       text += `*${category}*\n`;
       for (const item of items) {
@@ -954,9 +955,9 @@ export class ShoppingOptimizer {
       }
       text += '\n';
     }
-    
+
     text += `💰 *Total Estimado: $${list.totalEstimated.toLocaleString()}*`;
-    
+
     return text;
   }
 }

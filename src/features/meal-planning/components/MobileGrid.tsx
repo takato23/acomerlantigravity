@@ -7,9 +7,9 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Calendar,
   Sparkles,
   TrendingUp,
@@ -18,10 +18,10 @@ import {
 import { format, addDays, startOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-import { 
-  KeCard, 
-  KeCardHeader, 
-  KeCardTitle, 
+import {
+  KeCard,
+  KeCardHeader,
+  KeCardTitle,
   KeCardContent,
   KeButton,
   KeBadge
@@ -37,6 +37,7 @@ interface MobileGridProps {
   onMealDuplicate?: (meal: any, slot: any) => void;
   isLoading?: boolean;
   rangeDays?: number;
+  onAddToShoppingList?: (meal: any) => void;
 }
 
 const MEAL_TYPES = ['desayuno', 'almuerzo', 'merienda', 'cena'] as const;
@@ -49,7 +50,8 @@ export function MobileGrid({
   onMealEdit,
   onMealDuplicate,
   isLoading = false,
-  rangeDays = 7
+  rangeDays = 7,
+  onAddToShoppingList
 }: MobileGridProps) {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
@@ -68,17 +70,17 @@ export function MobileGrid({
 
   // Calculate day stats
   const getDayStats = (dayIndex: number) => {
-    const dayMeals = MEAL_TYPES.map(mealType => 
+    const dayMeals = MEAL_TYPES.map(mealType =>
       weekPlan?.[dayIndex]?.[mealType]
     ).filter(Boolean);
 
-    const totalKcal = dayMeals.reduce((sum, meal) => 
+    const totalKcal = dayMeals.reduce((sum, meal) =>
       sum + (meal?.macros?.kcal || 0), 0
     );
-    const totalProtein = dayMeals.reduce((sum, meal) => 
+    const totalProtein = dayMeals.reduce((sum, meal) =>
       sum + (meal?.macros?.protein_g || 0), 0
     );
-    const totalCost = dayMeals.reduce((sum, meal) => 
+    const totalCost = dayMeals.reduce((sum, meal) =>
       sum + (meal?.cost_estimate_ars || 0), 0
     );
 
@@ -112,7 +114,7 @@ export function MobileGrid({
               <KeCardTitle className="text-lg">
                 {DAYS[selectedDayIndex]}
               </KeCardTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-slate-600">
                 {format(currentDay, "d 'de' MMMM", { locale: es })}
               </p>
             </div>
@@ -132,15 +134,15 @@ export function MobileGrid({
         {/* Day dots indicator */}
         <KeCardContent className="pt-0">
           <div className="flex justify-center gap-1">
-             {Array.from({ length: rangeDays }).map((_, index) => (
+            {Array.from({ length: rangeDays }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedDayIndex(index)}
                 className={cn(
                   "w-2 h-2 rounded-full transition-all duration-200",
-                  index === selectedDayIndex 
-                    ? "bg-green-500 w-6" 
-                    : "bg-gray-300 dark:bg-gray-600"
+                  index === selectedDayIndex
+                    ? "bg-green-500 w-6"
+                    : "bg-slate-300"
                 )}
               />
             ))}
@@ -155,9 +157,9 @@ export function MobileGrid({
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <TrendingUp className="w-4 h-4 text-orange-500" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Kcal</span>
+                <span className="text-sm font-medium text-slate-600">Kcal</span>
               </div>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
+              <p className="text-lg font-bold text-slate-900">
                 {currentDayStats.totalKcal}
               </p>
             </div>
@@ -165,9 +167,9 @@ export function MobileGrid({
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Sparkles className="w-4 h-4 text-red-500" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Proteína</span>
+                <span className="text-sm font-medium text-slate-600">Proteina</span>
               </div>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
+              <p className="text-lg font-bold text-slate-900">
                 {currentDayStats.totalProtein.toFixed(0)}g
               </p>
             </div>
@@ -175,9 +177,9 @@ export function MobileGrid({
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <DollarSign className="w-4 h-4 text-green-500" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Costo</span>
+                <span className="text-sm font-medium text-slate-600">Costo</span>
               </div>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
+              <p className="text-lg font-bold text-slate-900">
                 ${(currentDayStats.totalCost / 1000).toFixed(1)}k
               </p>
             </div>
@@ -185,9 +187,9 @@ export function MobileGrid({
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Calendar className="w-4 h-4 text-blue-500" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Comidas</span>
+                <span className="text-sm font-medium text-slate-600">Comidas</span>
               </div>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">
+              <p className="text-lg font-bold text-slate-900">
                 {currentDayStats.mealsPlanned}/4
               </p>
             </div>
@@ -196,16 +198,16 @@ export function MobileGrid({
           {/* Progress bar */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                Planificación del día
+              <span className="text-xs text-slate-500">
+                Planificacion del dia
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-slate-500">
                 {Math.round((currentDayStats.mealsPlanned / 4) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300"
+            <div className="w-full bg-slate-200 rounded-full h-2">
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(currentDayStats.mealsPlanned / 4) * 100}%` }}
               />
             </div>
@@ -227,8 +229,8 @@ export function MobileGrid({
           className="space-y-3"
         >
           {MEAL_TYPES.map((mealType) => {
-             const meal = weekPlan?.[selectedDayIndex]?.[mealType];
-            
+            const meal = weekPlan?.[selectedDayIndex]?.[mealType];
+
             return (
               <MealCard
                 key={`${selectedDayIndex}-${mealType}`}
@@ -239,7 +241,8 @@ export function MobileGrid({
                 onClick={() => onRecipeSelect({ dayOfWeek: selectedDayIndex, mealType })}
                 onEdit={() => onMealEdit?.(meal, { dayOfWeek: selectedDayIndex, mealType })}
                 onDuplicate={() => onMealDuplicate?.(meal, { dayOfWeek: selectedDayIndex, mealType })}
-                className="w-full"
+                onAddToShoppingList={meal ? () => onAddToShoppingList?.(meal) : undefined}
+                className="h-full"
               />
             );
           })}
@@ -258,7 +261,7 @@ export function MobileGrid({
             >
               Generar día con IA
             </KeButton>
-            
+
             <KeButton
               variant="outline"
               size="sm"
@@ -274,9 +277,9 @@ export function MobileGrid({
       {/* Loading overlay */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl">
+          <div className="bg-white rounded-xl p-6 shadow-xl">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-300">Cargando plan...</p>
+            <p className="text-slate-600">Cargando plan...</p>
           </div>
         </div>
       )}

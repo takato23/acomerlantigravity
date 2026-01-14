@@ -107,27 +107,27 @@ export class FeatureErrorBoundary extends Component<Props, State> {
 
       // UI de error por defecto
       return (
-        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl p-6 m-4">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 m-4">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
               </div>
             </div>
-            
+
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
+              <h3 className="text-sm font-semibold text-red-800 mb-1">
                 Error en {this.props.featureName}
               </h3>
-              
-              <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+
+              <p className="text-sm text-red-700 mb-4">
                 Esta funcionalidad no está disponible temporalmente debido a un error técnico.
                 {this.state.retryCount > 0 && ` (Intento ${this.state.retryCount}/${this.maxRetries})`}
               </p>
 
               {/* Error ID para desarrollo */}
               {process.env.NODE_ENV === 'development' && this.state.errorId && (
-                <p className="text-xs font-mono text-red-600 dark:text-red-400 mb-3 bg-white dark:bg-gray-900 px-2 py-1 rounded border">
+                <p className="text-xs font-mono text-red-600 mb-3 bg-white px-2 py-1 rounded border">
                   ID: {this.state.errorId}
                 </p>
               )}
@@ -135,43 +135,43 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               {/* Error message para desarrollo */}
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="mb-4">
-                  <summary className="text-xs text-red-600 dark:text-red-400 cursor-pointer hover:text-red-800 dark:hover:text-red-200">
+                  <summary className="text-xs text-red-600 cursor-pointer hover:text-red-800">
                     Ver detalles del error
                   </summary>
-                  <pre className="text-xs text-red-700 dark:text-red-300 mt-2 p-2 bg-white dark:bg-gray-900 rounded border overflow-auto max-h-32">
+                  <pre className="text-xs text-red-700 mt-2 p-2 bg-white rounded border overflow-auto max-h-32">
                     {this.state.error.stack || this.state.error.message}
                   </pre>
                 </details>
               )}
-              
+
               <div className="flex gap-2">
                 {this.props.showRetry !== false && this.state.retryCount < this.maxRetries && (
                   <Button
                     onClick={this.handleRetry}
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/50"
+                    className="flex items-center gap-2 text-red-700 border-red-300 hover:bg-red-100"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Reintentar
                   </Button>
                 )}
-                
+
                 {this.props.showBack !== false && (
                   <Button
                     onClick={this.handleBack}
                     variant="ghost"
                     size="sm"
-                    className="flex items-center gap-2 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/50"
+                    className="flex items-center gap-2 text-red-700 hover:bg-red-100"
                   >
                     <ArrowLeft className="w-3 h-3" />
                     Volver
                   </Button>
                 )}
               </div>
-              
+
               {this.state.retryCount >= this.maxRetries && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-3 italic">
+                <p className="text-xs text-red-600 mt-3 italic">
                   Se alcanzó el máximo de reintentos. Por favor, recarga la página o contacta a soporte.
                 </p>
               )}
