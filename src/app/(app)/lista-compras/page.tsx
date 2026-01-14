@@ -298,7 +298,7 @@ export default function ListaComprasPage() {
     setEditItemQuantity(item.quantity || 1);
     setEditItemUnit(item.unit || 'unidades');
     setEditItemCategory(item.category || 'otros');
-    setEditItemPrice(item.estimated_cost);
+    setEditItemPrice(item.estimated_cost ?? item.estimatedPrice ?? null);
     setShowEditModal(true);
   };
 
@@ -1166,7 +1166,7 @@ export default function ListaComprasPage() {
               label="Cantidad"
               type="number"
               placeholder="1"
-              value={newItemQuantity}
+              value={String(newItemQuantity)}
               onChange={(e) => setNewItemQuantity(Number(e.target.value))}
             />
             <div>
@@ -1239,7 +1239,7 @@ export default function ListaComprasPage() {
               label="Cantidad"
               type="number"
               placeholder="1"
-              value={editItemQuantity}
+              value={String(editItemQuantity)}
               onChange={(e) => setEditItemQuantity(Number(e.target.value))}
             />
             <div>
@@ -1279,9 +1279,8 @@ export default function ListaComprasPage() {
             <GlassInput
               label="Precio estimado (opcional)"
               type="number"
-              step="0.01"
               placeholder="0.00"
-              value={editItemPrice || ''}
+              value={editItemPrice != null ? String(editItemPrice) : ''}
               onChange={(e) => setEditItemPrice(e.target.value ? Number(e.target.value) : null)}
             />
           </div>
