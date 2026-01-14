@@ -10,20 +10,22 @@ interface Params {
 }
 
 // GET /api/meal-planning/[id] - Get specific meal plan
-export async function GET(req: NextRequest, { params }: Params) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-
-    const { id } = params;
 
     const { data: mealPlan, error } = await supabase
       .from('meal_plans')
@@ -46,7 +48,7 @@ export async function GET(req: NextRequest, { params }: Params) {
           { status: 404 }
         );
       }
-      
+
       logger.error('Failed to fetch meal plan', 'meal-planning/[id]/GET', error);
       return NextResponse.json(
         { error: 'Failed to fetch meal plan' },
@@ -81,12 +83,16 @@ export async function GET(req: NextRequest, { params }: Params) {
 }
 
 // PUT /api/meal-planning/[id] - Update specific meal plan
-export async function PUT(req: NextRequest, { params }: Params) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -94,7 +100,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
       );
     }
 
-    const { id } = params;
     const body = await req.json();
 
     // Check if meal plan exists and belongs to user
@@ -112,10 +117,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
       );
     }
 
-    const { 
-      name, 
-      startDate, 
-      endDate, 
+    const {
+      name,
+      startDate,
+      endDate,
       preferences,
       nutritionalGoals,
       isActive
@@ -191,20 +196,22 @@ export async function PUT(req: NextRequest, { params }: Params) {
 }
 
 // DELETE /api/meal-planning/[id] - Delete specific meal plan
-export async function DELETE(req: NextRequest, { params }: Params) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-
-    const { id } = params;
 
     // Check if meal plan exists and belongs to user
     const { data: existingPlan, error: checkError } = await supabase
@@ -228,7 +235,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
         user_id: user.id,
         meal_plan_id: id,
         action: 'deleted',
-        details: { 
+        details: {
           deletedAt: new Date().toISOString(),
           planName: existingPlan.name
         }
