@@ -30,7 +30,7 @@ export type ValidatedRequest<TBody = any, TQuery = any> = NextRequest & {
 
 export type ApiHandler<TBody = any, TQuery = any> = (
   request: ValidatedRequest<TBody, TQuery>,
-  context: { params?: any }
+  context: any
 ) => Promise<NextResponse>;
 
 export interface ValidationOptions {
@@ -54,7 +54,7 @@ export function withValidation<TBody = any, TQuery = any>(
 ) {
   return async (
     request: NextRequest,
-    context: { params?: any } = {}
+    context?: any
   ): Promise<NextResponse> => {
     try {
       const validatedRequest = request as ValidatedRequest<TBody, TQuery>;
@@ -69,7 +69,7 @@ export function withValidation<TBody = any, TQuery = any>(
             MealPlanningErrorCodes.AUTHENTICATION_REQUIRED
           );
         }
-        
+
         validatedRequest.user = {
           id: user.id,
           email: user.email!,
@@ -81,7 +81,7 @@ export function withValidation<TBody = any, TQuery = any>(
       if (options.query) {
         const { searchParams } = new URL(request.url);
         const queryResult = validateQueryParams(options.query, searchParams);
-        
+
         if (!queryResult.success) {
           return createErrorResponse(
             'Invalid query parameters',
@@ -90,7 +90,7 @@ export function withValidation<TBody = any, TQuery = any>(
             queryResult.error
           );
         }
-        
+
         validatedRequest.validatedQuery = queryResult.data;
       }
 
@@ -99,7 +99,7 @@ export function withValidation<TBody = any, TQuery = any>(
         try {
           const body = await request.json();
           const bodyResult = validateData(options.body, body);
-          
+
           if (!bodyResult.success) {
             return createErrorResponse(
               'Invalid request body',
@@ -108,7 +108,7 @@ export function withValidation<TBody = any, TQuery = any>(
               bodyResult.error
             );
           }
-          
+
           validatedRequest.validatedBody = bodyResult.data;
         } catch (error: unknown) {
           return createErrorResponse(
@@ -126,7 +126,7 @@ export function withValidation<TBody = any, TQuery = any>(
           options.rateLimit.requests,
           options.rateLimit.window
         );
-        
+
         if (!rateLimitResult.allowed) {
           return createErrorResponse(
             'Rate limit exceeded',
@@ -146,7 +146,7 @@ export function withValidation<TBody = any, TQuery = any>(
 
     } catch (error: unknown) {
       logger.error('API Error:', 'Lib:middleware', error);
-      
+
       if (error instanceof MealPlanningError) {
         return createErrorResponse(
           error.userMessage || error.message,
@@ -155,7 +155,7 @@ export function withValidation<TBody = any, TQuery = any>(
           error.context
         );
       }
-      
+
       return createErrorResponse(
         'Internal server error',
         500,
@@ -214,11 +214,11 @@ export function validateAll<TBody = any, TQuery = any>(
   handler: ApiHandler<TBody, TQuery>,
   options: Omit<ValidationOptions, 'body' | 'query'> = {}
 ) {
-  return withValidation(handler, { 
-    ...options, 
-    body: bodySchema, 
+  return withValidation(handler, {
+    ...options,
+    body: bodySchema,
     query: querySchema,
-    requireAuth: true 
+    requireAuth: true
   });
 }
 
@@ -242,7 +242,7 @@ export async function validateOwnership(
 
   try {
     const { prisma } = await import('@/lib/prisma');
-    
+
     let resource;
     switch (resourceType) {
       case 'recipe':
@@ -281,7 +281,7 @@ export async function validateOwnership(
     if (error instanceof MealPlanningError) {
       throw error;
     }
-    
+
     throw new MealPlanningError(
       'Failed to validate ownership',
       MealPlanningErrorCodes.DATABASE_ERROR,
@@ -294,14 +294,14 @@ export function requireOwnership(
   resourceType: 'recipe' | 'meal-plan' | 'pantry-item',
   getResourceId: (params: any) => string
 ) {
-  return function<TBody = any, TQuery = any>(
+  return function <TBody = any, TQuery = any>(
     handler: ApiHandler<TBody, TQuery>,
     options: ValidationOptions = {}
   ) {
     return withValidation(async (request, context) => {
       const resourceId = getResourceId(context.params);
       const isOwner = await validateOwnership(request, resourceId, resourceType);
-      
+
       if (!isOwner) {
         return createErrorResponse(
           'Access denied',
@@ -310,7 +310,7 @@ export function requireOwnership(
           { resourceId, resourceType }
         );
       }
-      
+
       return handler(request, context);
     }, { ...options, requireAuth: true });
   };
@@ -331,9 +331,9 @@ async function checkRateLimit(
   const identifier = getClientIdentifier(request);
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
-  
+
   const current = rateLimitStore.get(identifier);
-  
+
   if (!current || now > current.resetTime) {
     rateLimitStore.set(identifier, {
       count: 1,
@@ -341,14 +341,14 @@ async function checkRateLimit(
     });
     return { allowed: true };
   }
-  
+
   if (current.count >= maxRequests) {
-    return { 
-      allowed: false, 
-      retryAfter: Math.ceil((current.resetTime - now) / 1000) 
+    return {
+      allowed: false,
+      retryAfter: Math.ceil((current.resetTime - now) / 1000)
     };
   }
-  
+
   current.count++;
   return { allowed: true };
 }
@@ -381,7 +381,7 @@ function createErrorResponse(
       timestamp: new Date(),
     }
   };
-  
+
   return NextResponse.json(response, { status });
 }
 
@@ -398,7 +398,7 @@ export function createSuccessResponse<T = any>(
       ...meta
     }
   };
-  
+
   return NextResponse.json(response, { status });
 }
 
@@ -412,7 +412,7 @@ export function createPaginatedResponse<T = any>(
   status: number = 200
 ): NextResponse {
   const pages = Math.ceil(pagination.total / pagination.limit);
-  
+
   const response = {
     success: true,
     data,
@@ -426,7 +426,7 @@ export function createPaginatedResponse<T = any>(
       timestamp: new Date(),
     }
   };
-  
+
   return NextResponse.json(response, { status });
 }
 
@@ -476,11 +476,11 @@ export function normalizeString(str: string): string {
 export function validate<T>(schema: z.ZodSchema<T>) {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
-    
+
     descriptor.value = async function (...args: any[]) {
       const data = args[0];
       const result = validateData(schema, data);
-      
+
       if (!result.success) {
         throw new MealPlanningError(
           'Validation failed',
@@ -488,10 +488,10 @@ export function validate<T>(schema: z.ZodSchema<T>) {
           result.error
         );
       }
-      
+
       return originalMethod.apply(this, [result.data, ...args.slice(1)]);
     };
-    
+
     return descriptor;
   };
 }
@@ -499,11 +499,11 @@ export function validate<T>(schema: z.ZodSchema<T>) {
 export function rateLimit(requests: number, windowSeconds: number) {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
-    
+
     descriptor.value = async function (...args: any[]) {
       const request = args[0] as NextRequest;
       const rateLimitResult = await checkRateLimit(request, requests, windowSeconds);
-      
+
       if (!rateLimitResult.allowed) {
         throw new MealPlanningError(
           'Rate limit exceeded',
@@ -511,10 +511,10 @@ export function rateLimit(requests: number, windowSeconds: number) {
           { retryAfter: rateLimitResult.retryAfter }
         );
       }
-      
+
       return originalMethod.apply(this, args);
     };
-    
+
     return descriptor;
   };
 }
