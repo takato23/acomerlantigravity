@@ -84,15 +84,15 @@ export async function GET() {
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
 ${urls
-  .map(
-    (url) => `  <url>
+      .map(
+        (url) => `  <url>
     <loc>${url.loc}</loc>
     ${url.lastmod ? `<lastmod>${url.lastmod}</lastmod>` : ''}
     ${url.changefreq ? `<changefreq>${url.changefreq}</changefreq>` : ''}
     ${url.priority !== undefined ? `<priority>${url.priority}</priority>` : ''}
   </url>`
-  )
-  .join('\n')}
+      )
+      .join('\n')}
 </urlset>`;
 
   return new NextResponse(sitemap, {
@@ -104,7 +104,7 @@ ${urls
 }
 
 // Optional: Generate dynamic sitemap with recipes from database
-export async function generateDynamicSitemap() {
+async function generateDynamicSitemap() {
   // This would fetch recipes from database and add them to sitemap
   // Implement if you want individual recipe pages indexed
   /*
