@@ -97,7 +97,7 @@ const quickAddItems = [
 
 export default function ListaComprasPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { profile } = useUser();
   const {
     lists,
     activeList,
@@ -427,7 +427,7 @@ export default function ListaComprasPage() {
                 <h1 className="text-4xl lg:text-5xl font-black tracking-tighter text-slate-900 dark:text-white">
                   Lista de Compras
                 </h1>
-                {!user && (
+                {!profile && (
                   <div className="px-3 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider rounded-full border border-orange-200 dark:border-orange-500/30">
                     Local Mode
                   </div>
