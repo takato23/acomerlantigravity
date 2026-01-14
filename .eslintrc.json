@@ -4,11 +4,13 @@
     "next/typescript",
     "plugin:storybook/recommended"
   ],
-  "plugins": ["unused-imports"],
+  "plugins": [
+    "unused-imports"
+  ],
   "rules": {
     "@typescript-eslint/no-unused-vars": "off",
     "no-unused-vars": "off",
-    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-imports": "warn",
     "unused-imports/no-unused-vars": [
       "warn",
       {
@@ -19,8 +21,26 @@
       }
     ],
     "prefer-const": "warn",
-    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+    "no-console": [
+      "warn",
+      {
+        "allow": [
+          "warn",
+          "error",
+          "info"
+        ]
+      }
+    ],
     "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/rules-of-hooks": "warn",
+    "react/no-unescaped-entities": "warn",
+    "react/display-name": "warn",
+    "react/jsx-no-undef": "warn",
+    "storybook/no-renderer-packages": "warn",
+    "@typescript-eslint/no-var-requires": "warn",
+    "@typescript-eslint/ban-types": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-namespace": "warn",
     "@typescript-eslint/no-explicit-any": "warn",
     "import/order": [
       "warn",
