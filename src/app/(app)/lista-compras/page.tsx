@@ -143,9 +143,9 @@ export default function ListaComprasPage() {
   const { searchMultipleProducts, isLoading: isPriceLoading } = useEnhancedPriceScraper();
 
   // Meal planning integration - get required ingredients from week plan
-  const currentWeekPlan = useMealPlanningStore((s) => s.currentWeekPlan);
+  const { currentWeekPlan } = useMealPlanningStore();
   const { missing, available } = useRequiredIngredients(currentWeekPlan);
-  const addItemsToPantry = usePantryStore((s) => s.addItemsFromShoppingList);
+  const { addItemsFromShoppingList: addItemsToPantry } = usePantryStore();
 
   // Handler to add a single missing ingredient to the shopping list
   const handleAddMissingIngredient = async (ing: { name: string; requiredQuantity: number; unit: string; category: string }) => {
