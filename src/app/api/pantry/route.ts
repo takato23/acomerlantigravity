@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getUser } from '@/lib/auth/supabase-auth';
-import { Decimal } from "@prisma/client/runtime/library";
 import { logger } from '@/lib/logger';
 import { db } from '@/lib/supabase/database.service';
 
@@ -35,7 +34,6 @@ export async function GET(req: Request) {
 
     const pantryItems = await db.getPantryItems(user.id, {
       where,
-      // includes handled by Supabase service,
       orderBy: {
         createdAt: "desc",
       }
@@ -77,82 +75,20 @@ export async function POST(req: Request) {
       barcode,
     } = data;
 
-    // First, create or find the ingredient
-    const ingredient = await prisma.ingredient.upsert({
-      where: { name: ingredientName.toLowerCase() },
-      update: {},
-      create: {
-        name: ingredientName.toLowerCase(),
-        unit: unit || "un"
-      }
+    // Create new pantry item using Supabase service
+    const newItem = await db.addPantryItem(user.id, {
+      name: ingredientName,
+      quantity: quantity || 1,
+      unit: unit || "un",
+      location: location || "pantry",
+      expiryDate: expiryDate ? new Date(expiryDate) : null,
+      notes: notes || null,
+      purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
+      purchasePrice: purchasePrice ? parseFloat(purchasePrice) : null,
+      barcode: barcode || null,
     });
 
-    // Check if user already has this ingredient in pantry
-    const existingItem = await prisma.pantryItem.findUnique({
-      where: {
-        userId_ingredientId: {
-          userId: user.id,
-          ingredientId: ingredient.id
-        }
-      }
-    });
-
-    if (existingItem) {
-      // Update existing item by adding quantities
-      const updatedItem = await db.updatePantryItem(existingItem.id, {
-        quantity: existingItem.quantity + quantity,
-        location: location || existingItem.location,
-        expiryDate: expiryDate ? new Date(expiryDate) : existingItem.expiryDate,
-        notes: notes || existingItem.notes,
-        updatedAt: new Date()
-        // includes handled by Supabase service
-      });
-
-      // Update extended info if provided
-      if (purchasePrice || purchaseDate || barcode) {
-        await prisma.pantryItemExtended.upsert({
-          where: { pantryItemId: updatedItem.id },
-          update: {
-            purchasePrice: purchasePrice ? new Decimal(purchasePrice) : undefined,
-            purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
-            scannedBarcode: barcode || undefined,
-          },
-          create: {
-            pantryItemId: updatedItem.id,
-            purchasePrice: purchasePrice ? new Decimal(purchasePrice) : null,
-            purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-            scannedBarcode: barcode || null
-          }
-        });
-      }
-
-      return NextResponse.json(updatedItem, { status: 200 });
-    } else {
-      // Create new pantry item
-      const newItem = await db.addPantryItem(user.id, {
-          ingredientId: ingredient.id,
-          quantity,
-          unit: unit || "un",
-          location: location || "pantry",
-          expiryDate: expiryDate ? new Date(expiryDate) : null,
-          notes: notes || null,
-          purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
-      });
-
-      // Create extended info if provided
-      if (purchasePrice || purchaseDate || barcode) {
-        await prisma.pantryItemExtended.create({
-          data: {
-            pantryItemId: newItem.id,
-            purchasePrice: purchasePrice ? new Decimal(purchasePrice) : null,
-            purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-            scannedBarcode: barcode || null,
-          }
-        });
-      }
-
-      return NextResponse.json(newItem, { status: 201 });
-    }
+    return NextResponse.json(newItem, { status: 201 });
   } catch (error: unknown) {
     logger.error("Error creating pantry item:", 'API:route', error);
     return NextResponse.json(
@@ -179,20 +115,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    // Verify ownership
-    const item = await prisma.pantryItem.findUnique({
-      where: { id },
-      select: { userId: true }
-    });
-
-    if (!item || item.userId !== user.id) {
-      return NextResponse.json(
-        { error: "Item not found or unauthorized" },
-        { status: 404 }
-      );
-    }
-
-    // Delete the item (cascade will handle extended info)
+    // Delete the item using Supabase service
     await db.deletePantryItem(id, user.id);
 
     return NextResponse.json({ success: true });
