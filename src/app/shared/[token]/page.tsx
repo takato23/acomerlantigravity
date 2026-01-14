@@ -33,7 +33,7 @@ const MEAL_CONFIG: Record<MealType, { label: string; icon: React.ElementType; co
 const MEAL_ORDER: MealType[] = ['desayuno', 'almuerzo', 'merienda', 'cena'];
 
 interface SharedPlanPageProps {
-    params: { token: string };
+    params: Promise<{ token: string }>;
 }
 
 export default function SharedPlanPage({ params }: SharedPlanPageProps) {
@@ -46,7 +46,8 @@ export default function SharedPlanPage({ params }: SharedPlanPageProps) {
     useEffect(() => {
         async function loadPlan() {
             try {
-                const sharedPlan = await getSharedPlan(params.token);
+                const { token } = await params;
+                const sharedPlan = await getSharedPlan(token);
                 if (!sharedPlan) {
                     setError('Este plan no existe o ya no está disponible');
                     return;
@@ -61,7 +62,7 @@ export default function SharedPlanPage({ params }: SharedPlanPageProps) {
         }
 
         loadPlan();
-    }, [params.token, getSharedPlan]);
+    }, [params, getSharedPlan]);
 
     const getSlotsForDay = (dayIndex: number): MealSlot[] => {
         if (!plan?.slots) return [];
