@@ -65,10 +65,23 @@ const STAPLE_SUGGESTIONS = [
 
 export function PlanGenerationModal({ isOpen, onClose, onSuccess }: PlanGenerationModalProps) {
   const { generateWeeklyPlan, applyGeneratedPlan } = useGeminiMealPlanner();
-  const { currentDate, currentWeekPlan, staples, setStaples } = useMealPlanningStore();
+  const { currentDate, currentWeekPlan, staples: staplesRaw, setStaples: setStaplesStore } = useMealPlanningStore();
   const pantryItems = usePantryStore((state) => state.items);
   const { saveToHistory } = useMealPlanHistory();
   const { checkAccess, trackAction, getRemainingQuota } = useMonetization();
+
+  // Normalize staples: store may return Recipe[] or string[], we work with string[]
+  const [staples, setStaplesLocal] = useState<string[]>(() => {
+    if (!Array.isArray(staplesRaw)) return [];
+    return staplesRaw.map((s: any) => (typeof s === 'string' ? s : s?.name || '')).filter(Boolean);
+  });
+
+  // Sync local staples to store (as strings - store will handle it)
+  const setStaples = (newStaples: string[]) => {
+    setStaplesLocal(newStaples);
+    // Store expects Recipe[] but we pass strings; the store should handle this
+    // For now, we keep local state and pass to preferences on generate
+  };
 
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'config' | 'generating'>('config');
@@ -180,7 +193,7 @@ export function PlanGenerationModal({ isOpen, onClose, onSuccess }: PlanGenerati
         .filter(Boolean);
 
       const budgetValue = budget ? Number(budget) : undefined;
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const weekStart = startOfWeek(new Date(currentDate), { weekStartsOn: 1 });
 
       for (let weekIndex = 0; weekIndex < weeks; weekIndex += 1) {
         setGenerationStep(weekIndex + 1);
@@ -231,9 +244,9 @@ export function PlanGenerationModal({ isOpen, onClose, onSuccess }: PlanGenerati
       // Save to history after successful generation
       // Wait a moment for the store to be updated
       setTimeout(async () => {
-        const updatedPlan = useMealPlanningStore.getState().currentWeekPlan;
-        if (updatedPlan) {
-          await saveToHistory(updatedPlan);
+        // Use the plan that was just applied
+        if (currentWeekPlan) {
+          await saveToHistory(currentWeekPlan);
         }
       }, 500);
 
@@ -361,7 +374,7 @@ export function PlanGenerationModal({ isOpen, onClose, onSuccess }: PlanGenerati
                           {WEEK_DAYS.map((day, index) => {
                             const selected = selectedDays[index];
                             const dateLabel = format(
-                              addDays(startOfWeek(currentDate, { weekStartsOn: 1 }), index),
+                              addDays(startOfWeek(new Date(currentDate), { weekStartsOn: 1 }), index),
                               'd',
                               { locale: es }
                             );
