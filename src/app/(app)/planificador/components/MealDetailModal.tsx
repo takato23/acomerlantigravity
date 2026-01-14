@@ -64,7 +64,11 @@ const isStapleIngredient = (name: string, staples: string[]) => {
 export function MealDetailModal({ isOpen, onClose, recipe, day, mealType }: MealDetailModalProps) {
   const { addItem, activeList, createList } = useShoppingList();
   const { items: pantryItems, consumeItem, fetchItems } = usePantryStore();
-  const { staples } = useMealPlanningStore();
+  const { staples: staplesRaw } = useMealPlanningStore();
+  // staples can be Recipe[] or string[], normalize to string[]
+  const staples: string[] = Array.isArray(staplesRaw)
+    ? staplesRaw.map((s: any) => (typeof s === 'string' ? s : s?.name || ''))
+    : [];
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionComplete, setActionComplete] = useState(false);
