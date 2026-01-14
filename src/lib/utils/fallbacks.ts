@@ -3,7 +3,7 @@
  * Handles cultural rules, error recovery, and traditional food requirements
  */
 
-import { 
+import {
   ArgentineWeeklyPlan,
   ArgentineDayPlan,
   ArgentineMeal,
@@ -25,29 +25,29 @@ import { nanoid } from 'nanoid';
  * Ensures Argentine cultural traditions are respected in meal planning
  */
 export function enforceCulturalRules(
-  plan: ArgentineWeeklyPlan, 
+  plan: ArgentineWeeklyPlan,
   weekStart: string
 ): ArgentineWeeklyPlan {
   let enhancedPlan = { ...plan };
-  
+
   // Ensure mate is present if preferences indicate daily consumption
   enhancedPlan = ensureMate(enhancedPlan);
-  
+
   // Ensure asado on weekends if frequency allows
   enhancedPlan = ensureAsado(enhancedPlan);
-  
+
   // Ensure ñoquis on the 29th if applicable
   enhancedPlan = ensureNoquis29(enhancedPlan, weekStart);
-  
+
   // Ensure Sunday family lunch is substantial
   enhancedPlan = ensureSundayFamilyMeal(enhancedPlan);
-  
+
   // Balance traditional vs modern based on preferences
   enhancedPlan = balanceTraditionalMeals(enhancedPlan);
-  
+
   // Update cultural metadata
   enhancedPlan.cultural = updateCulturalMetadata(enhancedPlan);
-  
+
   return enhancedPlan;
 }
 
@@ -57,15 +57,15 @@ export function enforceCulturalRules(
 export function ensureMate(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
   const preferences = plan.preferences;
   if (preferences?.cultural.mateFrequency === 'nunca') return plan;
-  
+
   const frequency = preferences?.cultural.mateFrequency || 'ocasional';
   const daysToIncludeMate = getDaysForFrequency(frequency);
-  
+
   return {
     ...plan,
     days: plan.days.map((day, index) => {
       if (!daysToIncludeMate.includes(index)) return day;
-      
+
       // Add mate to merienda if not already present
       if (!day.merienda || !isMateRelated(day.merienda.recipe)) {
         const mateRecipe = getMateRecipe(plan.region);
@@ -81,7 +81,7 @@ export function ensureMate(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
             occasion: 'mate'
           }
         };
-        
+
         return {
           ...day,
           merienda: mateMeal,
@@ -91,7 +91,7 @@ export function ensureMate(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
           }
         };
       }
-      
+
       return day;
     })
   };
@@ -103,17 +103,17 @@ export function ensureMate(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
 export function ensureAsado(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
   const preferences = plan.preferences;
   if (preferences?.cultural.asadoFrequency === 'nunca') return plan;
-  
+
   const frequency = preferences?.cultural.asadoFrequency || 'quincenal';
-  
+
   // Determine if this week should have asado
   const shouldHaveAsado = shouldIncludeAsado(frequency, plan.weekStart);
   if (!shouldHaveAsado) return plan;
-  
+
   // Find Sunday (index 6) or Saturday (index 5) for asado
   const asadoDay = plan.days.find(day => day.dayOfWeek === 0 || day.dayOfWeek === 6); // Sunday or Saturday
   if (!asadoDay) return plan;
-  
+
   const asadoRecipe = getAsadoRecipe(plan.region, plan.mode);
   const asadoMeal: ArgentineMeal = {
     id: nanoid(),
@@ -127,7 +127,7 @@ export function ensureAsado(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
       occasion: 'asado'
     }
   };
-  
+
   return {
     ...plan,
     days: plan.days.map(day => {
@@ -156,9 +156,9 @@ export function ensureNoquis29(plan: ArgentineWeeklyPlan, weekStart: string): Ar
     const date = new Date(day.date);
     return date.getDate() === 29;
   });
-  
+
   if (!day29) return plan;
-  
+
   const noquiRecipe = getNoquiRecipe(plan.region);
   const noquiMeal: ArgentineMeal = {
     id: nanoid(),
@@ -172,7 +172,7 @@ export function ensureNoquis29(plan: ArgentineWeeklyPlan, weekStart: string): Ar
       occasion: 'dia29'
     }
   };
-  
+
   return {
     ...plan,
     days: plan.days.map(day => {
@@ -199,10 +199,10 @@ export function ensureNoquis29(plan: ArgentineWeeklyPlan, weekStart: string): Ar
 function ensureSundayFamilyMeal(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
   const sunday = plan.days.find(day => day.dayOfWeek === 0);
   if (!sunday) return plan;
-  
+
   // If already has asado, skip
   if (sunday.cultural.hasAsado) return plan;
-  
+
   // Ensure substantial Sunday lunch
   if (!sunday.almuerzo || sunday.almuerzo.cost < 800) { // Minimum cost for family meal
     const sundayRecipe = getSundayFamilyRecipe(plan.region, plan.mode);
@@ -218,7 +218,7 @@ function ensureSundayFamilyMeal(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan 
         occasion: 'domingo'
       }
     };
-    
+
     return {
       ...plan,
       days: plan.days.map(day => {
@@ -237,7 +237,7 @@ function ensureSundayFamilyMeal(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan 
       })
     };
   }
-  
+
   return plan;
 }
 
@@ -247,24 +247,24 @@ function ensureSundayFamilyMeal(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan 
 function balanceTraditionalMeals(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
   const traditionLevel = plan.preferences?.cultural.traditionLevel || 'media';
   const targetTraditionalRatio = getTraditionalRatio(traditionLevel);
-  
-  const totalMeals = plan.days.flatMap(day => 
+
+  const totalMeals = plan.days.flatMap(day =>
     [day.desayuno, day.almuerzo, day.merienda, day.cena].filter(Boolean)
   ).length;
-  
+
   const currentTraditionalMeals = plan.days.flatMap(day =>
     [day.desayuno, day.almuerzo, day.merienda, day.cena]
       .filter(Boolean)
       .filter(meal => meal!.recipe.cultural.isTraditional)
   ).length;
-  
+
   const targetTraditionalMeals = Math.round(totalMeals * targetTraditionalRatio);
-  
+
   if (currentTraditionalMeals < targetTraditionalMeals) {
     // Need to add more traditional meals
     return addTraditionalMeals(plan, targetTraditionalMeals - currentTraditionalMeals);
   }
-  
+
   return plan;
 }
 
@@ -282,7 +282,7 @@ export function generateFallbackWeeklyPlan(
 ): ArgentineWeeklyPlan {
   const region = preferences?.cultural.region || 'pampa';
   const season = getCurrentSeason();
-  
+
   const fallbackPlan: ArgentineWeeklyPlan = {
     planId: `fallback_${nanoid()}`,
     userId: 'fallback',
@@ -309,13 +309,13 @@ export function generateFallbackWeeklyPlan(
     },
     preferences: preferences || getDefaultPreferences(),
   };
-  
+
   // Generate 7 days of basic meals
   for (let i = 0; i < 7; i++) {
     const date = new Date(weekStart);
     date.setDate(date.getDate() + i);
     const dayOfWeek = date.getDay();
-    
+
     const day: ArgentineDayPlan = {
       date: date.toISOString().split('T')[0],
       dayOfWeek,
@@ -334,10 +334,10 @@ export function generateFallbackWeeklyPlan(
       prepTime: 60,
       cookTime: 45
     };
-    
+
     fallbackPlan.days.push(day);
   }
-  
+
   // Apply cultural rules to the fallback plan
   return enforceCulturalRules(fallbackPlan, weekStart);
 }
@@ -351,7 +351,7 @@ export function generateFallbackMeal(
   mode: ModeType = 'normal'
 ): ArgentineMeal {
   const recipe = getFallbackRecipe(mealType, mode, preferences?.cultural.region);
-  
+
   return {
     id: nanoid(),
     recipe,
@@ -429,10 +429,10 @@ function getMateRecipe(region: RegionType): Recipe {
  * Gets an asado recipe appropriate for the region and mode
  */
 function getAsadoRecipe(region: RegionType, mode: ModeType): Recipe {
-  const cuts = mode === 'economico' 
+  const cuts = mode === 'economico'
     ? ['pollo', 'chorizo', 'morcilla']
     : ['bife de chorizo', 'vacío', 'chorizo', 'morcilla'];
-    
+
   return {
     id: `asado_${region}_${mode}`,
     name: 'Asado argentino',
@@ -583,7 +583,7 @@ function getDaysForFrequency(frequency: string): number[] {
 
 function shouldIncludeAsado(frequency: string, weekStart: string): boolean {
   const weekNumber = getWeekOfYear(new Date(weekStart));
-  
+
   switch (frequency) {
     case 'semanal': return true;
     case 'quincenal': return weekNumber % 2 === 0;
@@ -593,9 +593,9 @@ function shouldIncludeAsado(frequency: string, weekStart: string): boolean {
 }
 
 function isMateRelated(recipe: Recipe): boolean {
-  return recipe.name.toLowerCase().includes('mate') || 
-         recipe.tags.includes('mate') ||
-         recipe.cultural.occasion === 'mate';
+  return recipe.name.toLowerCase().includes('mate') ||
+    recipe.tags.includes('mate') ||
+    recipe.cultural.occasion === 'mate';
 }
 
 function scaleNutrition(nutrition: NutritionInfo, servings: number): NutritionInfo {
@@ -647,18 +647,18 @@ function updateCulturalMetadata(plan: ArgentineWeeklyPlan) {
   const hasAsado = plan.days.some(day => day.cultural.hasAsado);
   const hasMate = plan.days.some(day => day.cultural.hasMate);
   const hasNoquis29 = plan.days.some(day => day.cultural.occasion === 'dia29');
-  
+
   const traditionalMeals = plan.days.flatMap(day =>
     [day.desayuno, day.almuerzo, day.merienda, day.cena]
       .filter(Boolean)
       .filter(meal => meal!.recipe.cultural.isTraditional)
   ).length;
-  
+
   const specialOccasions = plan.days
     .filter(day => day.cultural.isSpecialDay)
     .map(day => day.cultural.occasion)
     .filter(Boolean) as string[];
-  
+
   return {
     hasAsado,
     hasMate,
@@ -695,7 +695,7 @@ function addTraditionalMeals(plan: ArgentineWeeklyPlan, count: number): Argentin
   return plan;
 }
 
-function getFallbackRecipe(mealType: MealType, mode: ModeType, region?: RegionType): Recipe {
+function getFallbackRecipe(mealType: MealType, _mode: ModeType, _region?: RegionType): Recipe {
   // Simplified fallback recipes
   const fallbackRecipes: Record<MealType, Recipe> = {
     desayuno: {
@@ -775,7 +775,7 @@ function getFallbackRecipe(mealType: MealType, mode: ModeType, region?: RegionTy
       updatedAt: new Date().toISOString()
     }
   };
-  
+
   return fallbackRecipes[mealType];
 }
 

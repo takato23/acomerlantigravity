@@ -9,62 +9,62 @@ export class MetricStopwatch {
   private startTime: number = 0;
   private endTime: number = 0;
   private marks: Map<string, number> = new Map();
-  
-  constructor(private name: string) {}
-  
+
+  constructor(private name: string) { }
+
   start(): void {
     this.startTime = performance.now();
     this.marks.clear();
     logger.debug(`Stopwatch started`, 'MetricStopwatch', { name: this.name });
   }
-  
+
   mark(label: string): void {
     if (this.startTime === 0) {
       logger.warn('Cannot mark time - stopwatch not started', 'MetricStopwatch');
       return;
     }
-    
+
     const elapsed = performance.now() - this.startTime;
     this.marks.set(label, elapsed);
-    logger.debug(`Mark recorded`, 'MetricStopwatch', { 
+    logger.debug(`Mark recorded`, 'MetricStopwatch', {
       name: this.name,
       label,
       elapsed: Math.round(elapsed)
     });
   }
-  
+
   stop(): number {
     if (this.startTime === 0) {
       logger.warn('Cannot stop stopwatch - not started', 'MetricStopwatch');
       return 0;
     }
-    
+
     this.endTime = performance.now();
     const elapsed = this.endTime - this.startTime;
-    
-    logger.info(`Stopwatch stopped`, 'MetricStopwatch', { 
+
+    logger.info(`Stopwatch stopped`, 'MetricStopwatch', {
       name: this.name,
       elapsed: Math.round(elapsed),
       marks: Object.fromEntries(
         Array.from(this.marks.entries()).map(([k, v]) => [k, Math.round(v)])
       )
     });
-    
+
     return elapsed;
   }
-  
+
   getElapsed(): number {
     if (this.startTime === 0) return 0;
     const endTime = this.endTime || performance.now();
     return endTime - this.startTime;
   }
-  
+
   getMarks(): Record<string, number> {
     return Object.fromEntries(
       Array.from(this.marks.entries()).map(([k, v]) => [k, Math.round(v)])
     );
   }
-  
+
   reset(): void {
     this.startTime = 0;
     this.endTime = 0;
@@ -79,8 +79,13 @@ export function getMemoryUsage(): Record<string, number> | null {
   if (typeof window === 'undefined' || !('memory' in performance)) {
     return null;
   }
-  
-  const memory = (performance as any).memory;
+
+  interface PerformanceMemory {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  }
+  const memory = (performance as unknown as { memory: PerformanceMemory }).memory;
   return {
     usedJSHeapSize: Math.round(memory.usedJSHeapSize / 1024 / 1024), // MB
     totalJSHeapSize: Math.round(memory.totalJSHeapSize / 1024 / 1024), // MB
@@ -98,16 +103,16 @@ export function measurePerformance(name: string) {
     descriptor: TypedPropertyDescriptor<T>
   ) {
     const originalMethod = descriptor.value;
-    
+
     if (!originalMethod) return descriptor;
-    
+
     descriptor.value = function (...args: any[]) {
       const stopwatch = new MetricStopwatch(`${name}.${propertyKey}`);
       stopwatch.start();
-      
+
       try {
         const result = originalMethod.apply(this, args);
-        
+
         // Handle async methods
         if (result instanceof Promise) {
           return result
@@ -120,7 +125,7 @@ export function measurePerformance(name: string) {
               throw error;
             });
         }
-        
+
         stopwatch.stop();
         return result;
       } catch (error) {
@@ -128,7 +133,7 @@ export function measurePerformance(name: string) {
         throw error;
       }
     } as T;
-    
+
     return descriptor;
   };
 }
@@ -142,18 +147,18 @@ export async function withMetrics<T>(
 ): Promise<T> {
   const stopwatch = new MetricStopwatch(name);
   const startMemory = getMemoryUsage();
-  
+
   stopwatch.start();
-  
+
   try {
     const result = await operation();
     stopwatch.stop();
-    
+
     const endMemory = getMemoryUsage();
-    const memoryDelta = startMemory && endMemory 
+    const memoryDelta = startMemory && endMemory
       ? endMemory.usedJSHeapSize - startMemory.usedJSHeapSize
       : null;
-    
+
     logger.info('Operation completed', 'withMetrics', {
       name,
       duration: Math.round(stopwatch.getElapsed()),
@@ -161,17 +166,17 @@ export async function withMetrics<T>(
       startMemory: startMemory?.usedJSHeapSize,
       endMemory: endMemory?.usedJSHeapSize
     });
-    
+
     return result;
   } catch (error) {
     stopwatch.stop();
-    
+
     logger.error('Operation failed', 'withMetrics', {
       name,
       duration: Math.round(stopwatch.getElapsed()),
       error: error instanceof Error ? error.message : 'Unknown error'
     });
-    
+
     throw error;
   }
 }
@@ -187,14 +192,14 @@ export class ApiMetrics {
     errors: number;
     lastCall: number;
   }> = new Map();
-  
+
   static getInstance(): ApiMetrics {
     if (!ApiMetrics.instance) {
       ApiMetrics.instance = new ApiMetrics();
     }
     return ApiMetrics.instance;
   }
-  
+
   trackCall(endpoint: string, duration: number, success: boolean): void {
     const existing = this.calls.get(endpoint) || {
       count: 0,
@@ -202,17 +207,17 @@ export class ApiMetrics {
       errors: 0,
       lastCall: 0
     };
-    
+
     existing.count++;
     existing.totalTime += duration;
     existing.lastCall = Date.now();
-    
+
     if (!success) {
       existing.errors++;
     }
-    
+
     this.calls.set(endpoint, existing);
-    
+
     logger.debug('API call tracked', 'ApiMetrics', {
       endpoint,
       duration: Math.round(duration),
@@ -222,12 +227,12 @@ export class ApiMetrics {
       errorRate: Math.round((existing.errors / existing.count) * 100)
     });
   }
-  
-  getMetrics(endpoint?: string): Record<string, any> {
+
+  getMetrics(endpoint?: string): Record<string, unknown> {
     if (endpoint) {
       const metrics = this.calls.get(endpoint);
       if (!metrics) return {};
-      
+
       return {
         count: metrics.count,
         averageTime: Math.round(metrics.totalTime / metrics.count),
@@ -235,8 +240,8 @@ export class ApiMetrics {
         lastCall: new Date(metrics.lastCall).toISOString()
       };
     }
-    
-    const allMetrics: Record<string, any> = {};
+
+    const allMetrics: Record<string, unknown> = {};
     for (const [endpoint, metrics] of this.calls.entries()) {
       allMetrics[endpoint] = {
         count: metrics.count,
@@ -245,10 +250,10 @@ export class ApiMetrics {
         lastCall: new Date(metrics.lastCall).toISOString()
       };
     }
-    
+
     return allMetrics;
   }
-  
+
   reset(): void {
     this.calls.clear();
     logger.info('API metrics reset', 'ApiMetrics');
@@ -261,20 +266,20 @@ export class ApiMetrics {
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private observers: PerformanceObserver[] = [];
-  
+
   static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
       PerformanceMonitor.instance = new PerformanceMonitor();
     }
     return PerformanceMonitor.instance;
   }
-  
+
   start(): void {
     if (typeof window === 'undefined' || !('PerformanceObserver' in window)) {
       logger.warn('PerformanceObserver not available', 'PerformanceMonitor');
       return;
     }
-    
+
     // Observe navigation timing
     try {
       const navObserver = new PerformanceObserver((list) => {
@@ -290,13 +295,13 @@ export class PerformanceMonitor {
           }
         }
       });
-      
+
       navObserver.observe({ entryTypes: ['navigation'] });
       this.observers.push(navObserver);
     } catch (error) {
       logger.error('Failed to setup navigation observer', 'PerformanceMonitor', error);
     }
-    
+
     // Observe paint timing
     try {
       const paintObserver = new PerformanceObserver((list) => {
@@ -307,14 +312,14 @@ export class PerformanceMonitor {
           });
         }
       });
-      
+
       paintObserver.observe({ entryTypes: ['paint'] });
       this.observers.push(paintObserver);
     } catch (error) {
       logger.error('Failed to setup paint observer', 'PerformanceMonitor', error);
     }
   }
-  
+
   stop(): void {
     this.observers.forEach(observer => observer.disconnect());
     this.observers = [];
@@ -328,13 +333,13 @@ export class PerformanceMonitor {
 export function initializeMetrics(): void {
   const monitor = PerformanceMonitor.getInstance();
   monitor.start();
-  
+
   // Log initial memory usage
   const memory = getMemoryUsage();
   if (memory) {
     logger.info('Initial memory usage', 'initializeMetrics', memory);
   }
-  
+
   // Setup periodic memory logging (every 5 minutes)
   if (typeof window !== 'undefined') {
     setInterval(() => {
