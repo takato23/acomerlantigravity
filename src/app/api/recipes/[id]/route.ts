@@ -4,32 +4,33 @@ import { logger } from '@/lib/logger';
 
 // authOptions removed - using Supabase Auth;
 import { db } from '@/lib/supabase/database.service';
-import { 
-  MealPlanningError 
+import {
+  MealPlanningError
 } from '@/lib/errors/MealPlanningError';
 import { enhancedCache, CacheKeyGenerator } from '@/lib/services/enhancedCacheService';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check cache first
-    const cacheKey = CacheKeyGenerator.recipe(params.id);
+    const { id } = await params;
+    const cacheKey = CacheKeyGenerator.recipe(id);
     const cached = await enhancedCache.get(cacheKey);
-    
+
     if (cached) {
       return NextResponse.json(cached);
     }
 
     // Fetch recipe with ingredients and instructions
-    const recipe = await db.getRecipeById(params.id, {
+    const recipe = await db.getRecipeById(id, {
       // includes handled by Supabase service
       instructions: {
         orderBy: {
@@ -53,14 +54,14 @@ export async function GET(
     return NextResponse.json(recipe);
   } catch (error: unknown) {
     logger.error('Error fetching recipe:', 'API:route', error);
-    
+
     if (error instanceof MealPlanningError) {
       return NextResponse.json(
         { error: error.userMessage || error.message },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -70,17 +71,18 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check ownership
-    const existingRecipe = await db.getRecipeById(params.id, {
+    const { id } = await params;
+    const existingRecipe = await db.getRecipeById(id, {
       select: { userId: true }
     });
 
@@ -93,7 +95,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    
+
     // Update recipe with transaction
     // TODO: Convert transaction to Supabase
     const updatedRecipe = null; // Placeholder
@@ -177,19 +179,19 @@ export async function PUT(
     }); */
 
     // Invalidate cache
-    await enhancedCache.invalidatePattern(`recipe:${params.id}:*`);
+    await enhancedCache.invalidatePattern(`recipe:${id}:*`);
 
     return NextResponse.json(updatedRecipe);
   } catch (error: unknown) {
     logger.error('Error updating recipe:', 'API:route', error);
-    
+
     if (error instanceof MealPlanningError) {
       return NextResponse.json(
         { error: error.userMessage || error.message },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -199,17 +201,18 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUser();
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check ownership
-    const recipe = await db.getRecipeById(params.id, {
+    const { id } = await params;
+    const recipe = await db.getRecipeById(id, {
       select: { userId: true, title: true }
     });
 
@@ -242,28 +245,28 @@ export async function DELETE(
         where: { id: params.id }
       });
     }); */
-    
+
     // Placeholder - implement Supabase version
-    await db.deleteRecipe(params.id);
+    await db.deleteRecipe(id);
 
     // Invalidate cache
     await enhancedCache.invalidatePattern(`recipe:${params.id}:*`);
     await enhancedCache.invalidatePattern(`recipe:list:*`);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Recipe deleted successfully' 
+      message: 'Recipe deleted successfully'
     });
   } catch (error: unknown) {
     logger.error('Error deleting recipe:', 'API:route', error);
-    
+
     if (error instanceof MealPlanningError) {
       return NextResponse.json(
         { error: error.userMessage || error.message },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
