@@ -49,14 +49,17 @@ import { useMealPlanningStore } from '@/features/meal-planning/store/useMealPlan
 import { usePantryStore } from '@/features/pantry/store/pantryStore';
 import { Sparkles, CheckCircle, AlertCircle as CircleAlert } from 'lucide-react';
 
-type ShoppingItem = Database['public']['Tables']['shopping_list_items']['Row'];
+import type { ShoppingListItem } from '@/features/meal-planning/types';
+
+// ShoppingItem type for local use - combines both db type and unified type
+type ShoppingItem = ShoppingListItem;
 
 // Helper to map database fields to UI fields
-const mapShoppingItem = (item: ShoppingItem) => ({
+const mapShoppingItem = (item: ShoppingListItem) => ({
   ...item,
-  name: item.custom_name || 'Sin nombre',
-  checked: item.is_purchased || false,
-  price: item.estimated_cost || 0,
+  name: item.custom_name || item.ingredientName || 'Sin nombre',
+  checked: item.is_purchased ?? item.isPurchased ?? item.checked ?? false,
+  price: item.estimated_cost ?? item.estimatedPrice ?? item.price ?? 0,
   store: item.source || null
 });
 
