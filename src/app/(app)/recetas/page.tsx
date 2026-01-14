@@ -124,8 +124,14 @@ export default function RecetasPage() {
   //   { name: 'Bajo en Calorías', icon: '🥤', color: 'from-teal-400 to-cyan-400', count: 51 }
   // ];
 
-  const normalizeRecipe = (recipe: Recipe) => {
+  const normalizeRecipe = (recipe: Recipe): Recipe => {
     const legacyMealType = (recipe as Recipe & { meal_type?: string }).meal_type;
+    const mealTypes = recipe.meal_types && recipe.meal_types.length > 0
+      ? recipe.meal_types
+      : legacyMealType
+        ? [legacyMealType as Recipe['meal_types'][number]]
+        : ['lunch' as Recipe['meal_types'][number]];
+
     return {
       ...recipe,
       id: recipe.id || crypto.randomUUID(),
@@ -134,11 +140,7 @@ export default function RecetasPage() {
       cook_time: recipe.cook_time || 0,
       total_time: recipe.total_time ?? (recipe.prep_time || 0) + (recipe.cook_time || 0),
       servings: recipe.servings || 2,
-      meal_types: recipe.meal_types && recipe.meal_types.length > 0
-        ? recipe.meal_types
-        : legacyMealType
-          ? [legacyMealType]
-          : ['lunch'],
+      meal_types: mealTypes,
       dietary_tags: recipe.dietary_tags || [],
       nutritional_info: recipe.nutritional_info || {
         calories: 0,
