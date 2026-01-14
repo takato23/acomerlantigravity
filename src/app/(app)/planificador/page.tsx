@@ -73,7 +73,7 @@ export default function UnifiedPlannerPage() {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<{ recipe: Recipe; day: Date; type: string } | null>(null);
   const [showRecipeModal, setShowRecipeModal] = useState(false);
-  const [recipeModalSlot, setRecipeModalSlot] = useState<{ dayOfWeek: number; mealType: MealType; date?: string } | null>(null);
+  const [recipeModalSlot, setRecipeModalSlot] = useState<{ dayOfWeek: number; mealType: MealType; date: string } | null>(null);
   const [showChefChat, setShowChefChat] = useState(false);
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
