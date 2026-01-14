@@ -10,12 +10,16 @@ interface Params {
 }
 
 // GET /api/meal-planning/[id]/items - Get meal plan items
-export async function GET(req: NextRequest, { params }: Params) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id: mealPlanId } = await params;
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -23,7 +27,6 @@ export async function GET(req: NextRequest, { params }: Params) {
       );
     }
 
-    const { id: mealPlanId } = params;
     const searchParams = req.nextUrl.searchParams;
     const date = searchParams.get('date');
     const mealType = searchParams.get('mealType');
@@ -94,12 +97,16 @@ export async function GET(req: NextRequest, { params }: Params) {
 }
 
 // POST /api/meal-planning/[id]/items - Add or update meal plan items
-export async function POST(req: NextRequest, { params }: Params) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id: mealPlanId } = await params;
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -107,7 +114,6 @@ export async function POST(req: NextRequest, { params }: Params) {
       );
     }
 
-    const { id: mealPlanId } = params;
     const body = await req.json();
     const { items } = body;
 
@@ -136,7 +142,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     // Validate dates are within plan range
     const planStart = new Date(plan.start_date);
     const planEnd = new Date(plan.end_date);
-    
+
     for (const item of items) {
       if (!item.date || !item.mealType) {
         return NextResponse.json(
@@ -198,7 +204,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         user_id: user.id,
         meal_plan_id: mealPlanId,
         action: 'items_updated',
-        details: { 
+        details: {
           itemsCount: processedItems.length,
           dates: [...new Set(items.map(i => i.date))]
         }
@@ -225,12 +231,16 @@ export async function POST(req: NextRequest, { params }: Params) {
 }
 
 // DELETE /api/meal-planning/[id]/items - Delete meal plan items
-export async function DELETE(req: NextRequest, { params }: Params) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id: mealPlanId } = await params;
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -238,7 +248,6 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       );
     }
 
-    const { id: mealPlanId } = params;
     const searchParams = req.nextUrl.searchParams;
     const itemId = searchParams.get('itemId');
     const date = searchParams.get('date');
