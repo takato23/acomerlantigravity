@@ -359,9 +359,8 @@ export default function RecetasPage() {
                     <GlassButton
                       variant="ghost"
                       icon={<Download className="w-4 h-4" />}
-                      onClick={() => notify('Exportar recetas', {
-                        type: 'info',
-                        message: 'La exportacion estara disponible pronto.'
+                      onClick={() => notify('Exportar recetas: La exportación estará disponible pronto.', {
+                        type: 'info'
                       })}
                     >
                       Exportar
@@ -610,9 +609,8 @@ export default function RecetasPage() {
             setShowCreationModal(false);
 
             // Show success notification
-            notify('Receta Creada', {
+            notify(`Receta Creada: ${recipe.title} se ha guardado exitosamente`, {
               type: 'success',
-              message: `${recipe.title} se ha guardado exitosamente`,
               priority: 'medium'
             });
 
@@ -647,9 +645,8 @@ export default function RecetasPage() {
 
                 setRecipes((prev) => [normalized, ...prev]);
 
-                notify('Receta Custom Creada', {
+                notify(`Receta Custom Creada: ${recipe.name} generada con IA`, {
                   type: 'success',
-                  message: `${recipe.name} generada con IA`,
                   priority: 'medium'
                 });
 
