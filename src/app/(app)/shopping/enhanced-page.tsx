@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logger } from '@/services/logger';
-import { 
-  ShoppingCart, 
-  Plus, 
-  Check, 
-  X, 
+import {
+  ShoppingCart,
+  Plus,
+  Check,
+  X,
   Search,
   Filter,
   Share2,
@@ -21,26 +21,26 @@ import { INGREDIENT_CATEGORIES } from '@/types/pantry';
 import { ShoppingVoiceButton } from '@/components/shopping/ShoppingVoiceButton';
 import { SupermarketMode } from '@/components/shopping/SupermarketMode';
 import { CategoryBadge } from '@/components/shopping/CategoryBadge';
-import { useAppStore } from '@/store';
+import { useAppStore, useShoppingStore, usePantryStore } from '@/store';
 
 export default function ShoppingListPage() {
   const user = useAppStore((state) => state.user.profile);
   const { toast } = useToast();
-  const { 
-    activeList, 
-    isLoading, 
-    fetchActiveList, 
+  const {
+    activeList,
+    isLoading,
+    fetchActiveList,
     createList,
     addItem,
     toggleItemChecked,
     deleteItem,
     updateItem
   } = useShoppingStore();
-  
-  const { 
+
+  const {
     items: pantryItems,
     checkLowStock,
-    suggestRestocking 
+    suggestRestocking
   } = usePantryStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,7 +60,7 @@ export default function ShoppingListPage() {
 
   const handleCreateList = async () => {
     if (!user) return;
-    
+
     const name = `Lista ${new Date().toLocaleDateString('es-AR')}`;
     const list = await createList(user.id, name);
     if (list) {
@@ -89,7 +89,7 @@ export default function ShoppingListPage() {
     setNewItemQuantity(1);
     setNewItemCategory('');
     setShowAddForm(false);
-    
+
     toast({
       title: 'Producto agregado',
       description: `${newItemName} fue agregado a la lista`,
@@ -104,7 +104,7 @@ export default function ShoppingListPage() {
   const handleDeleteItem = async (itemId: string) => {
     if (!activeList) return;
     await deleteItem(activeList.id, itemId);
-    
+
     toast({
       title: 'Producto eliminado',
       description: 'El producto fue removido de la lista',
@@ -113,9 +113,9 @@ export default function ShoppingListPage() {
 
   const handleAddLowStockItems = async () => {
     if (!activeList || !user) return;
-    
+
     const lowStockItems = suggestRestocking();
-    
+
     for (const item of lowStockItems) {
       await addItem(activeList.id, {
         ingredient_id: item.ingredient_id,
@@ -127,7 +127,7 @@ export default function ShoppingListPage() {
         notes: null
       });
     }
-    
+
     toast({
       title: 'Productos agregados',
       description: `Se agregaron ${lowStockItems.length} productos con stock bajo`,
@@ -136,14 +136,14 @@ export default function ShoppingListPage() {
 
   const handleShareList = async () => {
     if (!activeList) return;
-    
+
     const itemsText = activeList.items
       ?.filter(item => !item.is_checked)
       .map(item => `• ${item.quantity} ${item.unit} de ${item.custom_name || item.ingredient?.name}`)
       .join('\n');
-    
+
     const message = `🛒 Lista de Compras\n\n${itemsText}\n\n---\nCreada con ¿Qué Carajo Comer?`;
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -165,7 +165,7 @@ export default function ShoppingListPage() {
   // Voice handlers
   const handleVoiceAddItem = async (item: { name: string; quantity: number; unit: string }) => {
     if (!activeList) return;
-    
+
     await addItem(activeList.id, {
       ingredient_id: null,
       custom_name: item.name,
@@ -175,7 +175,7 @@ export default function ShoppingListPage() {
       price: null,
       notes: null
     });
-    
+
     toast({
       title: '🎤 Producto agregado por voz',
       description: `${item.quantity} ${item.unit} de ${item.name}`,
@@ -184,13 +184,13 @@ export default function ShoppingListPage() {
 
   const handleVoiceCompleteItem = (itemName: string) => {
     if (!activeList?.items) return;
-    
+
     // Find item by name (fuzzy matching)
     const foundItem = activeList.items.find(item => {
       const name = (item.custom_name || item.ingredient?.name || '').toLowerCase();
       return name.includes(itemName.toLowerCase()) || itemName.toLowerCase().includes(name);
     });
-    
+
     if (foundItem) {
       handleToggleItem(foundItem.id);
       toast({
@@ -207,12 +207,12 @@ export default function ShoppingListPage() {
 
   const handleVoiceRemoveItem = (itemName: string) => {
     if (!activeList?.items) return;
-    
+
     const foundItem = activeList.items.find(item => {
       const name = (item.custom_name || item.ingredient?.name || '').toLowerCase();
       return name.includes(itemName.toLowerCase()) || itemName.toLowerCase().includes(name);
     });
-    
+
     if (foundItem) {
       handleDeleteItem(foundItem.id);
       toast({
@@ -277,14 +277,14 @@ export default function ShoppingListPage() {
               {uncheckedCount} productos pendientes • {checkedCount} completados
             </p>
           </div>
-          
+
           <div className="flex gap-2 flex-wrap">
             <ShoppingVoiceButton
               onAddItem={handleVoiceAddItem}
               onCompleteItem={handleVoiceCompleteItem}
               onRemoveItem={handleVoiceRemoveItem}
             />
-            
+
             <button
               onClick={() => setSupermarketMode(true)}
               className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 flex items-center gap-2 font-medium"
@@ -300,7 +300,7 @@ export default function ShoppingListPage() {
               <AlertTriangle className="w-4 h-4" />
               <span className="hidden sm:inline">Stock Bajo</span>
             </button>
-            
+
             <button
               onClick={handleShareList}
               className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -358,25 +358,24 @@ export default function ShoppingListPage() {
             <Filter className="w-4 h-4 text-gray-600" />
             <span className="text-sm font-medium text-gray-700">Filtrar por categoría</span>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedCategory('')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                !selectedCategory 
-                  ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${!selectedCategory
+                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               🏷️ Todas
             </button>
-            
+
             {Object.entries(INGREDIENT_CATEGORIES).map(([key, data]) => {
               const isSelected = selectedCategory === key;
-              const colorClass = isSelected 
+              const colorClass = isSelected
                 ? `bg-${data.color}-100 text-${data.color}-800 border border-${data.color}-200`
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200';
-              
+
               return (
                 <button
                   key={key}
@@ -422,7 +421,7 @@ export default function ShoppingListPage() {
                   autoFocus
                   onKeyPress={(e) => e.key === 'Enter' && handleAddItem()}
                 />
-                
+
                 {/* Category */}
                 <select
                   value={newItemCategory}
@@ -436,7 +435,7 @@ export default function ShoppingListPage() {
                     </option>
                   ))}
                 </select>
-                
+
                 {/* Quantity */}
                 <input
                   type="number"
@@ -445,7 +444,7 @@ export default function ShoppingListPage() {
                   className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   min="1"
                 />
-                
+
                 {/* Unit */}
                 <select
                   value={newItemUnit}
@@ -458,7 +457,7 @@ export default function ShoppingListPage() {
                   <option value="L">L</option>
                   <option value="ml">ml</option>
                 </select>
-                
+
                 {/* Buttons */}
                 <button
                   onClick={handleAddItem}
@@ -511,9 +510,9 @@ export default function ShoppingListPage() {
                         <p className="font-medium text-gray-900">
                           {item.custom_name || item.ingredient?.name}
                         </p>
-                        <CategoryBadge 
-                          category={item.category || item.ingredient?.category} 
-                          size="sm" 
+                        <CategoryBadge
+                          category={item.category || item.ingredient?.category}
+                          size="sm"
                           showIcon={true}
                           showLabel={false}
                         />
@@ -556,9 +555,9 @@ export default function ShoppingListPage() {
                             <p className="text-gray-500 line-through">
                               {item.custom_name || item.ingredient?.name}
                             </p>
-                            <CategoryBadge 
-                              category={item.category || item.ingredient?.category} 
-                              size="sm" 
+                            <CategoryBadge
+                              category={item.category || item.ingredient?.category}
+                              size="sm"
                               showIcon={true}
                               showLabel={false}
                             />
