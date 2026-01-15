@@ -49,7 +49,7 @@ export function isMockMode(): boolean {
  */
 export const defaultGeminiConfig: GeminiConfig = {
   apiKey: getGeminiApiKey(),
-  model: 'gemini-2.0-flash',
+  model: 'gemini-1.5-flash',
   temperature: 0.7,
   maxTokens: 8192,
   topP: 0.95,

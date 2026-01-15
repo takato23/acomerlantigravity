@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/store';
 import { RecipeCategoryGrid } from '@/features/recipes/components/RecipeCategoryGrid';
 import { RecipeDetail } from '@/features/recipes/components/RecipeDetail';
-import { Recipe } from '@/features/recipes/types';
+import { Recipe, MealType } from '@/features/recipes/types';
 
 // Mock data mejorado
 const initialRecipes: Recipe[] = [
@@ -124,7 +124,7 @@ export default function RecetasPage() {
   //   { name: 'Bajo en Calorías', icon: '🥤', color: 'from-teal-400 to-cyan-400', count: 51 }
   // ];
 
-  const normalizeRecipe = (recipe: Recipe): Recipe => {
+  const normalizeRecipe = (recipe: any): Recipe => {
     const legacyMealType = (recipe as Recipe & { meal_type?: string }).meal_type;
     const mealTypes = recipe.meal_types && recipe.meal_types.length > 0
       ? recipe.meal_types
@@ -635,13 +635,18 @@ export default function RecetasPage() {
           <GlassModal
             isOpen={showCustomGenerator}
             onClose={() => setShowCustomGenerator(false)}
-            size="large"
+            size="lg"
           >
             <CustomRecipeGenerator
-              onRecipeGenerated={(recipe) => {
+              onRecipeGenerated={(recipe: any) => {
                 const normalized = normalizeRecipe({
                   ...recipe,
-                  image_url: recipe.imageUrl || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600',
+                  cuisine_type: recipe.cuisine || 'other',
+                  meal_types: (recipe.meal_types || ['lunch']) as MealType[],
+                  is_public: true,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                  image_url: recipe.imageUrl || recipe.image_url || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600',
                   ai_generated: true
                 });
 
