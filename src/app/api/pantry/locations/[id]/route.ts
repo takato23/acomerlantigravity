@@ -78,7 +78,7 @@ export async function PUT(
     const body: Partial<PantryLocation> = await request.json();
 
     // Build update object
-    const updates: Partial<PantryLocation> = {};
+    const updates: Omit<Partial<PantryLocation>, 'description'> & { description?: string | null } = {};
 
     if (body.name !== undefined) {
       updates.name = body.name.trim();

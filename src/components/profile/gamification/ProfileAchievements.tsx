@@ -208,7 +208,12 @@ function AchievementCard({ achievement }: { achievement: Achievement }) {
         </TooltipTrigger>
         <TooltipContent>
           {isUnlocked ? (
-            <p>Unlocked on {new Date(achievement.unlockedAt).toLocaleDateString()}</p>
+            <p>
+              Unlocked on{' '}
+              {achievement.unlockedAt
+                ? new Date(achievement.unlockedAt).toLocaleDateString()
+                : 'unknown date'}
+            </p>
           ) : achievement.maxProgress ? (
             <p>Progress: {progress}/{maxProgress}</p>
           ) : (

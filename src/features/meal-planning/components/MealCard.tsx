@@ -15,7 +15,8 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Copy
+  Copy,
+  ShoppingCart
 } from 'lucide-react';
 
 import {

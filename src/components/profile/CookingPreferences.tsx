@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { UserPreferences, MealType } from '@/types/profile';
+import { IOS26LiquidCard } from '@/components/ios26';
 
 interface CookingPreferencesProps {
   preferences: UserPreferences;
@@ -78,6 +79,8 @@ const CookingPreferencesSkeleton = () => (
   </div>
 );
 
+const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
+
 export const CookingPreferences: React.FC<CookingPreferencesProps> = ({ 
   preferences, 
   onUpdate 
@@ -111,7 +114,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       });
     } catch (err) {
       setError('Error al actualizar nivel de habilidad');
-      logger.error(err, 'CookingPreferences');
+      logger.error(getErrorMessage(err), 'CookingPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -133,7 +136,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       });
     } catch (err) {
       setError('Error al actualizar tiempo disponible');
-      logger.error(err, 'CookingPreferences');
+      logger.error(getErrorMessage(err), 'CookingPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -157,7 +160,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       });
     } catch (err) {
       setError('Error al actualizar métodos de cocina');
-      logger.error(err, 'CookingPreferences');
+      logger.error(getErrorMessage(err), 'CookingPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -181,7 +184,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       });
     } catch (err) {
       setError('Error al actualizar herramientas de cocina');
-      logger.error(err, 'CookingPreferences');
+      logger.error(getErrorMessage(err), 'CookingPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -205,7 +208,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       });
     } catch (err) {
       setError('Error al actualizar tipos de comida');
-      logger.error(err, 'CookingPreferences');
+      logger.error(getErrorMessage(err), 'CookingPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -225,7 +228,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       });
     } catch (err) {
       setError('Error al actualizar presupuesto');
-      logger.error(err, 'CookingPreferences');
+      logger.error(getErrorMessage(err), 'CookingPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -244,7 +247,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       });
     } catch (err) {
       setError('Error al actualizar preferencias de planificación');
-      logger.error(err, 'CookingPreferences');
+      logger.error(getErrorMessage(err), 'CookingPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -273,7 +276,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
       </AnimatePresence>
 
       {/* Cooking Skill Level */}
-      <iOS26LiquidCard variant="medium" glow shimmer>
+      <IOS26LiquidCard variant="medium" glow shimmer>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <ChefHat className="w-5 h-5 text-primary" />
@@ -325,10 +328,10 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
             </div>
           </RadioGroup>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Time Available */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-blue-600" />
@@ -379,10 +382,10 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
             </div>
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Cooking Methods */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Utensils className="w-5 h-5 text-green-600" />
@@ -419,10 +422,10 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
             })}
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Kitchen Tools */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Package className="w-5 h-5 text-slate-600" />
@@ -462,10 +465,10 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
             </AnimatePresence>
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Budget */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-green-600" />
@@ -496,10 +499,10 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
             </p>
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Planning Preferences */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-amber-600" />
@@ -610,7 +613,7 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
             </div>
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Save Indicator */}
       <AnimatePresence>
@@ -636,4 +639,3 @@ export const CookingPreferences: React.FC<CookingPreferencesProps> = ({
 };
 
 CookingPreferences.displayName = 'CookingPreferences';
-

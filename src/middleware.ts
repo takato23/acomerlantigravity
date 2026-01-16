@@ -1,5 +1,6 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+
+const BASE64_PREFIX = 'base64-';
 
 // Helper to check if we have valid Supabase credentials
 const isValidSupabaseConfig = (): boolean => {
@@ -16,6 +17,81 @@ const isValidSupabaseConfig = (): boolean => {
     return false
   }
 }
+
+const getSupabaseStorageKey = (): string | null => {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return null;
+
+  try {
+    const projectRef = new URL(url).hostname.split('.')[0];
+    return `sb-${projectRef}-auth-token`;
+  } catch {
+    return null;
+  }
+};
+
+const decodeBase64Url = (value: string): string | null => {
+  if (typeof atob !== 'function') return null;
+
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+
+  try {
+    return atob(padded);
+  } catch {
+    return null;
+  }
+};
+
+const getChunkedCookieValue = (cookies: Array<{ name: string; value: string }>, key: string): string | null => {
+  const direct = cookies.find((cookie) => cookie.name === key);
+  if (direct) return direct.value;
+
+  const prefix = `${key}.`;
+  const chunks = cookies
+    .filter((cookie) => cookie.name.startsWith(prefix))
+    .sort((a, b) => {
+      const aIndex = Number(a.name.slice(prefix.length));
+      const bIndex = Number(b.name.slice(prefix.length));
+      return aIndex - bIndex;
+    });
+
+  if (chunks.length === 0) return null;
+  return chunks.map((chunk) => chunk.value).join('');
+};
+
+const parseSupabaseSession = (raw: string | null): { access_token?: string; expires_at?: number } | null => {
+  if (!raw) return null;
+
+  let decoded = raw;
+  if (raw.startsWith(BASE64_PREFIX)) {
+    const base64Decoded = decodeBase64Url(raw.slice(BASE64_PREFIX.length));
+    if (!base64Decoded) return null;
+    decoded = base64Decoded;
+  }
+
+  try {
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+};
+
+const hasValidSession = (cookies: Array<{ name: string; value: string }>): boolean => {
+  const storageKey = getSupabaseStorageKey();
+  if (!storageKey) return false;
+
+  const rawSession = getChunkedCookieValue(cookies, storageKey);
+  const session = parseSupabaseSession(rawSession);
+
+  if (!session?.access_token) return false;
+  if (typeof session.expires_at === 'number') {
+    const now = Math.floor(Date.now() / 1000);
+    if (session.expires_at <= now) return false;
+  }
+
+  return true;
+};
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -56,42 +132,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next()
     } else {
       console.error('CRITICAL: Supabase not configured in production environment!')
-      // In production, if config is missing, we shouldn't just let everyone in
-      // Maybe redirect to a configuration error page? For now, we'll continue 
-      // but the following createServerClient will likely fail safely.
+      return NextResponse.next()
     }
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // This will refresh session if expired - required for Server Components
-  const { data: { user } } = await supabase.auth.getUser()
+  const isAuthenticated = hasValidSession(request.cookies.getAll());
 
   // Redirect to login if accessing protected route without auth
-  if (isProtectedPath && !user) {
+  if (isProtectedPath && !isAuthenticated) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/login'
     redirectUrl.searchParams.set('redirect', pathname)
@@ -99,11 +147,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect to home if accessing auth pages while logged in
-  if (user && (pathname === '/login' || pathname === '/signup')) {
+  if (isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {

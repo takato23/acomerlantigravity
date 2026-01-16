@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
 
@@ -65,7 +65,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     return state.currentPath.startsWith(route.path);
   };
 
-  const navItemVariants = {
+  const navItemVariants: Variants = {
     inactive: {
       scale: 1,
       y: 0,
@@ -94,7 +94,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     }
   };
 
-  const rippleVariants = {
+  const rippleVariants: Variants = {
     hidden: { scale: 0, opacity: 0 },
     visible: { 
       scale: 1, 

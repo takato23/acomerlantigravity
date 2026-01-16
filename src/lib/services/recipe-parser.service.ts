@@ -57,7 +57,8 @@ export class RecipeParserService {
 
       return parsedRecipe;
     } catch (error: unknown) {
-      throw new Error(`Failed to parse recipe: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to parse recipe: ${message}`);
     }
   }
 
@@ -72,7 +73,8 @@ export class RecipeParserService {
 
       return parsedRecipe;
     } catch (error: unknown) {
-      throw new Error(`Failed to parse recipe from URL: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to parse recipe from URL: ${message}`);
     }
   }
 
@@ -119,9 +121,10 @@ export class RecipeParserService {
         parsed_data: parsedRecipe
       };
     } catch (error: unknown) {
+      const message = this.getErrorMessage(error);
       return {
         success: false,
-        errors: [error.message],
+        errors: [message],
         warnings: [],
         parsed_data: {} as ParsedRecipe
       };
@@ -161,7 +164,7 @@ export class RecipeParserService {
     const preparationMatch = ingredientName.match(/[,\(]([^,\)]+(?:picad[oa]|rallad[oa]|cortad[oa]|trozo|cubo|rebanada|diente|hoja)s?[^,\)]*)/i);
     const preparation = preparationMatch ? preparationMatch[1].trim() : undefined;
     
-    if (preparation) {
+    if (preparationMatch) {
       ingredientName = ingredientName.replace(preparationMatch[0], '').trim();
     }
 
@@ -204,7 +207,7 @@ export class RecipeParserService {
 
       const suggestions: IngredientSuggestion[] = [];
 
-      ingredients?.forEach(ingredient => {
+      ingredients?.forEach((ingredient: any) => {
         let score = 0;
         let matchType: 'exact' | 'partial' | 'category' | 'phonetic' = 'partial';
 
@@ -219,14 +222,14 @@ export class RecipeParserService {
           matchType = 'partial';
         }
         // Alias match
-        else if (ingredient.aliases?.some(alias => 
+        else if (ingredient.aliases?.some((alias: string) => 
           alias.toLowerCase().includes(name.toLowerCase())
         )) {
           score = 0.7;
           matchType = 'partial';
         }
         // Keyword match
-        else if (ingredient.search_keywords?.some(keyword => 
+        else if (ingredient.search_keywords?.some((keyword: string) => 
           keyword.toLowerCase().includes(name.toLowerCase())
         )) {
           score = 0.6;
@@ -431,8 +434,16 @@ export class RecipeParserService {
 
       return textContent;
     } catch (error: unknown) {
-      throw new Error(`Failed to fetch recipe from URL: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to fetch recipe from URL: ${message}`);
     }
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return typeof error === 'string' ? error : 'Unknown error';
   }
 
   // =====================================================
@@ -560,7 +571,7 @@ export class RecipeParserService {
       }
     }
 
-    return 'otros';
+    return 'snack';
   }
 
   private detectCuisine(recipe: ParsedRecipe): CuisineType | undefined {

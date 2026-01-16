@@ -266,13 +266,13 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-pro-latest',
       generationConfig: {
         temperature: 0.8,
         maxOutputTokens: 2048,
         responseMimeType: 'application/json'
-      }
+      } as any
     });
 
     const prompt = buildWeeklyPlanPrompt(validatedData);
@@ -290,15 +290,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(parsed.data);
     } else {
       // Fallback: return basic structure if validation fails
-      logger.error('Gemini response validation failed:', parsed.error);
+      logger.error('Gemini response validation failed', 'API:route', parsed.error);
       return NextResponse.json({ 
         error: 'Invalid response format from AI',
-        details: parsed.error.errors 
+        details: parsed.error.issues
       }, { status: 502 });
     }
     
-  } catch (error) {
-    logger.error('Gemini weekly plan error:', error);
+  } catch (error: unknown) {
+    logger.error('Gemini weekly plan error', 'API:route', error);
     return NextResponse.json({ 
       error: 'Failed to generate weekly plan',
       details: error instanceof Error ? error.message : 'Unknown error'

@@ -10,9 +10,9 @@ import { getProfileManager, type UserProfile, type DietaryRestriction } from '@/
 import { getHolisticSystem } from '@/services/core/HolisticSystem';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { AutoSaveIndicator, AutoSaveHeader } from '@/components/profile/AutoSaveIndicator';
-import { iOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
-import { iOS26LiquidInput } from '@/components/ios26/iOS26LiquidInput';
+import { IOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26LiquidInput } from '@/components/ios26/iOS26LiquidInput';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthProvider';
 
@@ -59,11 +59,28 @@ const CUISINES = [
   'Americana'
 ];
 
+const COOKING_SKILL_LEVELS: Array<{ value: UserProfile['cookingSkillLevel']; label: string }> = [
+  { value: 'beginner', label: 'Basico' },
+  { value: 'intermediate', label: 'Intermedio' },
+  { value: 'advanced', label: 'Avanzado' },
+  { value: 'expert', label: 'Experto' }
+];
+
+const skillLevelToNumber = (level?: UserProfile['cookingSkillLevel']) => {
+  const index = COOKING_SKILL_LEVELS.findIndex((item) => item.value === level);
+  return index >= 0 ? index + 1 : 2;
+};
+
+const numberToSkillLevel = (value: number): UserProfile['cookingSkillLevel'] => {
+  const clamped = Math.min(Math.max(value, 1), COOKING_SKILL_LEVELS.length);
+  return COOKING_SKILL_LEVELS[clamped - 1].value;
+};
+
 // Loading skeleton component
 const ProfileSkeleton = () => (
   <div className="max-w-4xl mx-auto space-y-6">
     {[...Array(6)].map((_, i) => (
-      <iOS26LiquidCard key={i} variant="medium" className="animate-pulse">
+      <IOS26LiquidCard key={i} variant="medium" className="animate-pulse">
         <div className="p-6 space-y-4">
           <div className="h-6 bg-slate-200 rounded-lg w-1/3" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -71,14 +88,14 @@ const ProfileSkeleton = () => (
             <div className="h-12 bg-slate-100 rounded-xl" />
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
     ))}
   </div>
 );
 
 // Error boundary component
 const ProfileError = ({ onRetry }: { onRetry: () => void }) => (
-  <iOS26LiquidCard variant="medium" className="max-w-md mx-auto">
+  <IOS26LiquidCard variant="medium" className="max-w-md mx-auto">
     <div className="p-6 text-center space-y-4">
       <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
         <AlertCircle className="w-8 h-8 text-red-400" />
@@ -89,15 +106,15 @@ const ProfileError = ({ onRetry }: { onRetry: () => void }) => (
           Hubo un problema cargando tu información. Por favor, intenta nuevamente.
         </p>
       </div>
-      <iOS26LiquidButton
+      <IOS26LiquidButton
         variant="primary"
         onClick={onRetry}
         className="w-full"
       >
         Reintentar
-      </iOS26LiquidButton>
+      </IOS26LiquidButton>
     </div>
-  </iOS26LiquidCard>
+  </IOS26LiquidCard>
 );
 
 export function ProfileView() {
@@ -111,7 +128,7 @@ export function ProfileView() {
     allergies: [],
     preferredCuisines: [],
     dislikedIngredients: [],
-    cookingSkillLevel: 3,
+    cookingSkillLevel: 'intermediate',
     nutritionalGoals: {},
     tasteProfile: {
       spicyTolerance: 'medium',
@@ -132,6 +149,11 @@ export function ProfileView() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [recoveryData, setRecoveryData] = useState<Partial<UserProfile> | null>(null);
+  const customAllergies = (profile.allergies ?? []).filter(
+    (allergy) => !COMMON_ALLERGIES.includes(allergy)
+  );
+  const dislikedIngredients = profile.dislikedIngredients ?? [];
+  const skillLevelValue = skillLevelToNumber(profile.cookingSkillLevel);
 
   const profileManager = getProfileManager(getHolisticSystem());
 
@@ -403,7 +425,7 @@ export function ProfileView() {
               size="md"
             />
 
-            <iOS26LiquidButton
+            <IOS26LiquidButton
               variant="secondary"
               size="lg"
               onClick={manualSave}
@@ -413,7 +435,7 @@ export function ProfileView() {
             >
               <Save className="w-5 h-5" />
               Guardar Ahora
-            </iOS26LiquidButton>
+            </IOS26LiquidButton>
           </div>
         </div>
       </motion.div>
@@ -427,7 +449,7 @@ export function ProfileView() {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="mb-6"
           >
-            <iOS26LiquidCard variant="medium" className="border-2 border-orange-500/30 bg-orange-500/5">
+            <IOS26LiquidCard variant="medium" className="border-2 border-orange-500/30 bg-orange-500/5">
               <div className="p-4 space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-orange-500/20 rounded-lg">
@@ -445,23 +467,23 @@ export function ProfileView() {
                 </div>
 
                 <div className="flex gap-3">
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="primary"
                     onClick={acceptRecovery}
                     className="bg-gradient-to-r from-orange-500 to-orange-600"
                   >
                     Recuperar Datos
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
 
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="ghost"
                     onClick={discardRecovery}
                   >
                     Descartar
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
                 </div>
               </div>
-            </iOS26LiquidCard>
+            </IOS26LiquidCard>
           </motion.div>
         )}
       </AnimatePresence>
@@ -472,7 +494,7 @@ export function ProfileView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <iOS26LiquidCard variant="medium" shimmer>
+        <IOS26LiquidCard variant="medium" shimmer>
           <div className="p-4 sm:p-6 space-y-6">
             <h3 className="text-lg font-medium flex items-center gap-2 text-slate-800">
               <div className="p-2 bg-gradient-to-r from-slate-400 to-slate-500 rounded-lg">
@@ -483,7 +505,7 @@ export function ProfileView() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <iOS26LiquidInput
+                <IOS26LiquidInput
                   label="Miembros del hogar"
                   type="number"
                   value={profile.householdSize?.toString() || '1'}
@@ -505,7 +527,7 @@ export function ProfileView() {
               </div>
 
               <div className="space-y-2">
-                <iOS26LiquidInput
+                <IOS26LiquidInput
                   label="Presupuesto mensual (ARS)"
                   type="number"
                   value={profile.monthlyBudget?.toString() || '0'}
@@ -527,7 +549,7 @@ export function ProfileView() {
               </div>
             </div>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
 
       {/* Restricciones dietéticas */}
@@ -536,7 +558,7 @@ export function ProfileView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <iOS26LiquidCard variant="medium" morph>
+        <IOS26LiquidCard variant="medium" morph>
           <div className="p-4 sm:p-6 space-y-6">
             <h3 className="text-lg font-medium flex items-center gap-2 text-slate-800">
               <div className="p-2 bg-gradient-to-r from-slate-400 to-slate-500 rounded-lg">
@@ -556,7 +578,7 @@ export function ProfileView() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         variant={isSelected ? "primary" : "secondary"}
                         onClick={() => toggleDietaryRestriction(value)}
                         className={cn(
@@ -572,14 +594,14 @@ export function ProfileView() {
                           <span className="text-xl flex-shrink-0">{icon}</span>
                           <span className="text-sm font-medium text-left">{label}</span>
                         </div>
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     </motion.div>
                   );
                 })}
               </AnimatePresence>
             </div>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
 
       {/* Alergias */}
@@ -588,7 +610,7 @@ export function ProfileView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <iOS26LiquidCard variant="medium" glow>
+        <IOS26LiquidCard variant="medium" glow>
           <div className="p-4 sm:p-6 space-y-6">
             <h3 className="text-lg font-medium flex items-center gap-2 text-slate-800">
               <div className="p-2 bg-red-500 rounded-lg">
@@ -612,7 +634,7 @@ export function ProfileView() {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: 0.2, delay: index * 0.03 }}
                         >
-                          <iOS26LiquidButton
+                          <IOS26LiquidButton
                             variant={isSelected ? "danger" : "ghost"}
                             size="sm"
                             onClick={() => {
@@ -636,7 +658,7 @@ export function ProfileView() {
                             aria-label={`${isSelected ? 'Quitar' : 'Agregar'} alergia: ${allergy}`}
                           >
                             {allergy}
-                          </iOS26LiquidButton>
+                          </IOS26LiquidButton>
                         </motion.div>
                       );
                     })}
@@ -648,7 +670,7 @@ export function ProfileView() {
               <div className="space-y-2">
                 <p className="text-sm text-slate-500">Agregar alergia personalizada:</p>
                 <div className="flex gap-2">
-                  <iOS26LiquidInput
+                  <IOS26LiquidInput
                     value={newAllergy}
                     onChange={(e) => setNewAllergy(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addAllergy()}
@@ -660,20 +682,20 @@ export function ProfileView() {
                     onClear={() => setNewAllergy('')}
                     aria-label="Escribir nueva alergia"
                   />
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="secondary"
                     onClick={addAllergy}
                     disabled={!newAllergy.trim()}
                     aria-label="Agregar nueva alergia"
                   >
                     <Plus className="w-4 h-4" />
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
                 </div>
               </div>
 
               {/* Lista de alergias personalizadas */}
               <AnimatePresence>
-                {profile.allergies?.filter(a => !COMMON_ALLERGIES.includes(a)).length > 0 && (
+                {customAllergies.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -682,9 +704,7 @@ export function ProfileView() {
                   >
                     <p className="text-sm text-slate-500">Alergias personalizadas:</p>
                     <div className="flex flex-wrap gap-2">
-                      {profile.allergies
-                        .filter(a => !COMMON_ALLERGIES.includes(a))
-                        .map(allergy => (
+                      {customAllergies.map((allergy) => (
                           <motion.div
                             key={allergy}
                             initial={{ opacity: 0, scale: 0.8 }}
@@ -693,7 +713,7 @@ export function ProfileView() {
                             className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/30 text-red-600 text-sm backdrop-blur-sm"
                           >
                             <span>{allergy}</span>
-                            <iOS26LiquidButton
+                            <IOS26LiquidButton
                               variant="ghost"
                               size="sm"
                               onClick={() => removeAllergy(allergy)}
@@ -701,7 +721,7 @@ export function ProfileView() {
                               aria-label={`Quitar alergia: ${allergy}`}
                             >
                               <X className="w-3 h-3" />
-                            </iOS26LiquidButton>
+                            </IOS26LiquidButton>
                           </motion.div>
                         ))}
                     </div>
@@ -710,7 +730,7 @@ export function ProfileView() {
               </AnimatePresence>
             </div>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
 
       {/* Preferencias culinarias */}
@@ -719,7 +739,7 @@ export function ProfileView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
       >
-        <iOS26LiquidCard variant="medium" shimmer>
+        <IOS26LiquidCard variant="medium" shimmer>
           <div className="p-4 sm:p-6 space-y-6">
             <h3 className="text-lg font-medium flex items-center gap-2 text-slate-800">
               <div className="p-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg">
@@ -739,7 +759,7 @@ export function ProfileView() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3, delay: index * 0.04 }}
                     >
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         variant={isSelected ? "primary" : "secondary"}
                         size="sm"
                         onClick={() => toggleCuisine(cuisine)}
@@ -753,14 +773,14 @@ export function ProfileView() {
                         aria-label={`${isSelected ? 'Desactivar' : 'Activar'} cocina: ${cuisine}`}
                       >
                         <span className="text-sm font-medium">{cuisine}</span>
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     </motion.div>
                   );
                 })}
               </AnimatePresence>
             </div>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
 
       {/* Ingredientes no deseados */}
@@ -769,7 +789,7 @@ export function ProfileView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}
       >
-        <iOS26LiquidCard variant="medium" morph>
+        <IOS26LiquidCard variant="medium" morph>
           <div className="p-4 sm:p-6 space-y-6">
             <h3 className="text-lg font-medium flex items-center gap-2 text-slate-800">
               <div className="p-2 bg-gradient-to-r from-slate-500 to-slate-600 rounded-lg">
@@ -780,7 +800,7 @@ export function ProfileView() {
 
             <div className="space-y-4">
               <div className="flex gap-2">
-                <iOS26LiquidInput
+                <IOS26LiquidInput
                   value={newDisliked}
                   onChange={(e) => setNewDisliked(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addDislikedIngredient()}
@@ -792,18 +812,18 @@ export function ProfileView() {
                   onClear={() => setNewDisliked('')}
                   aria-label="Escribir ingrediente no deseado"
                 />
-                <iOS26LiquidButton
+                <IOS26LiquidButton
                   variant="secondary"
                   onClick={addDislikedIngredient}
                   disabled={!newDisliked.trim()}
                   aria-label="Agregar ingrediente no deseado"
                 >
                   <Plus className="w-4 h-4" />
-                </iOS26LiquidButton>
+                </IOS26LiquidButton>
               </div>
 
               <AnimatePresence>
-                {profile.dislikedIngredients?.length > 0 && (
+                {dislikedIngredients.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -812,7 +832,7 @@ export function ProfileView() {
                   >
                     <p className="text-sm text-slate-500">Ingredientes evitados:</p>
                     <div className="flex flex-wrap gap-2">
-                      {profile.dislikedIngredients.map(ingredient => (
+                      {dislikedIngredients.map((ingredient) => (
                         <motion.div
                           key={ingredient}
                           initial={{ opacity: 0, scale: 0.8 }}
@@ -821,7 +841,7 @@ export function ProfileView() {
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-200 border border-slate-300 text-slate-700 text-sm backdrop-blur-sm"
                         >
                           <span>{ingredient}</span>
-                          <iOS26LiquidButton
+                          <IOS26LiquidButton
                             variant="ghost"
                             size="sm"
                             onClick={() => removeDislikedIngredient(ingredient)}
@@ -829,7 +849,7 @@ export function ProfileView() {
                             aria-label={`Quitar ingrediente: ${ingredient}`}
                           >
                             <X className="w-3 h-3" />
-                          </iOS26LiquidButton>
+                          </IOS26LiquidButton>
                         </motion.div>
                       ))}
                     </div>
@@ -838,7 +858,7 @@ export function ProfileView() {
               </AnimatePresence>
             </div>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
 
       {/* Nivel de habilidad culinaria */}
@@ -847,7 +867,7 @@ export function ProfileView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.7 }}
       >
-        <iOS26LiquidCard variant="medium" glow>
+        <IOS26LiquidCard variant="medium" glow>
           <div className="p-4 sm:p-6 space-y-6">
             <h3 className="text-lg font-medium flex items-center gap-2 text-slate-800">
               <div className="p-2 bg-gradient-to-r from-slate-400 to-slate-500 rounded-lg">
@@ -872,34 +892,34 @@ export function ProfileView() {
                 <input
                   type="range"
                   min="1"
-                  max="5"
-                  value={profile.cookingSkillLevel || 3}
+                  max={COOKING_SKILL_LEVELS.length}
+                  value={skillLevelValue}
                   onChange={(e) => {
                     const updatedProfile = {
                       ...profile,
-                      cookingSkillLevel: Number(e.target.value) as any
+                      cookingSkillLevel: numberToSkillLevel(Number(e.target.value))
                     };
                     setProfile(updatedProfile);
                     autoSave.updateData(updatedProfile);
                   }}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
                   style={{
-                    background: `linear-gradient(to right, #f97316 ${((profile.cookingSkillLevel || 3) - 1) * 25}%, rgb(226,232,240) ${((profile.cookingSkillLevel || 3) - 1) * 25}%)`
+                    background: `linear-gradient(to right, #f97316 ${((skillLevelValue - 1) / (COOKING_SKILL_LEVELS.length - 1)) * 100}%, rgb(226,232,240) ${((skillLevelValue - 1) / (COOKING_SKILL_LEVELS.length - 1)) * 100}%)`
                   }}
                   aria-label="Nivel de habilidad culinaria"
                   aria-valuemin={1}
-                  aria-valuemax={5}
-                  aria-valuenow={profile.cookingSkillLevel || 3}
+                  aria-valuemax={COOKING_SKILL_LEVELS.length}
+                  aria-valuenow={skillLevelValue}
                 />
               </div>
 
               <div className="flex justify-between items-center">
-                {[1, 2, 3, 4, 5].map(level => {
-                  const labels = ['Basico', 'Novato', 'Intermedio', 'Avanzado', 'Experto'];
-                  const isActive = profile.cookingSkillLevel === level;
+                {COOKING_SKILL_LEVELS.map((level, index) => {
+                  const levelValue = index + 1;
+                  const isActive = skillLevelValue === levelValue;
                   return (
                     <motion.div
-                      key={level}
+                      key={level.value}
                       className="text-center flex-1"
                       animate={{
                         scale: isActive ? 1.1 : 1,
@@ -913,13 +933,13 @@ export function ProfileView() {
                           ? "bg-gradient-to-r from-orange-500 to-orange-600 border-orange-400 text-white scale-110 shadow-lg"
                           : "border-slate-300 text-slate-500 hover:border-slate-400"
                       )}>
-                        {level}
+                        {levelValue}
                       </div>
                       <span className={cn(
                         "text-xs transition-all",
                         isActive ? "text-orange-500 font-medium" : "text-slate-500"
                       )}>
-                        {labels[level - 1]}
+                        {level.label}
                       </span>
                     </motion.div>
                   );
@@ -927,7 +947,7 @@ export function ProfileView() {
               </div>
             </div>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
 
       {/* Objetivos nutricionales */}
@@ -936,7 +956,7 @@ export function ProfileView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.8 }}
       >
-        <iOS26LiquidCard variant="medium" shimmer>
+        <IOS26LiquidCard variant="medium" shimmer>
           <div className="p-4 sm:p-6 space-y-6">
             <h3 className="text-lg font-medium flex items-center gap-2 text-slate-800">
               <div className="p-2 bg-green-500 rounded-lg">
@@ -948,7 +968,7 @@ export function ProfileView() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <iOS26LiquidInput
+                <IOS26LiquidInput
                   label="Calorias por dia"
                   type="number"
                   value={profile.nutritionalGoals?.caloriesPerDay?.toString() || ''}
@@ -973,7 +993,7 @@ export function ProfileView() {
               </div>
 
               <div className="space-y-2">
-                <iOS26LiquidInput
+                <IOS26LiquidInput
                   label="Proteina (g) por dia"
                   type="number"
                   value={profile.nutritionalGoals?.proteinPerDay?.toString() || ''}
@@ -998,7 +1018,7 @@ export function ProfileView() {
               </div>
             </div>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
     </motion.div>
   );

@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useMealPlanningStore } from '../store/useMealPlanningStore';
-import { format, startOfWeek, addWeeks } from 'date-fns';
+import { format, startOfWeek, addWeeks, addDays } from 'date-fns';
 import { useSupabase } from '@/hooks/useSupabase';
 import { logger } from '@/services/logger';
 import type { MealSlot, Recipe, AIPlannerConfig, MealType } from '../types';
@@ -13,7 +13,7 @@ import type { MealSlot, Recipe, AIPlannerConfig, MealType } from '../types';
  */
 export function useMealPlanning() {
   const supabase = useSupabase();
-  const store = useMealPlanningStore();
+  const store = useMealPlanningStore() as any;
   
   // Initialize real-time sync when component mounts
   useEffect(() => {
@@ -92,12 +92,13 @@ export function useMealPlanning() {
       return;
     }
     
+    const baseDate = store.currentDate ? new Date(store.currentDate) : new Date();
+    const weekStart = startOfWeek(baseDate, { weekStartsOn: 1 });
     const defaultConfig: AIPlannerConfig = {
       userId: user.id,
-      startDate: format(startOfWeek(store.currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd'),
-      numberOfDays: 7,
-      mealsPerDay: ['desayuno', 'almuerzo', 'merienda', 'cena'],
-      preferences: store.userPreferences || {
+      startDate: format(weekStart, 'yyyy-MM-dd'),
+      endDate: format(addDays(weekStart, 6), 'yyyy-MM-dd'),
+      preferences: store.preferences || {
         dietaryPreferences: ['omnivore'],
         dietProfile: 'balanced',
         cuisinePreferences: [],
@@ -109,12 +110,10 @@ export function useMealPlanning() {
         mealsPerDay: 4,
         servingsPerMeal: 2,
         budget: 'medium',
-        preferVariety: true,
-        useSeasonalIngredients: true,
-        considerPantryItems: true
-      },
-      replaceExisting: false,
-      lockExistingMeals: true
+      preferVariety: true,
+      useSeasonalIngredients: true,
+      considerPantryItems: true
+      }
     };
     
     const finalConfig = { ...defaultConfig, ...config };
@@ -201,7 +200,7 @@ export function useMealPlanning() {
  * Hook for managing a single meal slot
  */
 export function useMealSlot(dayOfWeek: number, mealType: MealType) {
-  const store = useMealPlanningStore();
+  const store = useMealPlanningStore() as any;
   const slot = store.getSlotForDay(dayOfWeek, mealType);
   
   const updateSlot = useCallback(async (updates: Partial<MealSlot>) => {
@@ -240,7 +239,7 @@ export function useMealSlot(dayOfWeek: number, mealType: MealType) {
  * Hook for batch operations on multiple slots
  */
 export function useBatchMealOperations() {
-  const store = useMealPlanningStore();
+  const store = useMealPlanningStore() as any;
   
   const batchUpdate = useCallback(async (
     slotIds: string[],

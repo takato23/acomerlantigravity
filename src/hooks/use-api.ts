@@ -26,9 +26,13 @@ export function useApi<T = any>(options: UseApiOptions = {}) {
         options.onSuccess?.(result);
         return result;
       } catch (err: unknown) {
+        const errObj =
+          typeof err === 'object' && err !== null
+            ? (err as { error?: string; message?: string; status?: number })
+            : {};
         const apiError: ApiError = {
-          error: err.error || err.message || 'An error occurred',
-          status: err.status,
+          error: errObj.error || errObj.message || 'An error occurred',
+          status: errObj.status,
         };
         setError(apiError);
         options.onError?.(apiError);

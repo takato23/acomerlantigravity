@@ -6,7 +6,6 @@
 import { logger } from '@/lib/logger';
 import {
   generateArgentineMealPlanPrompt,
-  generateDailyMealPrompt,
   getMealSuggestions
 } from '@/lib/prompts/argentineMealPrompts';
 import {
@@ -405,6 +404,9 @@ export class GeminiPlannerService {
     focusDay: Date
   ): Promise<HolisticPlannerContext> {
     const pantryItems = await this.getUserPantryItems(preferences.userId);
+    const pantryItemNames = pantryItems
+      .map((item: any) => item.name || item.item || item.ingredient_name || '')
+      .filter(Boolean);
 
     return {
       userState: {
@@ -415,7 +417,11 @@ export class GeminiPlannerService {
           mealTypes: ['breakfast', 'lunch', 'dinner'],
           servings: preferences.householdSize,
           maxPrepTime: preferences.maxPrepTimePerMeal || 60,
-          budgetLimit: undefined
+          budgetLimit: undefined,
+          pantryItems: pantryItemNames,
+          excludeRecipes: [],
+          preferredShoppingDays: [],
+          maxShoppingTrips: 2
         },
         history: [],
         feedback: []
@@ -542,7 +548,7 @@ export class GeminiPlannerService {
       constraints: context.userState.constraints,
       confidence: this.calculateConfidence(geminiResponse) as Percentage,
       generatedAt: new Date(),
-      meta: {
+      metadata: {
         aiModel: 'gemini-1.5-pro',
         generationTime: 0 as Minutes,
         revisionCount: PositiveInteger.create(1),
@@ -555,6 +561,13 @@ export class GeminiPlannerService {
    * Convert Gemini meal to MealSuggestion format
    */
   private convertGeminiMealToSuggestion(geminiMeal: any): MealSuggestion {
+    const difficulty =
+      geminiMeal.difficulty === 'beginner' || geminiMeal.difficulty === 'facil'
+        ? 'beginner'
+        : geminiMeal.difficulty === 'advanced' || geminiMeal.difficulty === 'dificil'
+          ? 'advanced'
+          : 'intermediate';
+
     return {
       recipeId: `gemini-${Date.now()}-${Math.random()}`,
       recipe: {
@@ -564,17 +577,19 @@ export class GeminiPlannerService {
         prepTimeMinutes: geminiMeal.prep_time,
         cookTimeMinutes: geminiMeal.cook_time,
         servings: geminiMeal.servings,
-        difficulty: geminiMeal.difficulty || 'medium',
+        difficulty,
         ingredients: geminiMeal.ingredients.map((ing: string) => ({
           name: ing,
           quantity: 1,
-          unit: 'portion'
+          unit: 'portion',
+          isOrganic: false
         })),
         instructions: geminiMeal.instructions || [],
         nutrition: geminiMeal.nutrition,
         tags: [],
         allergens: [],
-        dietaryRestrictions: []
+        dietaryRestrictions: [],
+        popularity: 0
       },
       confidence: 0.85 as Percentage,
       reasoning: 'AI-generated recipe based on preferences',
@@ -974,23 +989,43 @@ export const geminiPlannerService = {
   generateDailyOptimization: async (
     preferences: UserPreferences,
     currentPlan: Partial<WeeklyPlan>,
-    focusDay: Date,
-    optimizationOptions?: any
+    focusDay: Date
   ) => {
     if (!_geminiPlannerService) {
       _geminiPlannerService = new GeminiPlannerService();
     }
-    return _geminiPlannerService.generateDailyOptimization(preferences, currentPlan, focusDay, optimizationOptions);
+    return _geminiPlannerService.generateDailyOptimization(preferences, currentPlan, focusDay);
+  },
+
+  regenerateMeal: async (
+    mealType: 'breakfast' | 'lunch' | 'dinner',
+    preferences: UserPreferences,
+    constraints: PlanningConstraints,
+    avoidRecipes?: string[]
+  ) => {
+    if (!_geminiPlannerService) {
+      _geminiPlannerService = new GeminiPlannerService();
+    }
+    return _geminiPlannerService.regenerateMeal(mealType, preferences, constraints, avoidRecipes);
+  },
+
+  processLearningFeedback: async (
+    planId: string,
+    feedback: any
+  ) => {
+    if (!_geminiPlannerService) {
+      _geminiPlannerService = new GeminiPlannerService();
+    }
+    return _geminiPlannerService.processLearningFeedback(planId, feedback);
   },
 
   suggestFromPantry: async (
     userId: string,
-    preferences?: Partial<UserPreferences>,
-    constraints?: any
+    preferences: UserPreferences
   ) => {
     if (!_geminiPlannerService) {
       _geminiPlannerService = new GeminiPlannerService();
     }
-    return _geminiPlannerService.suggestFromPantry(userId, preferences, constraints);
+    return _geminiPlannerService.suggestFromPantry(userId, preferences);
   }
 };

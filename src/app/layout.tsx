@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import Script from 'next/script';
 
 import './globals.css';
@@ -11,14 +10,8 @@ import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary';
 
 // Providers moved to client-providers.tsx and used in (app)/layout.tsx
 
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  preload: true,
-  fallback: ['system-ui', 'arial']
-});
-
 export const metadata: Metadata = {
+  metadataBase: new URL('https://kecarajocomer.com'),
   title: 'KeCarajoComer - Planificación de Comidas con IA',
   description: 'Transformá la planificación de comidas con sugerencias de recetas potenciadas por IA, gestión inteligente de despensa y listas de compras optimizadas',
   manifest: '/manifest.json',
@@ -104,7 +97,7 @@ export default function RootLayout({
         }} />
 
       </head>
-      <body className={`${inter.className} h-full`} suppressHydrationWarning>
+      <body className="h-full font-sans" suppressHydrationWarning>
         <GlobalErrorBoundary>
           {children}
           <PWAInstaller />

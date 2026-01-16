@@ -63,7 +63,7 @@ export class EnhancedAIRecipeService {
 
   constructor() {
     this.aiService = UnifiedAIService.getInstance();
-    this.storageService = new UnifiedStorageService();
+    this.storageService = UnifiedStorageService.getInstance();
     this.notificationService = new NotificationManager();
   }
 
@@ -79,8 +79,10 @@ export class EnhancedAIRecipeService {
       if (request.showPrompt) {
         await this.notificationService.notify('Prompt Generado', {
           type: 'info',
-          message: 'Puedes revisar el prompt que se enviará a la IA',
-          data: { prompt },
+          metadata: {
+            message: 'Puedes revisar el prompt que se enviará a la IA',
+            prompt,
+          },
           priority: 'medium'
         });
       }
@@ -89,16 +91,14 @@ export class EnhancedAIRecipeService {
       const aiResponse = await this.aiService.generateRecipe({
         ingredients: request.ingredients || [],
         preferences: {
-          cuisine: request.cuisine,
           dietary: request.dietary,
-          difficulty: request.difficulty,
-          servings: request.servings,
-          maxCookTime: request.maxCookTime,
-          mealType: request.mealType,
-          additionalPreferences: request.prompt
+          allergies: request.allergies,
         },
-        customPrompt: prompt,
-        provider: request.provider
+        cuisine: request.cuisine,
+        mealType: request.mealType,
+        difficulty: request.difficulty,
+        servings: request.servings,
+        maxTime: request.maxCookTime,
       });
 
       // Enhance response with additional features
@@ -114,7 +114,9 @@ export class EnhancedAIRecipeService {
 
       await this.notificationService.notify('Error al Generar Receta', {
         type: 'error',
-        message: 'No se pudo generar la receta. Intenta de nuevo.',
+        metadata: {
+          message: 'No se pudo generar la receta. Intenta de nuevo.',
+        },
         priority: 'high'
       });
 
@@ -288,31 +290,71 @@ Responde en formato JSON válido.`);
     aiResponse: any,
     request: EnhancedRecipeRequest
   ): Promise<GeneratedRecipeResponse> {
+    const instructionTexts = Array.isArray(aiResponse.instructions)
+      ? aiResponse.instructions
+      : String(aiResponse.instructions || '')
+          .split('\n')
+          .map((text: string) => text.trim())
+          .filter(Boolean);
+
+    const normalizeDifficulty = (value?: string): Recipe['difficulty'] => {
+      switch (value?.toLowerCase()) {
+        case 'easy':
+        case 'facil':
+          return 'easy';
+        case 'hard':
+        case 'dificil':
+          return 'hard';
+        default:
+          return 'medium';
+      }
+    };
+
+    const aiProvider =
+      request.provider === 'anthropic'
+        ? 'claude'
+        : request.provider === 'gemini'
+          ? 'gemini'
+          : undefined;
+
     const recipe: Recipe = {
       id: crypto.randomUUID(),
       user_id: '', // Will be set by caller
       title: aiResponse.title,
       description: aiResponse.description,
-      instructions: Array.isArray(aiResponse.instructions)
-        ? aiResponse.instructions
-        : aiResponse.instructions.split('\n').filter(Boolean),
+      instructions: instructionTexts.map((text: string, index: number) => ({
+        step_number: index + 1,
+        text,
+      })),
       ingredients: aiResponse.ingredients.map((ing: any) => ({
+        ingredient_id: crypto.randomUUID(),
         name: ing.name,
         quantity: ing.quantity || ing.amount,
         unit: ing.unit,
-        notes: ing.notes
+        notes: ing.notes,
+        optional: false,
       })),
       prep_time: aiResponse.prepTimeMinutes || aiResponse.prep_time || 15,
       cook_time: aiResponse.cookTimeMinutes || aiResponse.cook_time || 20,
+      total_time:
+        (aiResponse.prepTimeMinutes || aiResponse.prep_time || 15) +
+        (aiResponse.cookTimeMinutes || aiResponse.cook_time || 20),
       servings: aiResponse.servings || request.servings || 4,
-      difficulty: aiResponse.difficulty || request.difficulty || 'medium',
-      cuisine: aiResponse.cuisine || request.cuisine || 'international',
-      tags: aiResponse.tags || [],
+      difficulty: normalizeDifficulty(aiResponse.difficulty || request.difficulty),
+      cuisine_type: (aiResponse.cuisine || request.cuisine || 'other') as Recipe['cuisine_type'],
+      meal_types: request.mealType ? [request.mealType] : ['dinner'],
+      dietary_tags: (request.dietary || []) as Recipe['dietary_tags'],
       ai_generated: true,
-      ai_provider: request.provider || 'openai',
+      ai_provider: aiProvider,
       times_cooked: 0,
       is_public: false,
-      nutritional_info: aiResponse.nutritionInfo || aiResponse.nutritional_info,
+      nutritional_info: aiResponse.nutritionInfo ||
+        aiResponse.nutritional_info || {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -363,7 +405,9 @@ Responde en formato JSON válido.`);
 
     await this.notificationService.notify('Despensa Vacía', {
       type: 'info',
-      message: 'No tienes ingredientes en tu despensa. Te sugerimos una receta popular.',
+      metadata: {
+        message: 'No tienes ingredientes en tu despensa. Te sugerimos una receta popular.',
+      },
       priority: 'medium'
     });
 
@@ -409,7 +453,7 @@ Responde en formato JSON válido.`);
         recipe,
         request,
         timestamp: Date.now()
-      }, { ttl: 3600000 }); // Cache for 1 hour
+      }, { expiresAt: new Date(Date.now() + 3600000) }); // Cache for 1 hour
     } catch (error: unknown) {
       logger.error('Error caching recipe:', 'EnhancedAIRecipeService', error);
     }

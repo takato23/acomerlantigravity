@@ -230,7 +230,7 @@ class ProgressTrackingService {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
 
     // Map events to streak types
-    const streakMappings: Record<XPEventType, StreakType[]> = {
+    const streakMappings: Partial<Record<XPEventType, StreakType[]>> = {
       [XPEventType.DAILY_LOGIN]: [StreakType.DAILY_LOGIN],
       [XPEventType.MEAL_PLANNED]: [StreakType.MEAL_PLANNING],
       [XPEventType.RECIPE_COOKED]: [StreakType.COOKING],
@@ -340,13 +340,16 @@ class ProgressTrackingService {
     });
 
     // Calculate streak summary
-    const streakSummary: Record<StreakType, { current: number; longest: number }> = {};
-    Object.entries(userProgress.streaks).forEach(([streakType, streak]) => {
-      streakSummary[streakType as StreakType] = {
-        current: streak.current,
-        longest: streak.longest
-      };
-    });
+    const streakSummary = Object.entries(userProgress.streaks).reduce(
+      (summary, [streakType, streak]) => {
+        summary[streakType as StreakType] = {
+          current: streak.current,
+          longest: streak.longest
+        };
+        return summary;
+      },
+      {} as Record<StreakType, { current: number; longest: number }>
+    );
 
     // Calculate goal completion rates
     const dailyCompletionRate = Object.values(userProgress.dailyGoals).reduce((sum, goal) => 

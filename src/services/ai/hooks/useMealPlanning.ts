@@ -141,7 +141,7 @@ Provide an optimized meal plan in the same format.`;
       undefined
     );
 
-    const optimizedPlan = {
+    const optimizedPlan: GeneratedMealPlan = {
       ...response.data,
       id: `${plan.id}-optimized`,
       aiGenerated: true,

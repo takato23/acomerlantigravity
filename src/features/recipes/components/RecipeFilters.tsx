@@ -61,7 +61,7 @@ export function RecipeFilters({ filters, onFiltersChange, recipes = [], onFilter
       // If active, pass only cookable recipes. If inactive, pass all recipes.
       // Note: This overrides other filters if used simplistically.
       // Ideally we should combine filters, but for this specific feature request we focus on Cook Now.
-      const result = newValue ? canCookNow : recipes;
+      const result = newValue ? canCookNow.map(entry => entry.recipe) : recipes;
       onFilteredRecipesChange(result);
     }
   };

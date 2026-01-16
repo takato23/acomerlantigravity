@@ -83,15 +83,15 @@ export function DiscreteVoiceButton({
       // Parse the transcript
       const parsed = parseSpanishVoiceInput(transcript);
       
-      if (parsed.items.length > 0) {
-        setEditableItems(parsed.items.map(item => ({
+      if (parsed.length > 0) {
+        setEditableItems(parsed.map(item => ({
           ...item,
           name: item.name,
-          quantity: item.quantity,
-          unit: item.unit,
-          category: item.category,
-          location: item.location || 'despensa',
-          confidence: item.confidence
+          quantity: item.quantity ?? 1,
+          unit: item.unit ?? 'ud',
+          category: item.category ?? 'otros',
+          location: 'despensa',
+          confidence: item.confidence ?? 0
         })));
         setShowModal(true);
       }

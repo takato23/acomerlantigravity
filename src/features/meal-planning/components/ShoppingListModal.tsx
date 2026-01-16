@@ -20,8 +20,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
 
 // Category icons mapping
 const categoryIcons: Record<string, any> = {
@@ -147,7 +147,7 @@ export function ShoppingListModal({ onClose, items = [], totalEstimated = 0 }: S
           onClick={(e) => e.stopPropagation()}
           className="w-full max-w-lg"
         >
-          <iOS26EnhancedCard
+          <IOS26EnhancedCard
             variant="aurora"
             elevation="floating"
             className="max-h-[80vh] overflow-hidden"
@@ -260,8 +260,8 @@ export function ShoppingListModal({ onClose, items = [], totalEstimated = 0 }: S
             {/* Footer */}
             <div className="px-6 py-4 border-t border-white/10 flex justify-between">
               <div className="flex gap-2">
-                <iOS26LiquidButton
-                  variant="glass"
+                <IOS26LiquidButton
+                  variant="ghost"
                   icon={<Download className="w-4 h-4" />}
                   iconPosition="left"
                   onClick={handleExport}
@@ -269,9 +269,9 @@ export function ShoppingListModal({ onClose, items = [], totalEstimated = 0 }: S
                   disabled={!hasItems}
                 >
                   Exportar
-                </iOS26LiquidButton>
-                <iOS26LiquidButton
-                  variant="glass"
+                </IOS26LiquidButton>
+                <IOS26LiquidButton
+                  variant="ghost"
                   icon={<MessageCircle className="w-4 h-4" />}
                   iconPosition="left"
                   onClick={handleShare}
@@ -280,17 +280,17 @@ export function ShoppingListModal({ onClose, items = [], totalEstimated = 0 }: S
                   className="text-green-600"
                 >
                   WhatsApp
-                </iOS26LiquidButton>
+                </IOS26LiquidButton>
               </div>
-              <iOS26LiquidButton
+              <IOS26LiquidButton
                 variant="primary"
                 onClick={onClose}
                 className="bg-black hover:bg-gray-800"
               >
                 Cerrar
-              </iOS26LiquidButton>
+              </IOS26LiquidButton>
             </div>
-          </iOS26EnhancedCard>
+          </IOS26EnhancedCard>
         </motion.div>
       </motion.div>
     </AnimatePresence>

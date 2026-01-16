@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Clock, Star, AlertCircle, Check, TrendingUp, Flame } from 'lucide-react';
 
@@ -128,7 +129,7 @@ export const WithIcons: Story = {
 // Removable badges
 export const Removable: Story = {
   render: () => {
-    const [badges, setBadges] = React.useState([
+    const [badges, setBadges] = useState([
       { id: 1, text: 'Tomate', variant: 'fresh' as const },
       { id: 2, text: 'Cebolla', variant: 'fresh' as const },
       { id: 3, text: 'Ajo', variant: 'warm' as const },

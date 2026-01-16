@@ -11,10 +11,11 @@ import {
   useStreaks, 
   useGamificationNotifications 
 } from '../store/gamificationStore';
+import type { Achievement, Challenge, UserAchievement, UserChallenge } from '../types';
 import { LeaderboardType, LeaderboardPeriod } from '../types';
 
 import { XPProgressBar, LevelBadge } from './XPProgressBar';
-import { AchievementCard, AchievementNotification } from './AchievementCard';
+import { AchievementCard, AchievementNotification as AchievementNotificationCard } from './AchievementCard';
 import { StreakDisplay, StreakSummary } from './StreakDisplay';
 import { LeaderboardTable, LeaderboardPodium } from './LeaderboardTable';
 import { ChallengeCard } from './ChallengeCard';
@@ -28,7 +29,8 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
   const [leaderboardType, setLeaderboardType] = useState<LeaderboardType>(LeaderboardType.XP);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<LeaderboardPeriod>(LeaderboardPeriod.WEEKLY);
   const [showAchievementNotification, setShowAchievementNotification] = useState(false);
-  const [selectedAchievement, setSelectedAchievement] = useState(null);
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [selectedAchievementNotificationId, setSelectedAchievementNotificationId] = useState<string | null>(null);
 
   const { profile, loadProfile } = useGamificationProfile();
   const { achievements, loadAchievements } = useAchievements();
@@ -77,18 +79,40 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
 
   // Handle achievement notifications
   useEffect(() => {
-    const unreadAchievements = notifications.filter(n => !n.isRead && n.type === 'achievement');
-    if (unreadAchievements.length > 0) {
-      setSelectedAchievement(unreadAchievements[0]);
+    const unreadAchievementNotification = notifications.find(
+      (notification) => !notification.isRead && notification.type === 'achievement'
+    );
+    if (!unreadAchievementNotification) {
+      return;
+    }
+
+    const achievementId = unreadAchievementNotification.id.startsWith('achievement_')
+      ? unreadAchievementNotification.id.replace('achievement_', '')
+      : null;
+    const resolvedAchievement = achievementId
+      ? achievements
+          .filter(
+            (userAchievement): userAchievement is UserAchievement & { achievement: Achievement } =>
+              Boolean(userAchievement.achievement)
+          )
+          .find((userAchievement) => userAchievement.achievement.id === achievementId)
+          ?.achievement
+      : undefined;
+
+    if (resolvedAchievement) {
+      setSelectedAchievement(resolvedAchievement);
+      setSelectedAchievementNotificationId(unreadAchievementNotification.id);
       setShowAchievementNotification(true);
     }
-  }, [notifications]);
+  }, [notifications, achievements]);
 
   const handleAchievementNotificationClose = () => {
     setShowAchievementNotification(false);
-    if (selectedAchievement) {
-      markNotificationRead(selectedAchievement.id);
+    if (selectedAchievementNotificationId) {
+      markNotificationRead(selectedAchievementNotificationId);
     }
+    setSelectedAchievement(null);
+    setSelectedAchievementNotificationId(null);
   };
 
   const handleJoinChallenge = async (challengeId: string) => {
@@ -99,9 +123,17 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
     }
   };
 
-  const recentAchievements = achievements.filter(a => a.is_completed).slice(0, 3);
+  const achievementsWithDetails = achievements.filter(
+    (userAchievement): userAchievement is UserAchievement & { achievement: Achievement } =>
+      Boolean(userAchievement.achievement)
+  );
+  const recentAchievements = achievementsWithDetails.filter(a => a.is_completed).slice(0, 3);
   const activeStreaks = streaks.filter(s => s.is_active);
-  const activeChallenges = challenges.filter(c => c.challenge?.is_active).slice(0, 3);
+  const challengesWithDetails = challenges.filter(
+    (userChallenge): userChallenge is UserChallenge & { challenge: Challenge } =>
+      Boolean(userChallenge.challenge)
+  );
+  const activeChallenges = challengesWithDetails.filter(c => c.challenge.is_active).slice(0, 3);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: TrendingUp },
@@ -311,7 +343,7 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {achievements.map((userAchievement) => (
+              {achievementsWithDetails.map((userAchievement) => (
                 <AchievementCard
                   key={userAchievement.id}
                   achievement={userAchievement.achievement}
@@ -348,7 +380,7 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
             <h2 className="text-2xl font-bold text-gray-900">Challenges</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {challenges.map((userChallenge) => (
+              {challengesWithDetails.map((userChallenge) => (
                 <ChallengeCard
                   key={userChallenge.id}
                   challenge={userChallenge.challenge}
@@ -363,7 +395,7 @@ export function GamificationDashboard({ className = '' }: GamificationDashboardP
 
       {/* Achievement Notification Modal */}
       {showAchievementNotification && selectedAchievement && (
-        <AchievementNotification
+        <AchievementNotificationCard
           achievement={selectedAchievement}
           onClose={handleAchievementNotificationClose}
         />

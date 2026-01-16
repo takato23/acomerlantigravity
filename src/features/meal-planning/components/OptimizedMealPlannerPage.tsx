@@ -15,7 +15,7 @@ import {
   ChevronRight,
   Loader2
 } from 'lucide-react';
-import { format, startOfWeek, addWeeks } from 'date-fns';
+import { format, startOfWeek, addWeeks, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 
@@ -31,7 +31,7 @@ const MealPlannerGrid = lazy(() => import('./MealPlannerGrid'));
 const RecipeSelectionModal = lazy(() => import('./RecipeSelectionModal').then(module => ({ default: module.RecipeSelectionModal })));
 const UserPreferencesModal = lazy(() => import('./UserPreferencesModal').then(module => ({ default: module.UserPreferencesModal })));
 const ShoppingListModal = lazy(() => import('./ShoppingListModal').then(module => ({ default: module.ShoppingListModal })));
-const LazyIOS26EnhancedCard = lazy(() => import('@/components/ios26').then(module => ({ default: module.iOS26EnhancedCard })));
+const LazyIOS26EnhancedCard = lazy(() => import('@/components/ios26').then(module => ({ default: module.IOS26EnhancedCard })));
 
 // Loading components
 const LoadingSpinner = memo(() => (
@@ -219,11 +219,10 @@ const ViewTabs = memo(({
 ViewTabs.displayName = 'ViewTabs';
 
 export default function OptimizedMealPlannerPage() {
-  const { user } = useUser();
+  const { profile } = useUser();
   
   const {
     currentDate,
-    userPreferences,
     activeModal,
     isLoading,
     error,
@@ -243,28 +242,41 @@ export default function OptimizedMealPlannerPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [hasCompletedWizard, setHasCompletedWizard] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<{ dayOfWeek: number; mealType: MealType } | null>(null);
+  const currentDateValue = currentDate ? new Date(currentDate) : new Date();
+  const startOfCurrentWeek = startOfWeek(currentDateValue, { weekStartsOn: 1 });
+  const selectedSlotWithDate = selectedSlot
+    ? {
+        ...selectedSlot,
+        date: format(addDays(startOfCurrentWeek, selectedSlot.dayOfWeek), 'yyyy-MM-dd')
+      }
+    : {
+        dayOfWeek: 0,
+        mealType: 'almuerzo' as MealType,
+        date: format(startOfCurrentWeek, 'yyyy-MM-dd')
+      };
 
   // Initialize - always load the current week plan since wizard is handled in /planificador
   useEffect(() => {
-    if (user) {
+    if (profile) {
       const startDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
       loadWeekPlan(startDate);
     }
-  }, [user, loadWeekPlan]);
+  }, [profile, loadWeekPlan]);
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleWeekNavigation = useCallback((direction: 'prev' | 'next' | 'today') => {
     let newDate: Date;
+    const baseDate = currentDate ? new Date(currentDate) : new Date();
     
     if (direction === 'today') {
       newDate = new Date();
     } else if (direction === 'prev') {
-      newDate = addWeeks(currentDate, -1);
+      newDate = addWeeks(baseDate, -1);
     } else {
-      newDate = addWeeks(currentDate, 1);
+      newDate = addWeeks(baseDate, 1);
     }
-    
-    setCurrentDate(newDate);
+
+    setCurrentDate(newDate.toISOString());
     const startDate = format(startOfWeek(newDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
     loadWeekPlan(startDate);
   }, [currentDate, setCurrentDate, loadWeekPlan]);
@@ -325,7 +337,7 @@ export default function OptimizedMealPlannerPage() {
           onSettingsClick={() => setActiveModal('preferences')}
           onExportClick={handleExportWeek}
           onShareClick={handleShareWeek}
-          currentDate={currentDate}
+          currentDate={currentDateValue}
           onWeekNavigation={handleWeekNavigation}
         />
 
@@ -414,10 +426,10 @@ export default function OptimizedMealPlannerPage() {
 
       {/* Modals */}
       <AnimatePresence>
-        {activeModal === 'recipe-select' && selectedSlot && (
+        {activeModal === 'recipe-select' && (
           <Suspense fallback={<ModalLoadingFallback />}>
             <RecipeSelectionModal
-              slot={selectedSlot}
+              slot={selectedSlotWithDate}
               onClose={handleModalClose}
             />
           </Suspense>

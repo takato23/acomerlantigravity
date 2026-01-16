@@ -29,47 +29,49 @@ export interface LoadingState {
   [key: string]: boolean;
 }
 
-export interface UISlice {
-  ui: {
-    theme: 'light' | 'dark' | 'system' | 'elegant' | 'vibrant' | 'minimal';
-    language: 'es' | 'en';
-    sidebarOpen: boolean;
-    notifications: Notification[];
-    modals: Modal[];
-    loading: LoadingState;
-    preferences: {
-      animations: boolean;
-      sounds: boolean;
-      reducedMotion: boolean;
-      highContrast: boolean;
-      fontSize: 'sm' | 'md' | 'lg';
-      compactMode: boolean;
-      showTips: boolean;
-      autoSave: boolean;
-      confirmActions: boolean;
-    };
-    layout: {
-      currentPage: string;
-      breadcrumbs: { label: string; href?: string }[];
-      pageTitle?: string;
-      pageDescription?: string;
-    };
-    tour: {
-      active: boolean;
-      currentStep: number;
-      completed: string[]; // tour IDs that have been completed
-    };
-    search: {
-      query: string;
-      filters: Record<string, any>;
-      results: any[];
-      isSearching: boolean;
-    };
+export interface UIState {
+  theme: 'light' | 'dark' | 'system' | 'elegant' | 'vibrant' | 'minimal';
+  language: 'es' | 'en';
+  sidebarOpen: boolean;
+  notifications: Notification[];
+  modals: Modal[];
+  loading: LoadingState;
+  preferences: {
+    animations: boolean;
+    sounds: boolean;
+    reducedMotion: boolean;
+    highContrast: boolean;
+    fontSize: 'sm' | 'md' | 'lg';
+    compactMode: boolean;
+    showTips: boolean;
+    autoSave: boolean;
+    confirmActions: boolean;
   };
+  layout: {
+    currentPage: string;
+    breadcrumbs: { label: string; href?: string }[];
+    pageTitle?: string;
+    pageDescription?: string;
+  };
+  tour: {
+    active: boolean;
+    currentStep: number;
+    completed: string[]; // tour IDs that have been completed
+  };
+  search: {
+    query: string;
+    filters: Record<string, any>;
+    results: any[];
+    isSearching: boolean;
+  };
+}
+
+export interface UISlice {
+  ui: UIState;
 
   // Actions
-  setTheme: (theme: typeof ui.theme) => void;
-  setLanguage: (language: typeof ui.language) => void;
+  setTheme: (theme: UIState['theme']) => void;
+  setLanguage: (language: UIState['language']) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
 
@@ -84,10 +86,10 @@ export interface UISlice {
   setLoading: (key: string, loading: boolean) => void;
   clearLoading: () => void;
 
-  updatePreferences: (preferences: Partial<typeof ui.preferences>) => void;
+  updatePreferences: (preferences: Partial<UIState['preferences']>) => void;
 
   setCurrentPage: (page: string, title?: string, description?: string) => void;
-  setBreadcrumbs: (breadcrumbs: typeof ui.layout.breadcrumbs) => void;
+  setBreadcrumbs: (breadcrumbs: UIState['layout']['breadcrumbs']) => void;
 
   startTour: (tourId: string) => void;
   nextTourStep: () => void;
@@ -142,7 +144,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   },
 
-  setTheme: (theme) => set((state) => {
+  setTheme: (theme) => set((state: any) => {
     state.ui.theme = theme;
 
     // Apply theme to document
@@ -159,7 +161,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   }),
 
-  setLanguage: (language) => set((state) => {
+  setLanguage: (language) => set((state: any) => {
     state.ui.language = language;
 
     // Update document language
@@ -168,15 +170,15 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   }),
 
-  toggleSidebar: () => set((state) => {
+  toggleSidebar: () => set((state: any) => {
     state.ui.sidebarOpen = !state.ui.sidebarOpen;
   }),
 
-  setSidebarOpen: (open) => set((state) => {
+  setSidebarOpen: (open) => set((state: any) => {
     state.ui.sidebarOpen = open;
   }),
 
-  showNotification: (notification) => set((state) => {
+  showNotification: (notification) => set((state: any) => {
     const newNotification: Notification = {
       ...notification,
       id: Date.now().toString() + Math.random(),
@@ -193,15 +195,15 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   }),
 
-  hideNotification: (id) => set((state) => {
-    state.ui.notifications = state.ui.notifications.filter(n => n.id !== id);
+  hideNotification: (id) => set((state: any) => {
+    state.ui.notifications = state.ui.notifications.filter((n: any) => n.id !== id);
   }),
 
-  clearNotifications: () => set((state) => {
+  clearNotifications: () => set((state: any) => {
     state.ui.notifications = [];
   }),
 
-  setModalOpen: (modal) => set((state) => {
+  setModalOpen: (modal) => set((state: any) => {
     const newModal: Modal = {
       ...modal,
       id: Date.now().toString() + Math.random()
@@ -210,15 +212,15 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     state.ui.modals.push(newModal);
   }),
 
-  closeModal: (id) => set((state) => {
-    state.ui.modals = state.ui.modals.filter(m => m.id !== id);
+  closeModal: (id) => set((state: any) => {
+    state.ui.modals = state.ui.modals.filter((m: any) => m.id !== id);
   }),
 
-  closeAllModals: () => set((state) => {
+  closeAllModals: () => set((state: any) => {
     state.ui.modals = [];
   }),
 
-  setLoading: (key, loading) => set((state) => {
+  setLoading: (key, loading) => set((state: any) => {
     if (loading) {
       state.ui.loading[key] = true;
     } else {
@@ -226,11 +228,11 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   }),
 
-  clearLoading: () => set((state) => {
+  clearLoading: () => set((state: any) => {
     state.ui.loading = {};
   }),
 
-  updatePreferences: (preferences) => set((state) => {
+  updatePreferences: (preferences) => set((state: any) => {
     Object.assign(state.ui.preferences, preferences);
 
     // Apply preferences to document
@@ -260,7 +262,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   }),
 
-  setCurrentPage: (page, title, description) => set((state: UISlice) => {
+  setCurrentPage: (page, title, description) => set((state: any) => {
     state.ui.layout.currentPage = page;
     state.ui.layout.pageTitle = title;
     state.ui.layout.pageDescription = description;
@@ -271,28 +273,28 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   }),
 
-  setBreadcrumbs: (breadcrumbs) => set((state: UISlice) => {
+  setBreadcrumbs: (breadcrumbs) => set((state: any) => {
     state.ui.layout.breadcrumbs = breadcrumbs;
   }),
 
-  startTour: (tourId) => set((state: UISlice) => {
+  startTour: (tourId) => set((state: any) => {
     state.ui.tour.active = true;
     state.ui.tour.currentStep = 0;
   }),
 
-  nextTourStep: () => set((state: UISlice) => {
+  nextTourStep: () => set((state: any) => {
     if (state.ui.tour.active) {
       state.ui.tour.currentStep += 1;
     }
   }),
 
-  prevTourStep: () => set((state: UISlice) => {
+  prevTourStep: () => set((state: any) => {
     if (state.ui.tour.active && state.ui.tour.currentStep > 0) {
       state.ui.tour.currentStep -= 1;
     }
   }),
 
-  completeTour: (tourId) => set((state: UISlice) => {
+  completeTour: (tourId) => set((state: any) => {
     state.ui.tour.active = false;
     state.ui.tour.currentStep = 0;
 
@@ -301,28 +303,28 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
   }),
 
-  skipTour: () => set((state: UISlice) => {
+  skipTour: () => set((state: any) => {
     state.ui.tour.active = false;
     state.ui.tour.currentStep = 0;
   }),
 
-  setSearchQuery: (query) => set((state: UISlice) => {
+  setSearchQuery: (query) => set((state: any) => {
     state.ui.search.query = query;
   }),
 
-  setSearchFilters: (filters) => set((state: UISlice) => {
+  setSearchFilters: (filters) => set((state: any) => {
     state.ui.search.filters = filters;
   }),
 
-  setSearchResults: (results) => set((state: UISlice) => {
+  setSearchResults: (results) => set((state: any) => {
     state.ui.search.results = results;
   }),
 
-  setSearching: (searching) => set((state: UISlice) => {
+  setSearching: (searching) => set((state: any) => {
     state.ui.search.isSearching = searching;
   }),
 
-  clearSearch: () => set((state: UISlice) => {
+  clearSearch: () => set((state: any) => {
     state.ui.search.query = '';
     state.ui.search.filters = {};
     state.ui.search.results = [];

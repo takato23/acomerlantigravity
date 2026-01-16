@@ -13,7 +13,12 @@ import type { PantryItem } from '../../types/pantry';
 import { recipeService } from './recipe.service';
 
 interface AIRecipeResponse {
-  recipe: ParsedRecipe;
+  recipe: ParsedRecipe & {
+    difficulty?: DifficultyLevel;
+    cuisine_type?: CuisineType;
+    category?: RecipeCategory;
+    tags?: string[];
+  };
   reasoning: string;
   alternatives: string[];
   nutritionNotes: string;
@@ -71,7 +76,8 @@ export class AIRecipeService {
       
       return recipe;
     } catch (error: unknown) {
-      throw new Error(`Failed to generate recipe: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to generate recipe: ${message}`);
     }
   }
 
@@ -118,7 +124,8 @@ export class AIRecipeService {
 
       return recipes;
     } catch (error: unknown) {
-      throw new Error(`Failed to suggest recipes: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to suggest recipes: ${message}`);
     }
   }
 
@@ -155,7 +162,8 @@ export class AIRecipeService {
         context: undefined
       });
     } catch (error: unknown) {
-      throw new Error(`Failed to optimize recipe: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to optimize recipe: ${message}`);
     }
   }
 
@@ -196,7 +204,8 @@ export class AIRecipeService {
         reasoning: mealPlanResponse.reasoning
       };
     } catch (error: unknown) {
-      throw new Error(`Failed to generate meal plan: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to generate meal plan: ${message}`);
     }
   }
 
@@ -237,7 +246,8 @@ export class AIRecipeService {
         )
       );
     } catch (error: unknown) {
-      throw new Error(`Failed to suggest variations: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to suggest variations: ${message}`);
     }
   }
 
@@ -284,12 +294,14 @@ PREFERENCIAS DEL USUARIO:
     prompt += `- Nivel de habilidad: ${preferences.skill_level}\n`;
     prompt += `- Tiempo preferido de cocción: ${preferences.preferred_cook_time} minutos\n`;
 
-    if (constraints.required_ingredients?.length > 0) {
-      prompt += `\nINGREDIENTES REQUERIDOS: ${constraints.required_ingredients.join(', ')}\n`;
+    const requiredIngredients = constraints.required_ingredients;
+    if (requiredIngredients && requiredIngredients.length > 0) {
+      prompt += `\nINGREDIENTES REQUERIDOS: ${requiredIngredients.join(', ')}\n`;
     }
 
-    if (constraints.available_ingredients?.length > 0) {
-      prompt += `\nINGREDIENTES DISPONIBLES: ${constraints.available_ingredients.join(', ')}\n`;
+    const availableIngredients = constraints.available_ingredients;
+    if (availableIngredients && availableIngredients.length > 0) {
+      prompt += `\nINGREDIENTES DISPONIBLES: ${availableIngredients.join(', ')}\n`;
     }
 
     if (constraints.max_cook_time) {
@@ -527,7 +539,8 @@ Responde con array de recetas en formato JSON estándar:`;
       
       return createdRecipe;
     } catch (error: unknown) {
-      throw new Error(`Failed to process AI recipe response: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to process AI recipe response: ${message}`);
     }
   }
 
@@ -607,7 +620,8 @@ Responde con array de recetas en formato JSON estándar:`;
       
       return recommendations.recipes || [];
     } catch (error: unknown) {
-      throw new Error(`Failed to get recommendations: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to get recommendations: ${message}`);
     }
   }
 
@@ -633,13 +647,21 @@ Responde con array de recetas en formato JSON estándar:`;
       
       return suggestions.recipes || [];
     } catch (error: unknown) {
-      throw new Error(`Failed to get seasonal suggestions: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to get seasonal suggestions: ${message}`);
     }
   }
 
   // =====================================================
   // UTILITY METHODS
   // =====================================================
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return typeof error === 'string' ? error : 'Unknown error';
+  }
 
   private getCurrentSeason(): string {
     const month = new Date().getMonth() + 1;
@@ -670,7 +692,8 @@ Responde con array de recetas en formato JSON estándar:`;
 
       return await response.json();
     } catch (error: unknown) {
-      throw new Error(`Failed to analyze recipe complexity: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to analyze recipe complexity: ${message}`);
     }
   }
 
@@ -707,7 +730,8 @@ Responde con array de recetas en formato JSON estándar:`;
 
       return await response.json();
     } catch (error: unknown) {
-      throw new Error(`Failed to suggest substitutions: ${error.message}`);
+      const message = this.getErrorMessage(error);
+      throw new Error(`Failed to suggest substitutions: ${message}`);
     }
   }
 }

@@ -5,7 +5,6 @@
 
 import { UserPreferences, PlanningConstraints } from '../types/mealPlanning';
 import { 
-  generateDailyMealPrompt,
   getMealSuggestions,
   ARGENTINE_MEAL_CULTURE,
   ArgentineMealContext,
@@ -97,7 +96,7 @@ CRITICAL: You must respond with a valid JSON object only.
     }, {} as Record<string, string[]>);
 
     return `AVAILABLE PANTRY ITEMS:
-${Object.entries(categorized)
+${(Object.entries(categorized) as Array<[string, string[]]>)
   .map(([category, items]) => `- ${category}: ${items.join(', ')}`)
   .join('\n')}`;
   }
@@ -193,8 +192,8 @@ ${Object.entries(categorized)
     // Use Argentine meal suggestions based on meal type and day
     const suggestions = getMealSuggestions(
       mealType as any,
-      constraints.budget || 'económico',
-      dayOfWeek.toLowerCase().includes('sábado') || dayOfWeek.toLowerCase().includes('domingo') ? 'normal' : 'rápido',
+      constraints.budget || 'economico',
+      dayOfWeek.toLowerCase().includes('sábado') || dayOfWeek.toLowerCase().includes('domingo') ? 'normal' : 'rapido',
       'verano' // Could be made dynamic based on date
     );
 

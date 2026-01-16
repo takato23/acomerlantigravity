@@ -1,9 +1,5 @@
-/**
- * Email Notifications API
- * POST /api/notifications/email
- */
-
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { emailService } from '@/services/email';
 import type {
@@ -20,7 +16,8 @@ interface EmailNotificationRequest {
 
 export async function POST(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
 
         // Get current user
         const { data: { user }, error: authError } = await supabase.auth.getUser();

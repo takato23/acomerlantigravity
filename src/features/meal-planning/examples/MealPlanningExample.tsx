@@ -207,7 +207,7 @@ function DayColumn({ dayOfWeek }: { dayOfWeek: number }) {
   
   if (!currentWeekPlan) return null;
   
-  const daySlots = currentWeekPlan.slots.filter(slot => slot.dayOfWeek === dayOfWeek);
+  const daySlots = currentWeekPlan.slots.filter((slot: { dayOfWeek: number }) => slot.dayOfWeek === dayOfWeek);
   
   return (
     <div className="border rounded-lg p-3">
@@ -215,7 +215,7 @@ function DayColumn({ dayOfWeek }: { dayOfWeek: number }) {
       
       <div className="space-y-2">
         {mealTypes.map(mealType => {
-          const slot = daySlots.find(s => s.mealType === mealType);
+          const slot = daySlots.find((s: { mealType: string }) => s.mealType === mealType);
           const mealInfo = getMealTypeInfo(mealType);
           
           return (

@@ -100,7 +100,8 @@ export class WakeWordDetectionService {
 
     // Calculate similarity score
     const similarity = this.calculateSimilarity(text, phrase);
-    return similarity >= this.wakeWordConfig.sensitivity;
+    const sensitivity = this.wakeWordConfig.sensitivity ?? 0.7;
+    return similarity >= sensitivity;
   }
 
   /**

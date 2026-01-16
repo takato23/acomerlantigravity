@@ -113,7 +113,7 @@ export const LoadingDots = ({
     duration: 0.5,
     repeat: Infinity,
     repeatType: 'reverse' as const,
-    ease: 'easeInOut'
+    ease: [0.4, 0, 0.6, 1] as [number, number, number, number]
   };
 
   return (

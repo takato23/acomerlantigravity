@@ -363,9 +363,8 @@ export const EnhancedRecipeGrid: React.FC<EnhancedRecipeGridProps> = ({
                   }
                 } catch (error: unknown) {
                   logger.error('Voice search error:', 'EnhancedRecipeGrid', error);
-                  notify('Error de Búsqueda', {
-                    type: 'error',
-                    message: 'No se pudo activar la búsqueda por voz'
+                  notify('No se pudo activar la búsqueda por voz', {
+                    type: 'error'
                   });
                 } finally {
                   setIsListening(false);

@@ -4,7 +4,7 @@
  */
 
 import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from '@google/generative-ai'
-import geminiConfig from '@/lib/config/gemini.config';;
+import { defaultGeminiConfig, getGeminiApiKey, isMockMode } from '@/lib/config/gemini.config';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { GeminiPromptTemplates } from './geminiPromptTemplates';
@@ -60,7 +60,7 @@ export type GeminiMealPlanResponse = z.infer<typeof GeminiMealPlanResponseSchema
 
 // Configuration
 interface GeminiConfig {
-  model: geminiConfig.default.model | geminiConfig.default.model | 'gemini-2.0-flash-exp';
+  model: typeof defaultGeminiConfig.model | 'gemini-2.0-flash-exp';
   temperature: number;
   maxOutputTokens: number;
   topP: number;
@@ -69,7 +69,7 @@ interface GeminiConfig {
 }
 
 const DEFAULT_CONFIG: GeminiConfig = {
-  model: geminiConfig.default.model,
+  model: defaultGeminiConfig.model,
   temperature: 0.7,
   maxOutputTokens: 2048,
   topP: 0.95,
@@ -128,21 +128,20 @@ export class GeminiService {
   private config: GeminiConfig;
 
   constructor(apiKey?: string, config?: Partial<GeminiConfig>) {
-    const key = apiKey || geminiConfig.getApiKey() || geminiConfig.getApiKey();
+    const key = apiKey || getGeminiApiKey();
+    const mockMode = isMockMode();
 
-    if (!key) {
-      if (!geminiConfig.isMockMode || !geminiConfig.isMockMode()) {
-        throw new Error('Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.');
-      }
+    if (!key && !mockMode) {
+      throw new Error('Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.');
     }
 
     this.config = { ...DEFAULT_CONFIG, ...config };
 
-    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+    if (mockMode) {
       this.genAI = {} as any;
       this.model = {} as any;
     } else {
-      this.genAI = new GoogleGenerativeAI(key!);
+      this.genAI = new GoogleGenerativeAI(key as string);
       this.model = this.genAI.getGenerativeModel({
         model: this.config.model,
         generationConfig: this.createGenerationConfig()
@@ -250,10 +249,10 @@ export class GeminiService {
     } catch (error) {
       if (error instanceof z.ZodError) {
         logger.error('Validation error:', 'geminiService', {
-          errors: error.errors,
+          errors: error.issues,
           rawText: text.substring(0, 500) + (text.length > 500 ? '...' : '')
         });
-        throw new Error(`Invalid response format: ${error.errors.map(e => e.message).join(', ')}`);
+        throw new Error(`Invalid response format: ${error.issues.map(e => e.message).join(', ')}`);
       }
       logger.error('JSON parse error:', 'geminiService', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -277,7 +276,7 @@ export class GeminiService {
       options?.pantryItems
     );
 
-    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+    if (isMockMode()) {
       logger.info('Returning MOCK meal plan', 'geminiService');
       const { MOCK_MEAL_PLAN } = require('@/lib/services/mockData');
       return MOCK_MEAL_PLAN;
@@ -390,7 +389,7 @@ export class GeminiService {
       options?.preferredStores
     );
 
-    if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+    if (isMockMode()) {
       logger.info('Returning MOCK shopping list', 'geminiService');
       const { MOCK_SHOPPING_LIST } = require('@/lib/services/mockData');
       return MOCK_SHOPPING_LIST;
@@ -415,7 +414,7 @@ export class GeminiService {
       })),
       totalEstimatedCost: z.number(),
       savingTips: z.array(z.string()).optional(),
-      alternativeSuggestions: z.record(z.string()).optional()
+      alternativeSuggestions: z.record(z.string(), z.string()).optional()
     });
 
     return this.parseJsonResponse(response, shoppingListSchema);
@@ -449,7 +448,7 @@ export class GeminiService {
         sugar: z.number().optional(),
         sodium: z.number().optional()
       }),
-      goalComparison: z.record(z.object({
+      goalComparison: z.record(z.string(), z.object({
         target: z.number(),
         actual: z.number(),
         difference: z.number(),

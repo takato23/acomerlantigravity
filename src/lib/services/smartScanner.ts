@@ -32,7 +32,7 @@ export class SmartScanner {
   private readonly CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
   constructor() {
-    this.storeScraper = new StoreScraper();
+    this.storeScraper = StoreScraper.getInstance();
   }
 
   async scanBarcode(barcode: string): Promise<ScanResult> {
@@ -91,7 +91,7 @@ export class SmartScanner {
     return {
       barcode,
       name: product.name,
-      brand: parserUtils.extractBrand(product.name),
+      brand: parserUtils.extractBrand(product.name).brand || undefined,
       category: normalized.category,
       price: product.price,
       store: product.store,

@@ -280,19 +280,20 @@ export function EnhancedPriceDisplay({
 
 function ProductListItem({ product, onSelect }: { product: StoreProduct, onSelect?: (product: StoreProduct) => void }) {
   const { addItem } = useShoppingList();
-  const logoUrl = CONSTANTS.STORE_LOGOS[product.store.toLowerCase()];
+  const storeKey = product.store.toLowerCase() as keyof typeof CONSTANTS.STORE_LOGOS;
+  const logoUrl = CONSTANTS.STORE_LOGOS[storeKey];
 
   const handleAddToList = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await addItem({
         custom_name: product.name,
-        price: product.price,
-        store: product.store,
+        estimated_cost: product.price,
+        source: product.store,
         quantity: 1,
         unit: 'un',
-        checked: false,
-        category: 'Otros'
+        is_purchased: false,
+        category: 'otros'
       });
     } catch (error) {
       console.error('Error adding to list:', error);
@@ -391,12 +392,12 @@ function ProductCard({
     try {
       await shopping.addItem({
         custom_name: product.name,
-        price: product.price,
-        store: product.store,
+        estimated_cost: product.price,
+        source: product.store,
         quantity: 1,
         unit: 'un',
-        checked: false,
-        category: 'Otros'
+        is_purchased: false,
+        category: 'otros'
       });
     } catch (error) {
       console.error('Error adding to list:', error);

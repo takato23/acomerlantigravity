@@ -14,7 +14,7 @@ async function testPantryPrices() {
   
   try {
     // Initialize system
-    const system = HolisticFoodSystem.getInstance();
+    const system = new HolisticFoodSystem();
     const pantryManager = getPantryManager(system);
     const priceService = getIngredientPriceService();
     
@@ -46,7 +46,7 @@ async function testPantryPrices() {
         logger.info(`    Reason: ${suggestion.reason}`, 'test-pantry-prices');
         logger.info(`    Priority: ${suggestion.priority}`, 'test-pantry-prices');
         logger.info(`    Quantity: ${suggestion.estimatedQuantity}`, 'test-pantry-prices');
-        logger.info(`    Estimated Price: $${(suggestion.estimatedPrice || 0).toFixed(2, 'test-pantry-prices')}`);
+        logger.info(`    Estimated Price: $${(suggestion.estimatedPrice || 0).toFixed(2)}`, 'test-pantry-prices');
       });
     } catch (error) {
       logger.info('❌ Error getting shopping suggestions:', 'test-pantry-prices', error);
@@ -58,7 +58,7 @@ async function testPantryPrices() {
       const trend = await pantryManager.getPantryValueTrend(testUserId, 7);
       logger.info('✅ Pantry Value Trend:', 'test-pantry-prices');
       logger.info(`  Trend: ${trend.trend}`, 'test-pantry-prices');
-      logger.info(`  Change: ${trend.percentageChange.toFixed(2, 'test-pantry-prices')}%`);
+      logger.info(`  Change: ${trend.percentageChange.toFixed(2)}%`, 'test-pantry-prices');
       logger.info(`  Last 7 days values:`, 'test-pantry-prices', trend.values.map(v => `$${v.toFixed(2)}`).join(', '));
     } catch (error) {
       logger.info('❌ Error getting pantry value trend:', 'test-pantry-prices', error);
@@ -70,12 +70,12 @@ async function testPantryPrices() {
       // Test with some common ingredient categories
       const testIngredientId = 'test-ingredient-123';
       const price = await priceService.getIngredientPrice(testIngredientId);
-      logger.info(`✅ Single ingredient price: $${price.toFixed(2, 'test-pantry-prices')}`);
+      logger.info(`✅ Single ingredient price: $${price.toFixed(2)}`, 'test-pantry-prices');
       
       // Test batch pricing
       const testIds = ['id1', 'id2', 'id3'];
       const batchPrices = await priceService.getBatchPrices(testIds);
-      logger.info('✅ Batch prices retrieved:', 'test-pantry-prices', batchPrices.size, 'items');
+      logger.info(`✅ Batch prices retrieved: ${batchPrices.size} items`, 'test-pantry-prices');
     } catch (error) {
       logger.info('❌ Error testing price service:', 'test-pantry-prices', error);
     }

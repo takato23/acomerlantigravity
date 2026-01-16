@@ -3,12 +3,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logger } from '@/services/logger';
-import { 
-  Apple, 
-  Cookie, 
-  Wheat, 
-  Fish, 
-  Leaf, 
+import {
+  Apple,
+  Cookie,
+  Wheat,
+  Fish,
+  Leaf,
   AlertCircle,
   X,
   Check,
@@ -21,11 +21,12 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { 
-  UserPreferences, 
-  DietaryRestriction, 
+import { IOS26LiquidCard } from '@/components/ios26';
+import type {
+  UserPreferences,
+  DietaryRestriction,
   Allergy,
-  HouseholdMember 
+  HouseholdMember
 } from '@/types/profile';
 
 interface DietaryPreferencesProps {
@@ -41,18 +42,18 @@ const DIETARY_OPTIONS: Array<{
   icon: React.ComponentType<{ className?: string }>;
   description: string;
 }> = [
-  { value: 'vegetarian', label: 'Vegetariano', icon: Leaf, description: 'Sin carne ni pescado' },
-  { value: 'vegan', label: 'Vegano', icon: Leaf, description: 'Sin productos animales' },
-  { value: 'gluten_free', label: 'Sin gluten', icon: Wheat, description: 'Apto para celíacos' },
-  { value: 'dairy_free', label: 'Sin lácteos', icon: Cookie, description: 'Sin leche ni derivados' },
-  { value: 'pescatarian', label: 'Pescetariano', icon: Fish, description: 'Vegetariano + pescado' },
-  { value: 'keto', label: 'Keto', icon: Apple, description: 'Baja en carbohidratos' },
-  { value: 'paleo', label: 'Paleo', icon: Apple, description: 'Dieta paleolítica' },
-  { value: 'low_carb', label: 'Bajo en carbohidratos', icon: Wheat, description: 'Reducido en carbohidratos' },
-  { value: 'low_sodium', label: 'Bajo en sodio', icon: Check, description: 'Reducido en sal' },
-  { value: 'halal', label: 'Halal', icon: Check, description: 'Certificado halal' },
-  { value: 'kosher', label: 'Kosher', icon: Check, description: 'Certificado kosher' },
-];
+    { value: 'vegetarian', label: 'Vegetariano', icon: Leaf, description: 'Sin carne ni pescado' },
+    { value: 'vegan', label: 'Vegano', icon: Leaf, description: 'Sin productos animales' },
+    { value: 'gluten_free', label: 'Sin gluten', icon: Wheat, description: 'Apto para celíacos' },
+    { value: 'dairy_free', label: 'Sin lácteos', icon: Cookie, description: 'Sin leche ni derivados' },
+    { value: 'pescatarian', label: 'Pescetariano', icon: Fish, description: 'Vegetariano + pescado' },
+    { value: 'keto', label: 'Keto', icon: Apple, description: 'Baja en carbohidratos' },
+    { value: 'paleo', label: 'Paleo', icon: Apple, description: 'Dieta paleolítica' },
+    { value: 'low_carb', label: 'Bajo en carbohidratos', icon: Wheat, description: 'Reducido en carbohidratos' },
+    { value: 'low_sodium', label: 'Bajo en sodio', icon: Check, description: 'Reducido en sal' },
+    { value: 'halal', label: 'Halal', icon: Check, description: 'Certificado halal' },
+    { value: 'kosher', label: 'Kosher', icon: Check, description: 'Certificado kosher' },
+  ];
 
 // Allergy options
 const ALLERGY_OPTIONS: Array<{
@@ -60,16 +61,16 @@ const ALLERGY_OPTIONS: Array<{
   label: string;
   severity?: 'low' | 'medium' | 'high';
 }> = [
-  { value: 'peanuts', label: 'Cacahuetes', severity: 'high' },
-  { value: 'tree_nuts', label: 'Frutos secos', severity: 'high' },
-  { value: 'milk', label: 'Leche', severity: 'medium' },
-  { value: 'eggs', label: 'Huevos', severity: 'medium' },
-  { value: 'wheat', label: 'Trigo', severity: 'medium' },
-  { value: 'soy', label: 'Soja', severity: 'low' },
-  { value: 'fish', label: 'Pescado', severity: 'high' },
-  { value: 'shellfish', label: 'Mariscos', severity: 'high' },
-  { value: 'sesame', label: 'Sésamo', severity: 'low' },
-];
+    { value: 'peanuts', label: 'Cacahuetes', severity: 'high' },
+    { value: 'tree_nuts', label: 'Frutos secos', severity: 'high' },
+    { value: 'milk', label: 'Leche', severity: 'medium' },
+    { value: 'eggs', label: 'Huevos', severity: 'medium' },
+    { value: 'wheat', label: 'Trigo', severity: 'medium' },
+    { value: 'soy', label: 'Soja', severity: 'low' },
+    { value: 'fish', label: 'Pescado', severity: 'high' },
+    { value: 'shellfish', label: 'Mariscos', severity: 'high' },
+    { value: 'sesame', label: 'Sésamo', severity: 'low' },
+  ];
 
 // Cuisine preferences
 const CUISINE_OPTIONS = [
@@ -88,6 +89,8 @@ const DietaryPreferencesSkeleton = () => (
   </div>
 );
 
+const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
+
 export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
   preferences,
   householdMembers,
@@ -102,12 +105,12 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
   const completionPercentage = useMemo(() => {
     let completed = 0;
     const total = 4;
-    
+
     if (preferences.dietaryRestrictions?.length > 0) completed++;
     if (preferences.allergies?.length > 0) completed++;
     if (preferences.cuisinePreferences?.length > 0) completed++;
     if (preferences.nutritionGoals?.length > 0) completed++;
-    
+
     return Math.round((completed / total) * 100);
   }, [preferences]);
 
@@ -115,12 +118,12 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
   const householdDietaryNeeds = useMemo(() => {
     const allRestrictions = new Set(preferences.dietaryRestrictions || []);
     const allAllergies = new Set(preferences.allergies || []);
-    
+
     householdMembers.forEach(member => {
       member.dietaryRestrictions?.forEach(r => allRestrictions.add(r));
       member.allergies?.forEach(a => allAllergies.add(a));
     });
-    
+
     return {
       restrictions: Array.from(allRestrictions),
       allergies: Array.from(allAllergies)
@@ -136,11 +139,11 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
       const updated = current.includes(restriction)
         ? current.filter(r => r !== restriction)
         : [...current, restriction];
-      
+
       await onUpdate({ dietaryRestrictions: updated });
     } catch (err) {
       setError('Error al actualizar restricciones dietéticas');
-      logger.error(err, 'DietaryPreferences');
+      logger.error(getErrorMessage(err), 'DietaryPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -155,11 +158,11 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
       const updated = current.includes(allergy)
         ? current.filter(a => a !== allergy)
         : [...current, allergy];
-      
+
       await onUpdate({ allergies: updated });
     } catch (err) {
       setError('Error al actualizar alergias');
-      logger.error(err, 'DietaryPreferences');
+      logger.error(getErrorMessage(err), 'DietaryPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -174,11 +177,11 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
       const updated = current.includes(cuisine)
         ? current.filter(c => c !== cuisine)
         : [...current, cuisine];
-      
+
       await onUpdate({ cuisinePreferences: updated });
     } catch (err) {
       setError('Error al actualizar preferencias de cocina');
-      logger.error(err, 'DietaryPreferences');
+      logger.error(getErrorMessage(err), 'DietaryPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -193,11 +196,11 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
       const updated = current.includes(goal)
         ? current.filter(g => g !== goal)
         : [...current, goal];
-      
+
       await onUpdate({ nutritionGoals: updated });
     } catch (err) {
       setError('Error al actualizar objetivos nutricionales');
-      logger.error(err, 'DietaryPreferences');
+      logger.error(getErrorMessage(err), 'DietaryPreferences', err);
     } finally {
       setIsUpdating(false);
     }
@@ -226,7 +229,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
       </AnimatePresence>
 
       {/* Progress Overview */}
-      <iOS26LiquidCard variant="medium" glow shimmer>
+      <IOS26LiquidCard variant="medium" glow shimmer>
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-semibold">Preferencias Dietéticas</h3>
@@ -234,7 +237,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
               Personaliza tu experiencia culinaria según tus necesidades
             </p>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Completado</span>
@@ -253,21 +256,21 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
             </Alert>
           )}
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Dietary Restrictions */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <h4 className="font-medium flex items-center gap-2">
             <Leaf className="w-5 h-5 text-green-600" />
             Restricciones Dietéticas
           </h4>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {DIETARY_OPTIONS.map(({ value, label, icon: Icon, description }) => {
               const isActive = preferences.dietaryRestrictions?.includes(value);
               const isHouseholdNeed = householdDietaryNeeds.restrictions.includes(value);
-              
+
               return (
                 <motion.div
                   key={value}
@@ -311,21 +314,21 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
             })}
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Allergies */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <h4 className="font-medium flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-600" />
             Alergias
           </h4>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {ALLERGY_OPTIONS.map(({ value, label, severity }) => {
               const isActive = preferences.allergies?.includes(value);
               const isHouseholdNeed = householdDietaryNeeds.allergies.includes(value);
-              
+
               return (
                 <motion.div
                   key={value}
@@ -349,8 +352,8 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
                         {label}
                       </span>
                       {(isActive || isHouseholdNeed) && (
-                        <Badge 
-                          variant={isActive ? "destructive" : "outline"} 
+                        <Badge
+                          variant={isActive ? "destructive" : "outline"}
                           className="text-xs"
                         >
                           {isActive ? '✓' : 'Familiar'}
@@ -363,21 +366,21 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
             })}
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Cuisine Preferences */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <h4 className="font-medium flex items-center gap-2">
             <Cookie className="w-5 h-5 text-orange-600" />
             Cocinas Favoritas
           </h4>
-          
+
           <div className="flex flex-wrap gap-2">
             <AnimatePresence mode="popLayout">
               {(showAllCuisines ? CUISINE_OPTIONS : CUISINE_OPTIONS.slice(0, 8)).map((cuisine) => {
                 const isActive = preferences.cuisinePreferences?.includes(cuisine);
-                
+
                 return (
                   <motion.div
                     key={cuisine}
@@ -404,7 +407,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
                 );
               })}
             </AnimatePresence>
-            
+
             {!showAllCuisines && CUISINE_OPTIONS.length > 8 && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -423,16 +426,16 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
             )}
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Nutrition Goals */}
-      <iOS26LiquidCard variant="subtle" morph>
+      <IOS26LiquidCard variant="subtle" morph>
         <div className="space-y-4">
           <h4 className="font-medium flex items-center gap-2">
             <Apple className="w-5 h-5 text-slate-600" />
             Objetivos Nutricionales
           </h4>
-          
+
           <div className="space-y-3">
             {[
               { id: 'high_protein', label: 'Alto en proteína', description: 'Para desarrollo muscular' },
@@ -442,9 +445,9 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
               { id: 'heart_healthy', label: 'Saludable para el corazón', description: 'Bajo en grasas saturadas' },
             ].map(({ id, label, description }) => {
               const isActive = preferences.nutritionGoals?.includes(id);
-              
+
               return (
-                <motion.div 
+                <motion.div
                   key={id}
                   whileHover={{ x: 4 }}
                   className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors"
@@ -468,7 +471,7 @@ export const DietaryPreferences: React.FC<DietaryPreferencesProps> = ({
             })}
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Save Indicator */}
       <AnimatePresence>

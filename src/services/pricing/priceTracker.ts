@@ -12,6 +12,7 @@ export interface Store {
   name: string;
   active: boolean;
   location?: string;
+  address?: string;
   chainId?: string;
 }
 

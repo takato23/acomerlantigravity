@@ -229,7 +229,11 @@ export interface SectionProps {
   id?: string;
   className?: string;
   children?: React.ReactNode;
-  background?: 'transparent' | 'glass' | 'gradient';
+  background?: 'transparent' | 'glass' | 'gradient' | {
+    gradient: string;
+    overlay?: string;
+    pattern?: string;
+  };
   padding?: 'sm' | 'md' | 'lg' | 'xl';
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '7xl';
 }

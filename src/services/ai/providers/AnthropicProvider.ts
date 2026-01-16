@@ -10,6 +10,8 @@ import {
   AIImageRequest,
   AITextResponse,
   AIStreamResponse,
+  AIImageGenerationRequest,
+  AIImageGenerationResponse,
   AIServiceError,
 } from '../types';
 
@@ -187,6 +189,17 @@ export class AnthropicProvider extends AIProviderInterface {
     }
   }
 
+  async generateImage(
+    _request: AIImageGenerationRequest,
+    _config: AIServiceConfig
+  ): Promise<AIImageGenerationResponse> {
+    throw new AIServiceError(
+      'Image generation is not supported for Anthropic',
+      'UNSUPPORTED_OPERATION',
+      'anthropic'
+    );
+  }
+
   async analyzeImage(
     request: AIImageRequest,
     config: AIServiceConfig
@@ -209,14 +222,14 @@ export class AnthropicProvider extends AIProviderInterface {
           base64 = Buffer.from(buffer).toString('base64');
           mimeType = blob.type;
         }
-      } else if (request.image instanceof Buffer) {
+      } else if (Buffer.isBuffer(request.image)) {
         base64 = request.image.toString('base64');
         mimeType = request.mimeType || 'image/jpeg';
       } else {
         // Blob
-        const buffer = await request.image.arrayBuffer();
+        const buffer = await (request.image as Blob).arrayBuffer();
         base64 = Buffer.from(buffer).toString('base64');
-        mimeType = request.image.type;
+        mimeType = (request.image as Blob).type;
       }
 
       const messages = [{

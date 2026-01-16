@@ -89,6 +89,7 @@ export class IngredientParser {
     const suggestions = this.generateSuggestions(cleanedName);
 
     return {
+      name: cleanedName,
       raw_text: input,
       extracted_name: cleanedName,
       normalized_name: normalizedName,
@@ -109,7 +110,7 @@ export class IngredientParser {
     
     return items
       .map(item => this.parseIngredient(item.trim()))
-      .filter(parsed => parsed.extracted_name.length > 0);
+      .filter(parsed => parsed.name.length > 0);
   }
 
   /**

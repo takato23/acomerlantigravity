@@ -10,9 +10,9 @@ import { getProfileManager, type UserProfile, type DietaryRestriction } from '@/
 import { getHolisticSystem } from '@/services/core/HolisticSystem';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { AutoSaveIndicator, AutoSaveHeader } from '@/components/profile/AutoSaveIndicator';
-import { iOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
-import { iOS26LiquidInput } from '@/components/ios26/iOS26LiquidInput';
+import { IOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26LiquidInput } from '@/components/ios26/iOS26LiquidInput';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthProvider';
 
@@ -83,19 +83,19 @@ const ProfileSkeleton = ({ hasError, onRetry }: { hasError?: boolean; onRetry?: 
       >
         <p className="text-gray-400 mb-4">Cargando con recuperación automática...</p>
         {onRetry && (
-          <iOS26LiquidButton
+          <IOS26LiquidButton
             variant="secondary"
             size="sm"
             onClick={onRetry}
           >
             Intentar Ahora
-          </iOS26LiquidButton>
+          </IOS26LiquidButton>
         )}
       </motion.div>
     ) : null}
     
     {[...Array(6)].map((_, i) => (
-      <iOS26LiquidCard key={i} variant="medium" className="animate-pulse">
+      <IOS26LiquidCard key={i} variant="medium" className="animate-pulse">
         <div className="p-6 space-y-4">
           <div className="h-6 bg-white/10 rounded-lg w-1/3" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,7 +103,7 @@ const ProfileSkeleton = ({ hasError, onRetry }: { hasError?: boolean; onRetry?: 
             <div className="h-12 bg-white/5 rounded-xl" />
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
     ))}
   </div>
 );
@@ -125,7 +125,7 @@ const ProfileErrorRecovery = ({
     animate={{ opacity: 1, y: 0 }}
     className="max-w-md mx-auto mb-6"
   >
-    <iOS26LiquidCard 
+    <IOS26LiquidCard 
       variant="medium" 
       className="bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/30"
     >
@@ -148,7 +148,7 @@ const ProfileErrorRecovery = ({
 
         <div className="space-y-2">
           {recoveryActions.map((action, index) => (
-            <iOS26LiquidButton
+            <IOS26LiquidButton
               key={index}
               variant={action.primary ? "primary" : action.variant || "secondary"}
               onClick={action.action || onRetry}
@@ -156,20 +156,20 @@ const ProfileErrorRecovery = ({
               size="sm"
             >
               {action.label}
-            </iOS26LiquidButton>
+            </IOS26LiquidButton>
           ))}
           
-          <iOS26LiquidButton
+          <IOS26LiquidButton
             variant="ghost"
             onClick={onClear}
             className="w-full text-white/70 hover:text-white"
             size="sm"
           >
             Continuar de Todos Modos
-          </iOS26LiquidButton>
+          </IOS26LiquidButton>
         </div>
       </div>
-    </iOS26LiquidCard>
+    </IOS26LiquidCard>
   </motion.div>
 );
 
@@ -184,7 +184,7 @@ export function ProfileViewEnhanced() {
     allergies: [],
     preferredCuisines: [],
     dislikedIngredients: [],
-    cookingSkillLevel: 3,
+    cookingSkillLevel: 'intermediate',
     nutritionalGoals: {},
     tasteProfile: {
       spicyTolerance: 'medium',
@@ -204,6 +204,9 @@ export function ProfileViewEnhanced() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [recoveryData, setRecoveryData] = useState<Partial<UserProfile> | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const customAllergies = (profile.allergies ?? []).filter(
+    (allergy) => !COMMON_ALLERGIES.includes(allergy)
+  );
   
   const profileManager = getProfileManager(getHolisticSystem());
 
@@ -590,7 +593,7 @@ export function ProfileViewEnhanced() {
                   size="md"
                 />
                 
-                <iOS26LiquidButton
+                <IOS26LiquidButton
                   variant="secondary"
                   size="lg"
                   onClick={manualSave}
@@ -600,7 +603,7 @@ export function ProfileViewEnhanced() {
                 >
                   <Save className="w-5 h-5" />
                   {saveRecovery.isRecovering ? 'Recuperando...' : 'Guardar Ahora'}
-                </iOS26LiquidButton>
+                </IOS26LiquidButton>
               </div>
             </div>
           </motion.div>
@@ -615,7 +618,7 @@ export function ProfileViewEnhanced() {
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               className="mb-6"
             >
-              <iOS26LiquidCard variant="medium" className="border-2 border-orange-500/30 bg-orange-500/5">
+              <IOS26LiquidCard variant="medium" className="border-2 border-orange-500/30 bg-orange-500/5">
                 <div className="p-4 space-y-4">
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-orange-500/20 rounded-lg">
@@ -633,23 +636,23 @@ export function ProfileViewEnhanced() {
                   </div>
                   
                   <div className="flex gap-3">
-                    <iOS26LiquidButton
+                    <IOS26LiquidButton
                       variant="primary"
                       onClick={acceptRecovery}
                       className="bg-gradient-to-r from-orange-500 to-amber-500"
                     >
                       Recuperar Datos
-                    </iOS26LiquidButton>
+                    </IOS26LiquidButton>
                     
-                    <iOS26LiquidButton
+                    <IOS26LiquidButton
                       variant="ghost"
                       onClick={discardRecovery}
                     >
                       Descartar
-                    </iOS26LiquidButton>
+                    </IOS26LiquidButton>
                   </div>
                 </div>
-              </iOS26LiquidCard>
+              </IOS26LiquidCard>
             </motion.div>
           )}
         </AnimatePresence>
@@ -663,7 +666,7 @@ export function ProfileViewEnhanced() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <iOS26LiquidCard variant="medium" shimmer>
+            <IOS26LiquidCard variant="medium" shimmer>
               <div className="p-4 sm:p-6 space-y-6">
                 <h3 className="text-lg font-medium flex items-center gap-2 text-white">
                   <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
@@ -675,7 +678,7 @@ export function ProfileViewEnhanced() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <ProfileComponentErrorBoundary context="HouseholdSize">
                     <div className="space-y-2">
-                      <iOS26LiquidInput
+                      <IOS26LiquidInput
                         label="Miembros del hogar"
                         type="number"
                         value={profile.householdSize?.toString() || '1'}
@@ -693,7 +696,7 @@ export function ProfileViewEnhanced() {
                   
                   <ProfileComponentErrorBoundary context="Budget">
                     <div className="space-y-2">
-                      <iOS26LiquidInput
+                      <IOS26LiquidInput
                         label="Presupuesto mensual (ARS)"
                         type="number"
                         value={profile.monthlyBudget?.toString() || '0'}
@@ -710,7 +713,7 @@ export function ProfileViewEnhanced() {
                   </ProfileComponentErrorBoundary>
                 </div>
               </div>
-            </iOS26LiquidCard>
+            </IOS26LiquidCard>
           </motion.div>
         </ProfileSectionErrorBoundary>
         
@@ -721,7 +724,7 @@ export function ProfileViewEnhanced() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <iOS26LiquidCard variant="medium" morph>
+            <IOS26LiquidCard variant="medium" morph>
               <div className="p-4 sm:p-6 space-y-6">
                 <h3 className="text-lg font-medium flex items-center gap-2 text-white">
                   <div className="p-2 bg-gradient-to-r from-pink-500 to-red-500 rounded-lg">
@@ -742,7 +745,7 @@ export function ProfileViewEnhanced() {
                           transition={{ duration: 0.3, delay: index * 0.05 }}
                         >
                           <ProfileComponentErrorBoundary context={`DietaryRestriction-${value}`}>
-                            <iOS26LiquidButton
+                            <IOS26LiquidButton
                               variant={isSelected ? "primary" : "secondary"}
                               onClick={() => toggleDietaryRestriction(value)}
                               className={cn(
@@ -758,7 +761,7 @@ export function ProfileViewEnhanced() {
                                 <span className="text-xl flex-shrink-0">{icon}</span>
                                 <span className="text-sm font-medium text-left">{label}</span>
                               </div>
-                            </iOS26LiquidButton>
+                            </IOS26LiquidButton>
                           </ProfileComponentErrorBoundary>
                         </motion.div>
                       );
@@ -766,7 +769,7 @@ export function ProfileViewEnhanced() {
                   </AnimatePresence>
                 </div>
               </div>
-            </iOS26LiquidCard>
+            </IOS26LiquidCard>
           </motion.div>
         </ProfileSectionErrorBoundary>
         
@@ -780,7 +783,7 @@ export function ProfileViewEnhanced() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <iOS26LiquidCard variant="medium" glow>
+            <IOS26LiquidCard variant="medium" glow>
               <div className="p-4 sm:p-6 space-y-6">
                 <h3 className="text-lg font-medium flex items-center gap-2 text-white">
                   <div className="p-2 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg">
@@ -818,7 +821,7 @@ export function ProfileViewEnhanced() {
                               transition={{ duration: 0.2, delay: index * 0.03 }}
                             >
                               <ProfileComponentErrorBoundary context={`Allergy-${allergy}`}>
-                                <iOS26LiquidButton
+                                <IOS26LiquidButton
                                   variant={isSelected ? "danger" : "ghost"}
                                   size="sm"
                                   onClick={() => {
@@ -839,7 +842,7 @@ export function ProfileViewEnhanced() {
                                   aria-label={`${isSelected ? 'Quitar' : 'Agregar'} alergia: ${allergy}`}
                                 >
                                   {allergy}
-                                </iOS26LiquidButton>
+                                </IOS26LiquidButton>
                               </ProfileComponentErrorBoundary>
                             </motion.div>
                           );
@@ -853,7 +856,7 @@ export function ProfileViewEnhanced() {
                     <div className="space-y-2">
                       <p className="text-sm text-gray-400">Agregar alergia personalizada:</p>
                       <div className="flex gap-2">
-                        <iOS26LiquidInput
+                        <IOS26LiquidInput
                           value={newAllergy}
                           onChange={(e) => setNewAllergy(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && addAllergy()}
@@ -865,21 +868,21 @@ export function ProfileViewEnhanced() {
                           onClear={() => setNewAllergy('')}
                           aria-label="Escribir nueva alergia"
                         />
-                        <iOS26LiquidButton
+                        <IOS26LiquidButton
                           variant="secondary"
                           onClick={addAllergy}
                           disabled={!newAllergy.trim()}
                           aria-label="Agregar nueva alergia"
                         >
                           <Plus className="w-4 h-4" />
-                        </iOS26LiquidButton>
+                        </IOS26LiquidButton>
                       </div>
                     </div>
                   </ProfileComponentErrorBoundary>
                   
                   {/* Lista de alergias personalizadas */}
                   <AnimatePresence>
-                    {profile.allergies?.filter(a => !COMMON_ALLERGIES.includes(a)).length > 0 && (
+                    {customAllergies.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -888,9 +891,7 @@ export function ProfileViewEnhanced() {
                       >
                         <p className="text-sm text-gray-400">Alergias personalizadas:</p>
                         <div className="flex flex-wrap gap-2">
-                          {profile.allergies
-                            .filter(a => !COMMON_ALLERGIES.includes(a))
-                            .map(allergy => (
+                          {customAllergies.map((allergy) => (
                               <motion.div
                                 key={allergy}
                                 initial={{ opacity: 0, scale: 0.8 }}
@@ -900,7 +901,7 @@ export function ProfileViewEnhanced() {
                               >
                                 <span>{allergy}</span>
                                 <ProfileComponentErrorBoundary context={`RemoveAllergy-${allergy}`}>
-                                  <iOS26LiquidButton
+                                  <IOS26LiquidButton
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => removeAllergy(allergy)}
@@ -908,7 +909,7 @@ export function ProfileViewEnhanced() {
                                     aria-label={`Quitar alergia: ${allergy}`}
                                   >
                                     <X className="w-3 h-3" />
-                                  </iOS26LiquidButton>
+                                  </IOS26LiquidButton>
                                 </ProfileComponentErrorBoundary>
                               </motion.div>
                             ))}
@@ -918,7 +919,7 @@ export function ProfileViewEnhanced() {
                   </AnimatePresence>
                 </div>
               </div>
-            </iOS26LiquidCard>
+            </IOS26LiquidCard>
           </motion.div>
         </ProfileSectionErrorBoundary>
         

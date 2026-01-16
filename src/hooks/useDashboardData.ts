@@ -91,7 +91,7 @@ interface DashboardError {
 }
 
 export function useDashboardData() {
-  const { user } = useUser();
+  const { profile } = useUser();
   const [stats, setStats] = useState<DashboardStats>({
     recipesCount: 0,
     recipesThisWeek: 0,
@@ -117,16 +117,17 @@ export function useDashboardData() {
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    if (!user) {
+    if (!profile) {
       setIsLoading(false);
       return;
     }
 
     fetchDashboardData();
-  }, [user]);
+  }, [profile]);
 
   const fetchDashboardData = useCallback(async () => {
-    if (!user) return;
+    if (!profile) return;
+    const userId = profile.id;
 
     try {
       setIsLoading(true);
@@ -144,7 +145,7 @@ export function useDashboardData() {
         supabase
           .from('recipes')
           .select('id', { count: 'exact' })
-          .eq('user_id', user.id),
+          .eq('user_id', userId),
 
         // Recent recipes (last 5 with full data)
         supabase
@@ -154,7 +155,7 @@ export function useDashboardData() {
             total_time, servings, created_at, is_public,
             cuisine_types, meal_types
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(5),
 
@@ -162,14 +163,14 @@ export function useDashboardData() {
         supabase
           .from('user_favorite_recipes')
           .select('recipe_id', { count: 'exact' })
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
       ]);
 
       // Recipes created this week
       const recipesThisWeekResult = await supabase
         .from('recipes')
         .select('id', { count: 'exact' })
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .gte('created_at', weekStart)
         .lte('created_at', weekEnd);
 
@@ -179,7 +180,7 @@ export function useDashboardData() {
         supabase
           .from('meal_plans')
           .select('id', { count: 'exact' })
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .gte('date', weekStart)
           .lte('date', weekEnd),
 
@@ -194,7 +195,7 @@ export function useDashboardData() {
               total_time, servings, cuisine_types
             )
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('date', todayString)
           .order('scheduled_time'),
 
@@ -206,7 +207,7 @@ export function useDashboardData() {
             scheduled_time, notes,
             recipe:recipes(name, image_url, total_time)
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .gt('date', todayString)
           .lte('date', sevenDaysFromNow)
           .order('date')
@@ -221,7 +222,7 @@ export function useDashboardData() {
             scheduled_time, notes,
             recipe:recipes(name, image_url, difficulty, total_time)
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .gte('date', weekStart)
           .lte('date', weekEnd)
           .order('date')
@@ -237,7 +238,7 @@ export function useDashboardData() {
             id, name, quantity, unit, expiration_date,
             category, location, purchase_date, cost
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .gt('quantity', 0),
 
         // Items expiring in next 7 days
@@ -247,7 +248,7 @@ export function useDashboardData() {
             id, name, quantity, unit, expiration_date,
             category, location
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .gt('quantity', 0)
           .not('expiration_date', 'is', null)
           .lte('expiration_date', sevenDaysFromNow)
@@ -257,7 +258,7 @@ export function useDashboardData() {
         supabase
           .from('pantry_items')
           .select('id, name, quantity, unit, category')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .lte('quantity', 2)
           .gt('quantity', 0)
       ]);
@@ -266,14 +267,14 @@ export function useDashboardData() {
       const shoppingListsResult = await supabase
         .from('shopping_lists')
         .select('id, name, is_active')
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       let shoppingItemsResult = { data: [], count: 0 };
       let totalEstimatedCost = 0;
       let shoppingCompletedToday = 0;
 
       if (shoppingListsResult.data && shoppingListsResult.data.length > 0) {
-        const listIds = shoppingListsResult.data.map(list => list.id);
+        const listIds = shoppingListsResult.data.map((list: { id: string }) => list.id);
         
         // Unpurchased items
         shoppingItemsResult = await supabase
@@ -294,8 +295,10 @@ export function useDashboardData() {
           .not('price', 'is', null);
 
         if (costResult.data) {
-          totalEstimatedCost = costResult.data.reduce((sum, item) => 
-            sum + (item.price * item.quantity), 0
+          totalEstimatedCost = costResult.data.reduce(
+            (sum: number, item: { price: number; quantity: number }) =>
+              sum + item.price * item.quantity,
+            0
           );
         }
 
@@ -315,7 +318,7 @@ export function useDashboardData() {
 
       // Add recent recipes
       if (recentRecipesResult.data) {
-        recentRecipesResult.data.slice(0, 2).forEach(recipe => {
+        recentRecipesResult.data.slice(0, 2).forEach((recipe: { name: string; created_at: string }) => {
           recentActivity.push({
             action: 'Created recipe',
             item: recipe.name,
@@ -360,7 +363,7 @@ export function useDashboardData() {
       }
 
       // Calculate completed meals today (simplified logic)
-      const completedMealsToday = todaysMealsResult.data?.filter(meal => {
+      const completedMealsToday = todaysMealsResult.data?.filter((meal: { scheduled_time?: string }) => {
         if (!meal.scheduled_time) return false;
         const mealTime = new Date(`${todayString}T${meal.scheduled_time}`);
         return mealTime < today;
@@ -392,10 +395,14 @@ export function useDashboardData() {
 
     } catch (err: unknown) {
       logger.error('Error fetching dashboard data:', 'useDashboardData', err);
-      
+      const errObj =
+        typeof err === 'object' && err !== null
+          ? (err as { message?: string; code?: string })
+          : {};
+
       const dashboardError: DashboardError = {
-        message: err.message || 'Failed to load dashboard data',
-        code: err.code,
+        message: errObj.message || 'Failed to load dashboard data',
+        code: errObj.code,
         retry: () => {
           if (retryCount < 3) {
             setRetryCount(prev => prev + 1);
@@ -408,7 +415,7 @@ export function useDashboardData() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, retryCount]);
+  }, [profile, retryCount]);
 
   const refreshData = useCallback(() => {
     setRetryCount(0);
@@ -417,25 +424,26 @@ export function useDashboardData() {
 
   // Real-time subscription for live updates
   useEffect(() => {
-    if (!user) return;
+    if (!profile) return;
+    const userId = profile.id;
 
     const channels = [
       supabase
         .channel('dashboard-recipes')
         .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'recipes', filter: `user_id=eq.${user.id}` },
+          { event: '*', schema: 'public', table: 'recipes', filter: `user_id=eq.${userId}` },
           () => refreshData()
         ),
       supabase
         .channel('dashboard-meal-plans')
         .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'meal_plans', filter: `user_id=eq.${user.id}` },
+          { event: '*', schema: 'public', table: 'meal_plans', filter: `user_id=eq.${userId}` },
           () => refreshData()
         ),
       supabase
         .channel('dashboard-pantry')
         .on('postgres_changes',
-          { event: '*', schema: 'public', table: 'pantry_items', filter: `user_id=eq.${user.id}` },
+          { event: '*', schema: 'public', table: 'pantry_items', filter: `user_id=eq.${userId}` },
           () => refreshData()
         )
     ];
@@ -445,7 +453,7 @@ export function useDashboardData() {
     return () => {
       channels.forEach(channel => supabase.removeChannel(channel));
     };
-  }, [user, refreshData]);
+  }, [profile, refreshData]);
 
   return {
     stats,

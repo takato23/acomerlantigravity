@@ -159,7 +159,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     lastSync: undefined
   },
 
-  addShoppingList: (list) => set((state) => {
+  addShoppingList: (list) => set((state: ShoppingSlice) => {
     const newList: ShoppingList = {
       ...list,
       id: Date.now().toString(),
@@ -175,14 +175,14 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  updateShoppingList: (id, updates) => set((state) => {
+  updateShoppingList: (id, updates) => set((state: ShoppingSlice) => {
     const index = state.shopping.lists.findIndex(list => list.id === id);
     if (index !== -1) {
       Object.assign(state.shopping.lists[index], updates, { updatedAt: new Date() });
     }
   }),
 
-  deleteShoppingList: (id) => set((state) => {
+  deleteShoppingList: (id) => set((state: ShoppingSlice) => {
     state.shopping.lists = state.shopping.lists.filter(list => list.id !== id);
     state.shopping.optimizations = state.shopping.optimizations.filter(opt => opt.listId !== id);
 
@@ -192,11 +192,11 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  setActiveList: (id) => set((state) => {
+  setActiveList: (id) => set((state: ShoppingSlice) => {
     state.shopping.activeListId = id;
   }),
 
-  duplicateShoppingList: (id, newName) => set((state) => {
+  duplicateShoppingList: (id, newName) => set((state: ShoppingSlice) => {
     const original = state.shopping.lists.find(list => list.id === id);
     if (original) {
       const duplicate: ShoppingList = {
@@ -221,7 +221,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  addShoppingItem: (listId, item) => set((state) => {
+  addShoppingItem: (listId, item) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       const newItem: ShoppingItem = {
@@ -247,7 +247,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  updateShoppingItem: (listId, itemId, updates) => set((state) => {
+  updateShoppingItem: (listId, itemId, updates) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       const item = list.items.find(item => item.id === itemId);
@@ -258,7 +258,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  deleteShoppingItem: (listId, itemId) => set((state) => {
+  deleteShoppingItem: (listId, itemId) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       list.items = list.items.filter(item => item.id !== itemId);
@@ -266,7 +266,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  toggleShoppingItem: (listId, itemId) => set((state) => {
+  toggleShoppingItem: (listId, itemId) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       const item = list.items.find(item => item.id === itemId);
@@ -286,7 +286,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  bulkToggleItems: (listId, itemIds, completed) => set((state) => {
+  bulkToggleItems: (listId, itemIds, completed) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       list.items.forEach(item => {
@@ -299,7 +299,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  optimizeShoppingList: (listId, type) => set((state) => {
+  optimizeShoppingList: (listId, type) => set((state: ShoppingSlice) => {
     // This would integrate with the optimization service
     // For now, create a mock optimization
     const optimization: ShoppingOptimization = {
@@ -328,7 +328,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     state.shopping.optimizations.push(optimization);
   }),
 
-  applyOptimization: (optimizationId, suggestionIndex) => set((state) => {
+  applyOptimization: (optimizationId, suggestionIndex) => set((state: ShoppingSlice) => {
     const optimization = state.shopping.optimizations.find(opt => opt.id === optimizationId);
     if (optimization && optimization.suggestions[suggestionIndex]) {
       optimization.suggestions[suggestionIndex].applied = true;
@@ -338,7 +338,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  addItemsFromVoice: (listId, items) => set((state) => {
+  addItemsFromVoice: (listId, items) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       items.forEach(voiceItem => {
@@ -361,7 +361,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  addItemsFromScan: (listId, scannedData) => set((state) => {
+  addItemsFromScan: (listId, scannedData) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       if (scannedData.type === 'receipt') {
@@ -403,7 +403,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  addItemsFromMealPlan: (listId, ingredients) => set((state) => {
+  addItemsFromMealPlan: (listId, ingredients) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       ingredients.forEach(ingredient => {
@@ -426,7 +426,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  saveAsTemplate: (listId, name) => set((state) => {
+  saveAsTemplate: (listId, name) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       const template = {
@@ -447,7 +447,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  applyTemplate: (templateId, listId) => set((state) => {
+  applyTemplate: (templateId, listId) => set((state: ShoppingSlice) => {
     const template = state.shopping.templates.find(t => t.id === templateId);
     const list = state.shopping.lists.find(list => list.id === listId);
 
@@ -468,11 +468,11 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  deleteTemplate: (templateId) => set((state) => {
+  deleteTemplate: (templateId) => set((state: ShoppingSlice) => {
     state.shopping.templates = state.shopping.templates.filter(t => t.id !== templateId);
   }),
 
-  shareList: (listId, userIds) => set((state) => {
+  shareList: (listId, userIds) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       list.shared = true;
@@ -481,7 +481,7 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  unshareList: (listId) => set((state) => {
+  unshareList: (listId) => set((state: ShoppingSlice) => {
     const list = state.shopping.lists.find(list => list.id === listId);
     if (list) {
       list.shared = false;
@@ -490,11 +490,11 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  updateShoppingSettings: (settings) => set((state) => {
+  updateShoppingSettings: (settings) => set((state: ShoppingSlice) => {
     Object.assign(state.shopping.settings, settings);
   }),
 
-  addToRecentItems: (itemName) => set((state) => {
+  addToRecentItems: (itemName) => set((state: ShoppingSlice) => {
     const trimmedName = itemName.trim().toLowerCase();
 
     // Remove if already exists and add to front
@@ -507,11 +507,11 @@ export const createShoppingSlice: StateCreator<any, [], [], ShoppingSlice> = (se
     }
   }),
 
-  clearRecentItems: () => set((state) => {
+  clearRecentItems: () => set((state: ShoppingSlice) => {
     state.shopping.recentItems = [];
   }),
 
-  setShoppingLoading: (loading) => set((state) => {
+  setShoppingLoading: (loading) => set((state: ShoppingSlice) => {
     state.shopping.isLoading = loading;
   })
 });

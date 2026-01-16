@@ -610,8 +610,8 @@ export class AnalyticsService implements AnalyticsMethods {
 
         // FID
         new PerformanceObserver((entries) => {
-          const firstEntry = entries.getEntries()[0];
-          if (firstEntry) {
+          const firstEntry = entries.getEntries()[0] as PerformanceEventTiming | undefined;
+          if (firstEntry && typeof firstEntry.processingStart === 'number') {
             this.trackPerformance({ 
               fid: firstEntry.processingStart - firstEntry.startTime 
             });

@@ -340,7 +340,7 @@ export const LandingPage: React.FC = () => {
                   <li className="flex items-center"><Check className="w-5 h-5 text-emerald-600 mr-3" />Soporte prioritario</li>
                   <li className="flex items-center"><Check className="w-5 h-5 text-emerald-600 mr-3" />Integración tiendas</li>
                 </ul>
-                <Button className="w-full mt-6" variant="premium">Ir Premium</Button>
+                <Button className="w-full mt-6" variant="accent">Ir Premium</Button>
               </CardContent>
             </Card>
           </div>

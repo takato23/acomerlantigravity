@@ -7,7 +7,7 @@ import { logger } from '@/services/logger';
 import { cn } from '@/lib/utils';
 import { useVoiceService } from '@/hooks/useVoiceService';
 
-import { Button } from '../Button';
+import { Button } from '../Button/Button';
 
 
 const inputVariants = cva(

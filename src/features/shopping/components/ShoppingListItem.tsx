@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 import type { Database } from '@/lib/supabase/types';
 
-type ShoppingListItem = Database['public']['Tables']['shopping_list_items']['Row'] & {
+type ShoppingListItem = Database['public']['Tables']['shopping_items']['Row'] & {
   ingredient?: {
     name: string;
     category?: string;
@@ -67,13 +67,13 @@ export function ShoppingListItem({ item, onToggle, onUpdate, onDelete }: Shoppin
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <span className={`font-medium ${item.is_checked ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-            {item.ingredient?.name || 'Unknown Item'}
+            {item.ingredient?.name || item.custom_item_name || 'Unknown Item'}
           </span>
-          {item.ingredient?.category && (
+          {(item.ingredient?.category || item.category) && (
             <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-              getCategoryColor(item.ingredient.category)
+              getCategoryColor(item.ingredient?.category || item.category)
             }`}>
-              {item.ingredient.category}
+              {item.ingredient?.category || item.category}
             </span>
           )}
         </div>

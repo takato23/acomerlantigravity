@@ -7,6 +7,8 @@ type ShoppingListInsert = Database['public']['Tables']['shopping_lists']['Insert
 type ShoppingItemInsert = Database['public']['Tables']['shopping_list_items']['Insert'];
 type ShoppingListUpdate = Database['public']['Tables']['shopping_lists']['Update'];
 type ShoppingItemUpdate = Database['public']['Tables']['shopping_list_items']['Update'];
+type ShoppingPreferencesInsert = Record<string, unknown>;
+type ShoppingPreferencesUpdate = Partial<ShoppingPreferencesInsert>;
 
 export const shoppingService = {
   // Shopping Lists
@@ -215,7 +217,7 @@ export const shoppingService = {
     return data;
   },
 
-  async createPreferences(userId: string, prefs?: Partial<Database['public']['Tables']['shopping_preferences']['Insert']>) {
+  async createPreferences(userId: string, prefs?: ShoppingPreferencesInsert) {
     const { data, error } = await supabase
       .from('shopping_preferences')
       .insert({ user_id: userId, ...prefs })
@@ -226,7 +228,7 @@ export const shoppingService = {
     return data;
   },
 
-  async updatePreferences(userId: string, updates: Database['public']['Tables']['shopping_preferences']['Update']) {
+  async updatePreferences(userId: string, updates: ShoppingPreferencesUpdate) {
     const { data, error } = await supabase
       .from('shopping_preferences')
       .update(updates)

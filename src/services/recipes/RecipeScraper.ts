@@ -1,5 +1,6 @@
 import { getGeminiService } from '../ai/GeminiService';
-import type { Recipe } from '../planner/MealPlanner';
+import type { Recipe, RecipeIngredient, RecipeInstruction, RecipeCategory, DifficultyLevel } from '@/types/recipes';
+import type { Ingredient } from '@/types/pantry';
 import { logger } from '@/services/logger';
 
 export interface RecipeSource {
@@ -159,22 +160,21 @@ export class RecipeScraper {
    */
   private async extractRecipeWithAI(url: string): Promise<ScrapedRecipe> {
     // Mock implementation
-    return {
+    return this.buildMockRecipe({
       id: 'scraped-1',
       name: 'Receta Scrapeada',
       description: 'Receta obtenida de ' + url,
-      ingredients: [
-        { name: 'Ingrediente 1', quantity: 1, unit: 'unidad', required: true }
-      ],
+      ingredients: [{ name: 'Ingrediente 1', quantity: 1, unit: 'unidad' }],
       instructions: ['Paso 1', 'Paso 2'],
       prepTime: 15,
       cookTime: 30,
       servings: 4,
       difficulty: 'medium',
       tags: ['scrapeada'],
+      category: 'cena',
       sourceUrl: url,
       sourceName: new URL(url).hostname
-    };
+    });
   }
   
   /**
@@ -208,18 +208,26 @@ export class RecipeScraper {
     
     const substitutions = this.getCommonSubstitutions();
     const updatedIngredients = recipe.ingredients.map(ing => {
+      const ingredientName = ing.ingredient?.name ?? ing.ingredient_id;
       // Verificar si el ingrediente tiene restricciones
       const hasRestriction = allRestrictions.some(
-        r => ing.name.toLowerCase().includes(r.toLowerCase())
+        r => ingredientName.toLowerCase().includes(r.toLowerCase())
       );
       
       if (hasRestriction) {
         // Buscar sustitución
-        const substitute = substitutions[ing.name.toLowerCase()];
+        const substitute = substitutions[ingredientName.toLowerCase()];
         if (substitute) {
           return {
             ...ing,
-            name: substitute,
+            ingredient_id: substitute,
+            ingredient: ing.ingredient
+              ? {
+                  ...ing.ingredient,
+                  name: substitute,
+                  normalized_name: substitute.toLowerCase()
+                }
+              : ing.ingredient,
             notes: `Sustituido por ${substitute}`
           };
         }
@@ -238,19 +246,9 @@ export class RecipeScraper {
    * Simplificar receta para principiantes
    */
   private async simplifyRecipe(recipe: Recipe): Promise<Recipe> {
-    // Simplificar instrucciones complejas
-    const simplifiedInstructions = recipe.instructions.map(instruction => {
-      // Dividir instrucciones muy largas
-      if (instruction.length > 100) {
-        return instruction.match(/.{1,100}[.!?]\s/g) || [instruction];
-      }
-      return instruction;
-    }).flat();
-    
     return {
       ...recipe,
-      instructions: simplifiedInstructions,
-      difficulty: 'easy'
+      difficulty: 'facil'
     };
   }
   
@@ -275,16 +273,16 @@ export class RecipeScraper {
    * Recetas mock para desarrollo
    */
   private getMockRecipes(ingredients: string[]): ScrapedRecipe[] {
-    const baseRecipes: ScrapedRecipe[] = [
-      {
+    const baseRecipes = [
+      this.buildMockRecipe({
         id: 'mock-1',
         name: 'Milanesas a la Napolitana',
         description: 'Clásicas milanesas argentinas con jamón, queso y salsa',
         ingredients: [
-          { name: 'Milanesas', quantity: 4, unit: 'unidad', required: true },
-          { name: 'Jamón', quantity: 200, unit: 'g', required: true },
-          { name: 'Queso', quantity: 200, unit: 'g', required: true },
-          { name: 'Salsa de tomate', quantity: 500, unit: 'ml', required: true }
+          { name: 'Milanesas', quantity: 4, unit: 'unidad' },
+          { name: 'Jamón', quantity: 200, unit: 'g' },
+          { name: 'Queso', quantity: 200, unit: 'g' },
+          { name: 'Salsa de tomate', quantity: 500, unit: 'ml' }
         ],
         instructions: [
           'Freír las milanesas hasta dorar',
@@ -297,26 +295,21 @@ export class RecipeScraper {
         servings: 4,
         difficulty: 'easy',
         tags: ['argentina', 'clásico', 'horno'],
-        nutrition: {
-          calories: 520,
-          protein: 38,
-          carbs: 25,
-          fat: 28
-        },
+        category: 'cena',
         sourceUrl: 'https://ejemplo.com/milanesas',
         sourceName: 'Recetas Argentinas',
         rating: 4.8,
         reviews: 234
-      },
-      {
+      }),
+      this.buildMockRecipe({
         id: 'mock-2',
         name: 'Empanadas de Carne',
         description: 'Empanadas jugosas al horno con el mejor relleno',
         ingredients: [
-          { name: 'Carne picada', quantity: 500, unit: 'g', required: true },
-          { name: 'Cebolla', quantity: 2, unit: 'unidad', required: true },
-          { name: 'Huevo duro', quantity: 2, unit: 'unidad', required: true },
-          { name: 'Tapas de empanada', quantity: 12, unit: 'unidad', required: true }
+          { name: 'Carne picada', quantity: 500, unit: 'g' },
+          { name: 'Cebolla', quantity: 2, unit: 'unidad' },
+          { name: 'Huevo duro', quantity: 2, unit: 'unidad' },
+          { name: 'Tapas de empanada', quantity: 12, unit: 'unidad' }
         ],
         instructions: [
           'Rehogar la cebolla hasta transparentar',
@@ -330,27 +323,22 @@ export class RecipeScraper {
         servings: 12,
         difficulty: 'medium',
         tags: ['argentina', 'horno', 'tradicional'],
-        nutrition: {
-          calories: 280,
-          protein: 15,
-          carbs: 22,
-          fat: 14
-        },
+        category: 'almuerzo',
         sourceUrl: 'https://ejemplo.com/empanadas',
         sourceName: 'Cocina Criolla',
         rating: 4.9,
         reviews: 567
-      },
-      {
+      }),
+      this.buildMockRecipe({
         id: 'mock-3',
         name: 'Locro Criollo',
         description: 'Guiso tradicional perfecto para días fríos',
         ingredients: [
-          { name: 'Maíz blanco', quantity: 300, unit: 'g', required: true },
-          { name: 'Porotos', quantity: 200, unit: 'g', required: true },
-          { name: 'Zapallo', quantity: 300, unit: 'g', required: true },
-          { name: 'Carne de cerdo', quantity: 400, unit: 'g', required: true },
-          { name: 'Chorizo', quantity: 2, unit: 'unidad', required: true }
+          { name: 'Maíz blanco', quantity: 300, unit: 'g' },
+          { name: 'Porotos', quantity: 200, unit: 'g' },
+          { name: 'Zapallo', quantity: 300, unit: 'g' },
+          { name: 'Carne de cerdo', quantity: 400, unit: 'g' },
+          { name: 'Chorizo', quantity: 2, unit: 'unidad' }
         ],
         instructions: [
           'Remojar maíz y porotos la noche anterior',
@@ -364,27 +352,151 @@ export class RecipeScraper {
         servings: 8,
         difficulty: 'medium',
         tags: ['argentina', 'invierno', 'tradicional'],
-        nutrition: {
-          calories: 420,
-          protein: 22,
-          carbs: 48,
-          fat: 16
-        },
+        category: 'cena',
         sourceUrl: 'https://ejemplo.com/locro',
         sourceName: 'Sabores Patrios',
         rating: 4.7,
         reviews: 189
-      }
+      })
     ];
     
     // Filtrar recetas que contengan algún ingrediente disponible
     return baseRecipes.filter(recipe => 
       recipe.ingredients.some(ing => 
         ingredients.some(available => 
-          ing.name.toLowerCase().includes(available.toLowerCase())
+          (ing.ingredient?.name ?? ing.ingredient_id)
+            .toLowerCase()
+            .includes(available.toLowerCase())
         )
       )
     );
+  }
+
+  private buildMockRecipe(data: {
+    id: string;
+    name: string;
+    description: string;
+    ingredients: Array<{ name: string; quantity: number; unit: string }>;
+    instructions: string[];
+    prepTime: number;
+    cookTime: number;
+    servings: number;
+    difficulty: 'easy' | 'medium' | 'hard';
+    tags: string[];
+    category: RecipeCategory;
+    sourceUrl: string;
+    sourceName: string;
+    rating?: number;
+    reviews?: number;
+  }): ScrapedRecipe {
+    const now = new Date();
+    const totalTime = data.prepTime + data.cookTime;
+    const recipeId = data.id;
+    const difficulty = this.mapDifficulty(data.difficulty);
+
+    return {
+      id: recipeId,
+      name: data.name,
+      description: data.description,
+      ingredients: data.ingredients.map((ingredient, index) =>
+        this.buildMockIngredient(recipeId, ingredient, index)
+      ),
+      instructions: data.instructions.map((instruction, index) =>
+        this.buildMockInstruction(recipeId, instruction, index)
+      ),
+      cook_time: data.cookTime,
+      prep_time: data.prepTime,
+      total_time: totalTime,
+      servings: data.servings,
+      difficulty,
+      cuisine_type: 'argentina',
+      category: data.category,
+      tags: data.tags,
+      dietary_info: this.getDefaultDietaryInfo(),
+      ai_generated: true,
+      source: {
+        type: 'imported',
+        url: data.sourceUrl
+      },
+      created_by: 'system',
+      rating: data.rating,
+      rating_count: data.reviews,
+      created_at: now,
+      updated_at: now,
+      sourceUrl: data.sourceUrl,
+      sourceName: data.sourceName,
+      reviews: data.reviews
+    };
+  }
+
+  private buildMockIngredient(
+    recipeId: string,
+    ingredient: { name: string; quantity: number; unit: string },
+    index: number
+  ): RecipeIngredient {
+    const now = new Date();
+    const normalizedName = ingredient.name.toLowerCase();
+    const ingredientId = `${recipeId}-ingredient-${index + 1}`;
+    const ingredientData: Ingredient = {
+      id: ingredientId,
+      name: ingredient.name,
+      normalized_name: normalizedName,
+      category: 'otros',
+      common_names: [ingredient.name],
+      default_unit: ingredient.unit,
+      created_at: now,
+      updated_at: now
+    };
+
+    return {
+      id: ingredientId,
+      recipe_id: recipeId,
+      ingredient_id: ingredientId,
+      ingredient: ingredientData,
+      quantity: ingredient.quantity,
+      unit: ingredient.unit,
+      optional: false,
+      order: index + 1
+    };
+  }
+
+  private buildMockInstruction(
+    recipeId: string,
+    instruction: string,
+    index: number
+  ): RecipeInstruction {
+    return {
+      id: `${recipeId}-instruction-${index + 1}`,
+      recipe_id: recipeId,
+      step_number: index + 1,
+      instruction
+    };
+  }
+
+  private mapDifficulty(difficulty: 'easy' | 'medium' | 'hard'): DifficultyLevel {
+    switch (difficulty) {
+      case 'easy':
+        return 'facil';
+      case 'hard':
+        return 'dificil';
+      case 'medium':
+      default:
+        return 'intermedio';
+    }
+  }
+
+  private getDefaultDietaryInfo(): Recipe['dietary_info'] {
+    return {
+      vegetarian: false,
+      vegan: false,
+      gluten_free: false,
+      dairy_free: false,
+      nut_free: false,
+      low_carb: false,
+      keto: false,
+      paleo: false,
+      allergies: []
+    };
   }
 }
 

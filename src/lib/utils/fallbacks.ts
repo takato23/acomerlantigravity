@@ -138,7 +138,7 @@ export function ensureAsado(plan: ArgentineWeeklyPlan): ArgentineWeeklyPlan {
           cultural: {
             ...day.cultural,
             hasAsado: true,
-            occasion: 'asado'
+            occasion: 'fin_de_semana'
           }
         };
       }
@@ -332,7 +332,8 @@ export function generateFallbackWeeklyPlan(
       dailyNutrition: { calories: 1800, protein: 80, carbs: 200, fat: 60 },
       dailyCost: 1200,
       prepTime: 60,
-      cookTime: 45
+      cookTime: 45,
+      shoppingNeeded: true
     };
 
     fallbackPlan.days.push(day);

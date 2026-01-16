@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
 
@@ -63,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return state.currentPath.startsWith(route.path);
   };
 
-  const sidebarVariants = {
+  const sidebarVariants: Variants = {
     hidden: {
       x: variant === 'mobile' ? '-100%' : 0,
       opacity: variant === 'mobile' ? 0 : 1
@@ -79,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const overlayVariants = {
+  const overlayVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 }
   };

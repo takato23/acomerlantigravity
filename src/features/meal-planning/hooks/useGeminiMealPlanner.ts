@@ -13,7 +13,8 @@ import {
   UserPreferences,
   PlanningConstraints,
   WeeklyPlan,
-  MealPlanningResult
+  MealPlanningResult,
+  UserPreferencesSchema
 } from '@/lib/types/mealPlanning';
 import {
   GeminiPlannerOptions,
@@ -21,6 +22,7 @@ import {
 } from '@/lib/services/geminiPlannerService';
 
 import { useMonetization } from '@/features/monetization/MonetizationProvider';
+import { useAppStore } from '@/store';
 import { useMealPlanningStore } from '../store/useMealPlanningStore';
 import type { MealType as PlannerMealType } from '../types';
 
@@ -73,7 +75,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
   const { reportError } = useErrorReporting('MealPlanner');
   const { checkAccess, trackAction } = useMonetization();
   const {
-    userPreferences,
+    preferences: userPreferences,
     currentWeekPlan,
     loadWeekPlan,
     saveWeekPlan,
@@ -148,15 +150,17 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
 
     try {
       // Merge preferences
-      const finalPreferences: UserPreferences = {
+      const finalPreferences: UserPreferences = UserPreferencesSchema.parse({
         ...userPreferences,
         ...customPreferences,
-        userId: user?.id || mockUserId
-      };
+        userId: user?.id || mockUserId,
+        householdSize: customPreferences?.householdSize ?? 2
+      });
 
       // Create constraints based on current week
-      const startOfWeek = new Date(currentDate);
-      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+      const currentDateValue = currentDate ? new Date(currentDate) : new Date();
+      const startOfWeek = new Date(currentDateValue);
+      startOfWeek.setDate(currentDateValue.getDate() - currentDateValue.getDay() + 1);
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
 
@@ -166,6 +170,10 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
         mealTypes: ['breakfast', 'lunch', 'dinner'],
         servings: finalPreferences.householdSize || 2,
         maxPrepTime: 60,
+        pantryItems: [],
+        excludeRecipes: [],
+        preferredShoppingDays: [],
+        maxShoppingTrips: 2,
         ...customConstraints
       };
 
@@ -210,13 +218,13 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
       }
 
       setLastGeneratedPlan(result.plan);
-      setConfidence(result.metadata.confidenceScore);
+      setConfidence(result.meta?.confidenceScore ?? 0);
 
       // Track usage
       await trackAction('weekly_plan');
 
       toast.success('Plan de comidas generado exitosamente', {
-        description: `Confianza: ${Math.round(result.metadata.confidenceScore * 100)}%`
+        description: `Confianza: ${Math.round((result.meta?.confidenceScore ?? 0) * 100)}%`
       });
 
       return {
@@ -258,11 +266,12 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
     setError(null);
 
     try {
-      const finalPreferences: UserPreferences = {
+      const finalPreferences: UserPreferences = UserPreferencesSchema.parse({
         ...userPreferences,
         ...customPreferences,
-        userId: user.id
-      };
+        userId: user.id,
+        householdSize: customPreferences?.householdSize ?? 2
+      });
 
       const requestBody = {
         preferences: finalPreferences,
@@ -283,7 +292,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
       }
 
       setLastGeneratedPlan(result.plan);
-      setConfidence(result.metadata.confidenceScore);
+      setConfidence(result.meta?.confidenceScore ?? 0);
 
       toast.success('Plan diario optimizado', {
         description: `Mejoras aplicadas para ${date.toLocaleDateString('es-ES')}`
@@ -342,7 +351,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
       }
 
       setLastGeneratedPlan(result.plan);
-      setConfidence(result.metadata.confidenceScore);
+      setConfidence(result.meta?.confidenceScore ?? 0);
 
       toast.success('Plan regenerado con éxito', {
         description: 'Se aplicaron tus sugerencias al nuevo plan'
@@ -395,7 +404,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
 
       // Load the week plan for the target date
       await loadWeekPlan(weekStartDateStr);
-      const { currentWeekPlan: loadedWeekPlan } = useMealPlanningStore.getState();
+      const loadedWeekPlan = useAppStore.getState().mealPlan.currentWeekPlan;
 
       // Apply meals to slots
       if (loadedWeekPlan) {
@@ -555,21 +564,27 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
 
       // For now, we'll generate a full weekly plan and extract just the requested meal
       // In the future, this could be optimized to generate just a single meal
-      const preferences: UserPreferences = {
+      const preferences: UserPreferences = UserPreferencesSchema.parse({
         ...userPreferences,
         ...customPreferences,
-        userId: user?.id || mockUserId
-      };
+        userId: user?.id || mockUserId,
+        householdSize: customPreferences?.householdSize ?? 2
+      });
 
-      const targetDate = new Date(currentDate);
-      targetDate.setDate(currentDate.getDate() - currentDate.getDay() + dayOfWeek);
+      const currentDateValue = currentDate ? new Date(currentDate) : new Date();
+      const targetDate = new Date(currentDateValue);
+      targetDate.setDate(currentDateValue.getDate() - currentDateValue.getDay() + dayOfWeek);
 
       const constraints: PlanningConstraints = {
         startDate: targetDate,
         endDate: targetDate,
         mealTypes: [englishMealType as any],
         servings: preferences.householdSize || 2,
-        maxPrepTime: 60
+        maxPrepTime: 60,
+        pantryItems: [],
+        excludeRecipes: [],
+        preferredShoppingDays: [],
+        maxShoppingTrips: 2
       };
 
       const result = await generateWeeklyPlan(preferences, constraints);
@@ -580,7 +595,7 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
           // Compare dates as YYYY-MM-DD strings to avoid timezone issues
           const targetDateStr = format(targetDate, 'yyyy-MM-dd');
           // Handle both 'YYYY-MM-DD' and 'YYYY-MM-DDT...' formats from AI
-          const mealDateStr = m.date.split('T')[0];
+          const mealDateStr = format(new Date(m.date), 'yyyy-MM-dd');
           return mealDateStr === targetDateStr;
         });
 
@@ -589,9 +604,11 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
             ? dailyMeal.snacks?.[0]
             : dailyMeal[englishMealType as keyof typeof dailyMeal];
 
-          if (meal && meal.recipe) {
+          const mealData = meal && typeof meal === 'object' && 'recipe' in meal ? (meal as { recipe: any; confidence?: number }) : null;
+
+          if (mealData?.recipe) {
             // Map and Apply to Store
-            const storeRecipe = mapAIRecipeToStoreRecipe(meal.recipe, meal.confidence);
+            const storeRecipe = mapAIRecipeToStoreRecipe(mealData.recipe, mealData.confidence);
 
             // Map mealType back to Spanish for the store
             const spanishMealTypeMap: Record<string, PlannerMealType> = {
@@ -613,12 +630,12 @@ export function useGeminiMealPlanner(): UseGeminiMealPlannerResult {
             await trackAction('recipe_gen');
 
             toast.success('Comida generada con IA', {
-              description: `${meal.recipe?.title} agregada a tu ${targetMealType}`
+              description: `${mealData.recipe?.title} agregada a tu ${targetMealType}`
             });
 
             return {
               success: true,
-              data: meal
+              data: mealData
             };
           }
         }

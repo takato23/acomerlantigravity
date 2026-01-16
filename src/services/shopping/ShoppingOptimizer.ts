@@ -4,7 +4,6 @@ import { logger } from '@/services/logger';
 import type { Database } from '@/types/database';
 
 import type { HolisticFoodSystem } from '../core/HolisticSystem';
-import type { MealPlan } from '../planner/MealPlanner';
 import type { PantryItem } from '../pantry/PantryManager';
 import { getGeminiService } from '../ai/GeminiService';
 import { getProfileManager } from '../profile/ProfileManager';
@@ -21,6 +20,16 @@ export interface ShoppingItem {
   checked: boolean;
   priority: 'essential' | 'recommended' | 'optional';
   notes?: string;
+}
+
+interface MealPlan {
+  id: string;
+  shoppingList: Array<{
+    ingredient: string;
+    quantity: number;
+    unit: string;
+    estimatedCost?: number;
+  }>;
 }
 
 export interface ShoppingList {
@@ -114,7 +123,7 @@ export class ShoppingOptimizer {
       // 6. Generar rutas optimizadas
       const optimizedRoutes = await this.generateOptimizedRoutes(
         optimizedItems,
-        params.optimization?.preferredStores || userProfile?.preferredStores
+        params.optimization?.preferredStores || (userProfile as any)?.shoppingPreferences?.preferredStores
       );
 
       // 7. Crear lista final
@@ -277,7 +286,7 @@ export class ShoppingOptimizer {
       if (!data) return [];
 
       // Transformar datos de DB a nuestro formato
-      return data.map(list => ({
+      return (data as Array<any>).map((list: any) => ({
         id: list.id,
         userId: list.user_id,
         name: list.name,
@@ -760,7 +769,10 @@ export class ShoppingOptimizer {
       }
 
       // Calcular total
-      const total = items?.reduce((sum, item) => sum + (item.estimated_price || 0), 0) || 0;
+      const total = (items ?? []).reduce(
+        (sum: number, item: { estimated_price?: number | null }) => sum + (item.estimated_price || 0),
+        0
+      );
 
       // Actualizar lista
       const { error: updateError } = await this.supabase
@@ -854,11 +866,14 @@ export class ShoppingOptimizer {
       }
 
       // Calcular ahorro total
-      const totalSavings = items.reduce((sum, item) => {
-        const estimated = item.estimated_price || 0;
-        const actual = item.price || estimated;
-        return sum + (estimated - actual);
-      }, 0);
+      const totalSavings = items.reduce(
+        (sum: number, item: { estimated_price?: number | null; price?: number | null }) => {
+          const estimated = item.estimated_price || 0;
+          const actual = item.price || estimated;
+          return sum + (estimated - actual);
+        },
+        0
+      );
 
       logger.info(`💰 Ahorro total en lista ${listId}: $${totalSavings}`, 'ShoppingOptimizer');
 

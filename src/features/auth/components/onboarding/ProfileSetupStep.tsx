@@ -22,16 +22,20 @@ const COOKING_PERSONAS = [
   { id: 'foodie', label: 'Foodie Aventurero', icon: ChefHat, description: 'Me encanta experimentar con nuevos sabores' },
   { id: 'health_conscious', label: 'Saludable y Consciente', icon: Heart, description: 'Priorizo la nutrición y el bienestar' },
 ];
+type CookingPersonaId = typeof COOKING_PERSONAS[number]['id'];
 
 export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
   const user = useAppStore((state) => state.user.profile);
   const { data, updateData, saveProfile } = useOnboardingStore();
 
+  const initialCookingPersona =
+    (data.profile as { cooking_persona?: CookingPersonaId } | undefined)?.cooking_persona || '';
+
   const [formData, setFormData] = useState({
     display_name: data.profile?.display_name || user?.name || '',
     bio: data.profile?.bio || '',
     avatar_url: data.profile?.avatar_url || '',
-    cooking_persona: data.profile?.cooking_persona || ''
+    cooking_persona: initialCookingPersona
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -85,9 +89,8 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
       
       Responde SOLO con un JSON array de 3 strings, sin markdown ni explicaciones adicionales.`;
 
-      const result = await aiService.generateText({ prompt: prompt });
-      const response = await result.response;
-      let text = response.text().trim();
+      const result = await aiService.generateText({ prompt });
+      let text = result.data.trim();
 
       // Clean markdown if present
       if (text.startsWith('```json')) {
@@ -100,7 +103,7 @@ export function ProfileSetupStep({ onNext, onBack }: ProfileSetupStepProps) {
         text = text.slice(0, -3);
       }
 
-      const suggestions = JSON.parse(text.trim());
+      const suggestions = JSON.parse(text.trim()) as string[];
       setBioSuggestions(suggestions);
     } catch (error) {
       logger.error('Failed to generate bio suggestions:', 'ProfileSetupStep', error);

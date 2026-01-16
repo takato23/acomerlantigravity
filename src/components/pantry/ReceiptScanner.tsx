@@ -73,7 +73,11 @@ export const ReceiptScanner = React.memo<ReceiptScannerProps>(({
       }
 
       if (receiptData && receiptData.items && receiptData.items.length > 0) {
-        setScannedData(receiptData);
+        const normalizedReceipt = {
+          ...receiptData,
+          date: receiptData.date instanceof Date ? receiptData.date : new Date(receiptData.date),
+        };
+        setScannedData(normalizedReceipt);
         // Select all items by default
         setSelectedItems(new Set(receiptData.items.map((_, index) => index)));
       } else {
@@ -132,12 +136,11 @@ export const ReceiptScanner = React.memo<ReceiptScannerProps>(({
           const item = scannedData.items[i];
           await addPantryItem({
             name: item.name,
-            quantity: item.quantity,
+            currentStock: item.quantity,
             unit: item.unit,
             category: item.category || 'otros',
-            purchaseDate: scannedData.date ? new Date(scannedData.date).toISOString() : new Date().toISOString(),
+            lastPurchased: scannedData.date ? new Date(scannedData.date) : new Date(),
             price: item.price,
-            userId: user.id
           });
         }
       }

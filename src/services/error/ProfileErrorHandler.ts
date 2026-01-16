@@ -355,6 +355,18 @@ export class ProfileErrorFactory {
     );
   }
 
+  static recoveryFailed(reason?: string): ProfileError {
+    return new ProfileError(
+      'Profile recovery failed',
+      ProfileErrorCodes.RECOVERY_FAILED,
+      'medium',
+      true,
+      { reason },
+      undefined,
+      'manual_intervention'
+    );
+  }
+
   static syncConflict(localData?: any, serverData?: any): ProfileError {
     return new ProfileError(
       'Data synchronization conflict',

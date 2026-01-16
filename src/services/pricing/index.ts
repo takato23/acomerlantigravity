@@ -5,7 +5,6 @@
 
 export { PriceTracker } from './priceTracker';
 export { PriceComparator } from './priceComparator';
-export { PriceScrapingService } from '../scraping/priceScrapingService';
 export { 
   IngredientPriceService, 
   getIngredientPriceService 

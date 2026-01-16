@@ -6,8 +6,8 @@ import { AlertCircle, RefreshCw, User, Settings, Database, WifiOff, Eye, EyeOff 
 import { toast } from 'sonner';
 import { logger } from '@/services/logger';
 
-import { iOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
 import { cn } from '@/lib/utils';
 
 export interface ProfileErrorBoundaryProps {
@@ -281,7 +281,7 @@ export class ProfileErrorBoundary extends Component<ProfileErrorBoundaryProps, P
         transition={{ duration: 0.4 }}
         className={cn(levelStyles[level])}
       >
-        <iOS26LiquidCard 
+        <IOS26LiquidCard 
           variant="medium" 
           className={cn(
             'max-w-md mx-auto bg-gradient-to-r',
@@ -330,7 +330,7 @@ export class ProfileErrorBoundary extends Component<ProfileErrorBoundaryProps, P
             {/* Action Buttons */}
             <div className="space-y-3">
               {canRetry && (
-                <iOS26LiquidButton
+                <IOS26LiquidButton
                   variant="primary"
                   onClick={this.handleRetry}
                   disabled={isRetrying}
@@ -362,12 +362,12 @@ export class ProfileErrorBoundary extends Component<ProfileErrorBoundaryProps, P
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </iOS26LiquidButton>
+                </IOS26LiquidButton>
               )}
 
               {/* Toggle Error Details */}
               {(this.props.showDetails || process.env.NODE_ENV === 'development') && (
-                <iOS26LiquidButton
+                <IOS26LiquidButton
                   variant="ghost"
                   size="sm"
                   onClick={this.toggleDetails}
@@ -384,7 +384,7 @@ export class ProfileErrorBoundary extends Component<ProfileErrorBoundaryProps, P
                       Ver Detalles
                     </>
                   )}
-                </iOS26LiquidButton>
+                </IOS26LiquidButton>
               )}
             </div>
 
@@ -429,27 +429,27 @@ export class ProfileErrorBoundary extends Component<ProfileErrorBoundaryProps, P
                   Opciones de recuperación:
                 </p>
                 <div className="flex gap-2 text-xs">
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="ghost"
                     size="sm"
                     onClick={() => window.location.reload()}
                     className="flex-1 text-white/70 hover:text-white"
                   >
                     Recargar Página
-                  </iOS26LiquidButton>
-                  <iOS26LiquidButton
+                  </IOS26LiquidButton>
+                  <IOS26LiquidButton
                     variant="ghost"
                     size="sm"
                     onClick={() => window.location.href = '/'}
                     className="flex-1 text-white/70 hover:text-white"
                   >
                     Ir al Inicio
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
                 </div>
               </div>
             )}
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </motion.div>
     );
   }
@@ -515,13 +515,13 @@ export const ProfileErrorFallback = ({ retry, context }: { retry?: () => void; c
       Error cargando {context || 'esta sección del perfil'}
     </p>
     {retry && (
-      <iOS26LiquidButton
+      <IOS26LiquidButton
         variant="secondary"
         onClick={retry}
         className="text-orange-600 hover:text-orange-700"
       >
         Reintentar
-      </iOS26LiquidButton>
+      </IOS26LiquidButton>
     )}
   </div>
 );

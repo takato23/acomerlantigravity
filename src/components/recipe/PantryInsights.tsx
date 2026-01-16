@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { AlertCircle, CheckCircle, DollarSign, RefreshCw, TrendingUp, Wrench } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import type { DetailedPantryCompatibility } from '@/lib/services/pantry-compatibility.service';
@@ -43,7 +44,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
         <CardBody className="p-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-food-fresh-100">
-              <Icons.CheckCircle className="w-5 h-5 text-food-fresh-600" />
+              <CheckCircle className="w-5 h-5 text-food-fresh-600" />
             </div>
             <div>
               <Text weight="medium" color="fresh">
@@ -77,13 +78,13 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
         {/* Missing Ingredients Summary */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Icons.AlertCircle size="sm" className="text-food-warm-500" />
-            <Text weight="medium">Te faltan {missing_ingredients} ingredientes</Text>
+            <AlertCircle className="w-4 h-4 text-food-warm-500" />
+            <Text weight="medium">Te faltan {missing_ingredients.length} ingredientes</Text>
           </div>
           
           {estimated_cost && estimated_cost > 0 && (
             <div className="flex items-center gap-2 text-sm">
-              <Icons.DollarSign size="xs" className="text-food-golden-500" />
+              <DollarSign className="w-3 h-3 text-food-golden-500" />
               <Text size="sm" color="muted">
                 Costo estimado: ${Math.round(estimated_cost / 1000)}k COP
               </Text>
@@ -94,7 +95,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
         {/* Difficulty Impact */}
         {recipe_difficulty_adjustment && recipe_difficulty_adjustment > 1.2 && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-food-golden-50">
-            <Icons.TrendingUp size="sm" className="text-food-golden-600" />
+            <TrendingUp className="w-4 h-4 text-food-golden-600" />
             <div>
               <Text size="sm" weight="medium">
                 Dificultad aumentada en {Math.round((recipe_difficulty_adjustment - 1) * 100)}%
@@ -118,7 +119,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
             
             {preparation_impact.missing_essential_tools && preparation_impact.missing_essential_tools.length > 0 && (
               <div className="flex items-center gap-2">
-                <Icons.Tool size="sm" className="text-error-500" />
+                <Wrench className="w-4 h-4 text-error-500" />
                 <Text size="sm" color="error">
                   Herramientas faltantes: {preparation_impact.missing_essential_tools.join(', ')}
                 </Text>
@@ -156,7 +157,7 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
         {substitution_suggestions.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Icons.RefreshCw size="sm" className="text-food-fresh-500" />
+              <RefreshCw className="w-4 h-4 text-food-fresh-500" />
               <Text size="sm" weight="medium">
                 {substitution_suggestions.length} sustitutos disponibles
               </Text>
@@ -196,11 +197,11 @@ export const PantryInsights: React.FC<PantryInsightsProps> = ({
           
           {substitution_suggestions.length > 0 && onViewSubstitutes && (
             <Button
-              variant="neutral"
+              variant="secondary"
               size="sm"
               className="flex-1"
               onClick={onViewSubstitutes}
-              leftIcon={<Icons.RefreshCw size="xs" />}
+              leftIcon={<RefreshCw className="w-3 h-3" />}
             >
               Ver Sustitutos
             </Button>

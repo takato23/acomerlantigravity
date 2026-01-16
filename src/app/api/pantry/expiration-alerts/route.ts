@@ -13,7 +13,14 @@ interface ExpirationAlert {
   alert_type: 'warning' | 'urgent' | 'expired';
   dismissed: boolean;
   created_at: Date;
-  suggested_recipes?: string[];
+  suggested_recipes: string[];
+}
+
+interface PantryItemWithIngredient {
+  id: string;
+  expiration_date?: string | Date | null;
+  ingredient?: { name?: string | null };
+  ingredient_name?: string | null;
 }
 
 async function generateQuickRecipeSuggestions(ingredients: string[]): Promise<string[]> {
@@ -52,16 +59,16 @@ export async function GET(request: NextRequest) {
 
     // Get pantry items with expiration dates
     const now = new Date();
-    const pantryItems = await db.getPantryItems(user.id);
+    const pantryItems = await db.getPantryItems(user.id) as PantryItemWithIngredient[];
 
     // Filter items with expiration dates
-    const itemsWithExpiration = pantryItems.filter(item => 
+    const itemsWithExpiration = pantryItems.filter((item: PantryItemWithIngredient) => 
       item.expiration_date && 
       (includeExpired || new Date(item.expiration_date) >= now)
     );
 
     // Generate expiration alerts with recipe suggestions
-    const alerts: ExpirationAlert[] = itemsWithExpiration
+    const alerts = itemsWithExpiration
       .map((item) => {
         const expirationDate = new Date(item.expiration_date!);
         const daysUntilExpiration = Math.ceil(
@@ -90,16 +97,16 @@ export async function GET(request: NextRequest) {
         return {
           id: `alert-${item.id}`,
           pantry_item_id: item.id,
-          item_name: item.ingredient?.name || 'Unknown',
+          item_name: item.ingredient?.name || item.ingredient_name || 'Unknown',
           expiration_date: expirationDate,
           days_until_expiration: daysUntilExpiration,
           alert_type: alertType,
           dismissed: false,
           created_at: now,
-          suggested_recipes: [] // Will be populated below
+          suggested_recipes: [] as string[] // Will be populated below
         };
       })
-      .filter((alert): alert is ExpirationAlert => alert !== null);
+      .filter((alert): alert is ExpirationAlert => alert !== null) as ExpirationAlert[];
 
     // Add recipe suggestions for urgent/expired items
     for (const alert of alerts.filter(a => a.alert_type === 'urgent' || a.alert_type === 'expired')) {

@@ -767,7 +767,7 @@ export function getUserProfileErrors(data: unknown): Record<string, string> | nu
   if (result.success) return null;
   
   const errors: Record<string, string> = {};
-  result.error.errors.forEach(err => {
+  result.error.issues.forEach(err => {
     const path = err.path.join('.');
     errors[path] = err.message;
   });
@@ -783,7 +783,7 @@ export function getUserPreferencesErrors(data: unknown): Record<string, string> 
   if (result.success) return null;
   
   const errors: Record<string, string> = {};
-  result.error.errors.forEach(err => {
+  result.error.issues.forEach(err => {
     const path = err.path.join('.');
     errors[path] = err.message;
   });

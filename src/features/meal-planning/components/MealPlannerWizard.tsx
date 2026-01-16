@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { ChevronRight, ChevronLeft, Sparkles, Check, X, Clock, ChefHat, Heart, DollarSign, Apple, Globe, Utensils, Leaf, Star, Zap, Timer, Users, TrendingUp, Calendar, Salad, Fish, Pizza, Coffee, Flame, Snowflake, Sun, Moon, Rocket, Diamond, Crown, Trophy, Gift, PartyPopper, Music, Palette, Camera, Gamepad2, BookOpen, Brain, Dumbbell, Smile } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { PremiumSpinner } from './MealPlannerWizardEffects';
 
 export interface WizardData {
   dietaryPreferences: string[];
@@ -88,11 +89,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
   // Particle effect on step change
   useEffect(() => {
     if (currentStep > 0 && currentStep < steps.length - 1) {
-      const particles = confetti.create(undefined, {
-        resize: true,
-        useWorker: true,
-      });
-      particles({
+      confetti({
         particleCount: 30,
         spread: 70,
         origin: { y: 0.6 },

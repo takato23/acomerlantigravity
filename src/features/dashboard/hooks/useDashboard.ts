@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 
+import { usePantry } from '@/store';
 import { formatRelativeTime } from '@/lib/utils';
 
 import { useDashboardStore } from '../store/dashboardStore';
-import { useMealPlannerStore } from '../../planner/store/mealPlannerStore';
+import { useMealPlanningStore } from '../../meal-planning/store/useMealPlanningStore';
 
 export function useDashboard() {
   const {
@@ -18,10 +19,10 @@ export function useDashboard() {
     updateMetric
   } = useDashboardStore();
 
-  // Subscribe to meal planner changes for real-time updates
-  const mealPlans = useMealPlannerStore((state) => state.mealPlans);
-  const recipes = useMealPlannerStore((state) => state.recipes);
-  const pantryItems = useMealPlannerStore((state) => state.pantryItems);
+  // Subscribe to planner/pantry changes for real-time updates
+  const { currentWeekPlan } = useMealPlanningStore();
+  const pantry = usePantry();
+  const pantryItems = pantry.items;
 
   // Initialize dashboard data
   useEffect(() => {
@@ -44,27 +45,16 @@ export function useDashboard() {
 
   // React to meal planner changes
   useEffect(() => {
-    if (mealPlans.length > 0) {
-      const thisWeekStart = new Date();
-      thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay() + 1);
-      const thisWeekEnd = new Date(thisWeekStart);
-      thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
-
-      const thisWeekMeals = mealPlans.filter(plan => {
-        const planDate = new Date(plan.date);
-        return planDate >= thisWeekStart && planDate <= thisWeekEnd;
-      });
-
-      updateMetric('mealsPlannedThisWeek', thisWeekMeals.length);
-    }
-  }, [mealPlans, updateMetric]);
+    const plannedMeals = currentWeekPlan?.slots?.filter(slot => slot.recipeId || slot.recipe) || [];
+    updateMetric('mealsPlannedThisWeek', plannedMeals.length);
+  }, [currentWeekPlan, updateMetric]);
 
   // React to pantry changes
   useEffect(() => {
     if (pantryItems.length > 0) {
       const expiringSoon = pantryItems.filter(item => {
-        if (!item.expiry_date) return false;
-        const expirationDate = new Date(item.expiry_date);
+        if (!item.expirationDate) return false;
+        const expirationDate = new Date(item.expirationDate);
         const threeDaysFromNow = new Date();
         threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
         return expirationDate <= threeDaysFromNow;
@@ -74,7 +64,7 @@ export function useDashboard() {
       updateMetric('pantryStatus', {
         totalItems: pantryItems.length,
         expiringSoon: expiringSoon.length,
-        lowStock: pantryItems.filter(item => item.quantity < 1).length
+        lowStock: pantryItems.filter(item => item.currentStock < 1).length
       });
     }
   }, [pantryItems, updateMetric]);

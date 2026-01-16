@@ -7,6 +7,7 @@ import { Edit2, Trash2, AlertTriangle, Clock } from 'lucide-react';
 import type { Database } from '@/lib/supabase/types';
 
 type PantryItem = Database['public']['Tables']['pantry_items']['Row'] & {
+  min_quantity?: number;
   ingredient?: {
     name: string;
     category?: string;

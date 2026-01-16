@@ -1,6 +1,8 @@
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { UnifiedAIService } from "@/services/ai";
 import { createClient } from '@/lib/supabase/server';
-import type { RecipeGenerationParams } from "@/services/ai/types";
+import type { AIRecipeRequest } from "@/services/ai/types";
 
 export async function POST(req: Request) {
   try {
@@ -35,12 +37,18 @@ export async function POST(req: Request) {
       .single();
 
     // Build AI generation params
-    const params: RecipeGenerationParams = {
-      ingredients: ingredients.map((ing: string) => ({ name: ing })),
+    const dietaryRestrictions = Array.isArray(profile?.dietary_restrictions)
+      ? (profile.dietary_restrictions as Array<'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'keto' | 'paleo'>)
+      : [];
+
+    const params: AIRecipeRequest = {
+      ingredients: ingredients as string[],
       cuisine: cuisine || 'argentina',
       difficulty: difficulty || 'medium',
       servings: servings || 4,
-      dietary: profile?.dietary_restrictions || [],
+      constraints: {
+        dietary: dietaryRestrictions
+      },
     };
 
     // Generate recipe using AI
@@ -50,24 +58,22 @@ export async function POST(req: Request) {
     // Format recipe for frontend
     const recipe = {
       id: crypto.randomUUID(),
-      name: generatedRecipe.title || generatedRecipe.name,
-      title: generatedRecipe.title || generatedRecipe.name,
+      name: generatedRecipe.name,
+      title: generatedRecipe.name,
       description: generatedRecipe.description || '',
       ingredients: generatedRecipe.ingredients.map((ing: any) => ({
         name: ing.name,
         quantity: ing.quantity || ing.amount || 0,
         unit: ing.unit || 'g'
       })),
-      instructions: Array.isArray(generatedRecipe.instructions)
-        ? generatedRecipe.instructions
-        : [generatedRecipe.instructions],
-      prepTime: generatedRecipe.prepTimeMinutes || generatedRecipe.prepTime || 15,
-      cookTime: generatedRecipe.cookTimeMinutes || generatedRecipe.cookTime || 30,
+      instructions: generatedRecipe.instructions.map((inst) => inst.instruction),
+      prepTime: generatedRecipe.prepTime || 15,
+      cookTime: generatedRecipe.cookTime || 30,
       servings: generatedRecipe.servings || servings || 4,
       difficulty: generatedRecipe.difficulty || difficulty || 'medium',
       cuisine: generatedRecipe.cuisine || cuisine || 'argentina',
       tags: generatedRecipe.tags || [],
-      nutrition: generatedRecipe.nutritionInfo || generatedRecipe.nutrition || {
+      nutrition: generatedRecipe.nutrition || {
         calories: 400,
         protein: 25,
         carbs: 45,

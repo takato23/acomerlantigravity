@@ -10,7 +10,6 @@ export interface CacheConfig {
   readonly redis?: {
     readonly url: string;
     readonly maxRetriesPerRequest?: number;
-    readonly retryDelayOnFailover?: number;
     readonly enableReadyCheck?: boolean;
   };
   readonly memory?: {
@@ -28,14 +27,14 @@ export interface CacheConfig {
 }
 
 export interface CacheMetrics {
-  readonly hits: number;
-  readonly misses: number;
-  readonly sets: number;
-  readonly deletes: number;
-  readonly errors: number;
-  readonly avgResponseTime: number;
-  readonly memoryUsage: number;
-  readonly redisConnected: boolean;
+  hits: number;
+  misses: number;
+  sets: number;
+  deletes: number;
+  errors: number;
+  avgResponseTime: number;
+  memoryUsage: number;
+  redisConnected: boolean;
 }
 
 export interface CacheItem<T> {
@@ -88,7 +87,6 @@ export class EnhancedCacheService {
         this.redis = new Redis({
           ...config.redis,
           maxRetriesPerRequest: config.redis.maxRetriesPerRequest || 3,
-          retryDelayOnFailover: config.redis.retryDelayOnFailover || 1000,
           enableReadyCheck: config.redis.enableReadyCheck !== false,
           lazyConnect: true
         });
@@ -534,38 +532,6 @@ export class EnhancedCacheService {
     }, interval);
   }
 
-  /**
-   * Get current metrics
-   */
-  getMetrics(): CacheMetrics {
-    return {
-      ...this.metrics,
-      memoryUsage: this.memoryCache.size,
-      redisConnected: this.redis?.status === 'ready' || false
-    };
-  }
-
-  /**
-   * Clear all cache
-   */
-  async clear(): Promise<void> {
-    this.memoryCache.clear();
-    if (this.redis) {
-      await this.redis.flushdb();
-    }
-  }
-
-  /**
-   * Cleanup and close connections
-   */
-  async cleanup(): Promise<void> {
-    if (this.metricsInterval) {
-      clearInterval(this.metricsInterval);
-    }
-    if (this.redis) {
-      await this.redis.quit();
-    }
-  }
 }
 
 /**

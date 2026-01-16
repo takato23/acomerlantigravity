@@ -16,7 +16,6 @@ import {
   Beef
 } from 'lucide-react';
 import { format, addDays, startOfWeek } from 'date-fns';
-import { format, addDays, startOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   DndContext,
@@ -53,8 +52,8 @@ interface DesktopGridProps {
   onRecipeSelect: (slot: { dayOfWeek: number; mealType: any }) => void;
   onMealEdit?: (meal: any, slot: any) => void;
   onMealDuplicate?: (meal: any, slot: any) => void;
+  onAddToShoppingList?: (meal: any) => void;
   isLoading?: boolean;
-  rangeDays?: number;
   rangeDays?: number;
   onMealMove?: (fromSlotId: string, toDayOfWeek: number, toMealType: string) => void;
   onMealDelete?: (slotId: string) => void;
@@ -69,8 +68,7 @@ export function DesktopGrid({
   onRecipeSelect,
   onMealEdit,
   onMealDuplicate,
-  isLoading = false,
-  rangeDays = 7,
+  onAddToShoppingList,
   isLoading = false,
   rangeDays = 7,
   onMealMove,

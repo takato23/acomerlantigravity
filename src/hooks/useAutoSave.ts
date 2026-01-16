@@ -257,15 +257,17 @@ export function useAutoSave<T>(
   useEffect(() => {
     if (!autoSaveManagerRef.current || !onConflict) return;
 
-    const handleConflict = async (localData: T, serverData: T) => {
+    const handleConflict = async (localData: T, serverData: T): Promise<T> => {
       try {
         handleStateChange('conflict');
         const resolvedData = await onConflict(localData, serverData);
         currentDataRef.current = resolvedData;
         await forceSave();
+        return resolvedData;
       } catch (error) {
         logger.error('Error resolviendo conflicto:', 'useAutoSave', error);
         handleStateChange('error');
+        return localData;
       }
     };
 

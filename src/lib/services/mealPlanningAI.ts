@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import geminiConfig from '@/lib/config/gemini.config';
+import { featureConfigs, getGeminiApiKey } from '@/lib/config/gemini.config';
 import { logger } from '@/services/logger';
 
 import { prisma } from '../prisma';
@@ -15,11 +15,13 @@ import {
   PlanningConstraints,
   WeeklyPlan,
   MealSuggestion,
+  DailyMeals,
   AsyncMealPlanningResult,
   UserPreferencesSchema,
   PlanningConstraintsSchema,
   PositiveInteger,
-  Minutes
+  Minutes,
+  Percentage
 } from '../types/mealPlanning';
 
 import { enhancedCache, CacheKeyGenerator } from './enhancedCacheService';
@@ -42,22 +44,24 @@ export class EnhancedMealPlanningAI {
   private readonly RETRY_DELAY = 1000;
 
   constructor() {
-    if (!geminiConfig.getApiKey()) {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
       throw MealPlanningErrorFactory.aiServiceUnavailable(
         new Error('GOOGLE_AI_API_KEY environment variable is required')
       );
     }
 
     try {
-      const featureConfig = geminiConfig.getFeatureConfig('mealPlanning');
-      this.genAI = new GoogleGenerativeAI(featureConfig.apiKey);
+      const featureConfig = featureConfigs.mealPlanning;
+      const key = featureConfig.apiKey || apiKey;
+      this.genAI = new GoogleGenerativeAI(key);
       this.model = this.genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-exp', // Actualizado a Flash 2.0 para mejor rendimiento y menor costo
+        model: featureConfig.model || 'gemini-2.0-flash-exp',
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-          topP: 0.9,
-          topK: 40,
+          temperature: featureConfig.temperature ?? 0.7,
+          maxOutputTokens: featureConfig.maxTokens ?? 2048,
+          topP: featureConfig.topP ?? 0.9,
+          topK: featureConfig.topK ?? 40,
         }
       });
     } catch (error: unknown) {
@@ -153,11 +157,12 @@ export class EnhancedMealPlanningAI {
       );
 
       // Calculate summaries in parallel for better performance
+      const meals = [...weeklyPlan.meals];
       const [nutritionSummary, budgetSummary, prepPlan, shoppingList] = await Promise.all([
-        this.calculateNutritionSummary(weeklyPlan.meals, preferences),
-        this.calculateBudgetSummary(weeklyPlan.meals, preferences),
-        this.generatePrepPlan(weeklyPlan.meals),
-        this.generateShoppingList(weeklyPlan.meals, pantryItems)
+        this.calculateNutritionSummary(meals, preferences),
+        this.calculateBudgetSummary(meals, preferences),
+        this.generatePrepPlan(meals),
+        this.generateShoppingList(meals, pantryItems)
       ]);
 
       // Build complete plan
@@ -167,15 +172,15 @@ export class EnhancedMealPlanningAI {
         budgetSummary,
         prepPlan,
         shoppingList,
-        confidence: this.calculateOverallConfidence({
+        confidence: Percentage.create(this.calculateOverallConfidence({
           ...weeklyPlan,
           nutritionSummary,
           budgetSummary,
           prepPlan,
           shoppingList
-        }),
-        meta: {
-          aiModel: geminiConfig.default.model,
+        })),
+        metadata: {
+          aiModel: featureConfigs.mealPlanning.model,
           generationTime: (Date.now() - startTime) as Minutes,
           revisionCount: PositiveInteger.create(1),
           userFeedback: null
@@ -311,6 +316,12 @@ export class EnhancedMealPlanningAI {
       for (const mealType of ['breakfast', 'lunch', 'dinner']) {
         const meal = dayMeals[mealType];
         if (meal) {
+          const difficulty =
+            meal.difficulty === 'easy'
+              ? 'beginner'
+              : meal.difficulty === 'hard'
+                ? 'advanced'
+                : 'intermediate';
           suggestions.push({
             recipeId: `ai-${Date.now()}-${mealType}`,
             recipe: {
@@ -320,20 +331,30 @@ export class EnhancedMealPlanningAI {
               prepTimeMinutes: meal.prep_time || 30,
               cookTimeMinutes: meal.cook_time || 30,
               servings: meal.servings || 4,
-              difficulty: meal.difficulty || 'medium',
+              difficulty,
               ingredients: meal.ingredients.map((name: string) => ({
                 name,
                 quantity: 1,
-                unit: 'porción'
-              }))
+                unit: 'porción',
+                isOrganic: false
+              })),
+              instructions: meal.instructions || [],
+              nutrition: meal.nutrition,
+              tags: [],
+              allergens: [],
+              dietaryRestrictions: [],
+              popularity: 0
             },
-            confidence: 0.8,
+            confidence: Percentage.create(0.8),
             reasoning: meal.reasoning || '',
-            nutritionMatch: 0.8,
-            budgetMatch: 0.7,
-            pantryMatch: meal.pantry_match || 0.6,
-            timeMatch: 0.8,
-            preferenceMatch: 0.7
+            matchScores: {
+              nutrition: Percentage.create(0.8),
+              budget: Percentage.create(0.7),
+              pantry: Percentage.create(meal.pantry_match || 0.6),
+              time: Percentage.create(0.8),
+              preference: Percentage.create(0.7)
+            },
+            alternatives: []
           });
         }
       }
@@ -347,7 +368,7 @@ export class EnhancedMealPlanningAI {
     constraints: PlanningConstraints
   ): Promise<MealSuggestion[]> {
     // Get existing recipes from database that match preferences
-    const recipes = await prisma.recipe.findMany({
+    const recipes = await (prisma as any).recipe?.findMany?.({
       where: {
         AND: [
           { prepTimeMinutes: { lte: constraints.maxPrepTime } },
@@ -356,9 +377,9 @@ export class EnhancedMealPlanningAI {
         ]
       },
       take: 21 // 3 meals × 7 days
-    });
+    }) ?? [];
 
-    return recipes.map(recipe => ({
+    return recipes.map((recipe: any) => ({
       recipeId: recipe.id,
       recipe: {
         id: recipe.id,
@@ -369,19 +390,28 @@ export class EnhancedMealPlanningAI {
         servings: recipe.servings,
         difficulty: recipe.difficulty,
         imageUrl: recipe.imageUrl,
-        ingredients: recipe.ingredients.map(ri => ({
+        ingredients: recipe.ingredients.map((ri: any) => ({
           name: ri.ingredient.name,
           quantity: ri.quantity,
-          unit: ri.unit
-        }))
+          unit: ri.unit,
+          isOrganic: false
+        })),
+        instructions: recipe.instructions || [],
+        tags: recipe.tags || [],
+        allergens: recipe.allergens || [],
+        dietaryRestrictions: recipe.dietaryRestrictions || [],
+        popularity: recipe.popularity || 0
       },
-      confidence: 0.6,
+      confidence: Percentage.create(0.6),
       reasoning: 'Receta seleccionada de la base de datos',
-      nutritionMatch: 0.6,
-      budgetMatch: 0.6,
-      pantryMatch: 0.5,
-      timeMatch: 0.7,
-      preferenceMatch: 0.6
+      matchScores: {
+        nutrition: Percentage.create(0.6),
+        budget: Percentage.create(0.6),
+        pantry: Percentage.create(0.5),
+        time: Percentage.create(0.7),
+        preference: Percentage.create(0.6)
+      },
+      alternatives: []
     }));
   }
 
@@ -390,9 +420,9 @@ export class EnhancedMealPlanningAI {
    */
   private async getUserPantryItemsSafe(userId: string): Promise<any[]> {
     try {
-      return await prisma.pantryItem.findMany({
+      return await (prisma as any).pantryItem?.findMany?.({
         where: { userId }
-      });
+      }) ?? [];
     } catch (error: unknown) {
       logger.warn('Failed to fetch pantry items:', 'mealPlanningAI', error);
       return [];
@@ -405,9 +435,9 @@ export class EnhancedMealPlanningAI {
    */
   private async getUserFavoriteRecipesSafe(userId: string): Promise<any[]> {
     try {
-      return await prisma.favoriteRecipe.findMany({
+      return await (prisma as any).favoriteRecipe?.findMany?.({
         where: { userId }
-      });
+      }) ?? [];
     } catch (error: unknown) {
       logger.warn('Failed to fetch favorite recipes:', 'mealPlanningAI', error);
       return [];
@@ -419,18 +449,7 @@ export class EnhancedMealPlanningAI {
     constraints: PlanningConstraints,
     mealSuggestions: MealSuggestion[]
   ): Promise<WeeklyPlan> {
-    const weeklyPlan: WeeklyPlan = {
-      id: `plan-${Date.now()}`,
-      userId: preferences.userId,
-      weekStartDate: constraints.startDate,
-      meals: [],
-      nutritionSummary: {} as any,
-      budgetSummary: {} as any,
-      prepPlan: {} as any,
-      shoppingList: {} as any,
-      confidence: 0,
-      generatedAt: new Date()
-    };
+    const meals: DailyMeals[] = [];
 
     // Create daily meals structure
     for (let i = 0; i < 7; i++) {
@@ -444,10 +463,30 @@ export class EnhancedMealPlanningAI {
         dinner: mealSuggestions[i * 3 + 2]
       };
 
-      weeklyPlan.meals.push(dailyMeals);
+      meals.push(dailyMeals);
     }
 
-    return weeklyPlan;
+    return {
+      id: `plan-${Date.now()}`,
+      userId: preferences.userId,
+      name: `Week of ${constraints.startDate.toLocaleDateString()}`,
+      weekStartDate: constraints.startDate,
+      meals,
+      nutritionSummary: {} as any,
+      budgetSummary: {} as any,
+      prepPlan: {} as any,
+      shoppingList: {} as any,
+      confidence: Percentage.create(0),
+      generatedAt: new Date(),
+      preferences,
+      constraints,
+      metadata: {
+        aiModel: featureConfigs.mealPlanning.model,
+        generationTime: 0 as Minutes,
+        revisionCount: PositiveInteger.create(1),
+        userFeedback: null
+      }
+    };
   }
 
   private async calculateNutritionSummary(

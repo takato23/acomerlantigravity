@@ -8,6 +8,13 @@ import React, { useEffect } from 'react';
 import { useNotifications } from '@/services/notifications';
 import { useAnalytics, useFeatureTracking, ANALYTICS_EVENTS, FEATURES } from '@/services/analytics';
 
+type ExpiringItem = {
+  id: string;
+  name: string;
+  daysLeft: number;
+  expirationDate: string;
+};
+
 /**
  * Example 1: Recipe Save with Notification and Analytics
  */
@@ -59,7 +66,7 @@ export function RecipeSaveButton({ recipe }: { recipe: any }) {
       // Track error
       track('recipe_save_error', {
         recipe_id: recipe.id,
-        error: err.message,
+        error: err instanceof Error ? err.message : String(err),
       });
     }
   };
@@ -84,9 +91,9 @@ export function PantryExpirationChecker() {
     
     // Check for expiring items
     const checkExpirations = async () => {
-      const expiringItems = await fetch('/api/pantry/expiring').then(r => r.json());
+      const expiringItems = (await fetch('/api/pantry/expiring').then(r => r.json())) as ExpiringItem[];
       
-      expiringItems.forEach(item => {
+      expiringItems.forEach((item) => {
         // Schedule notification
         notify(`${item.name} expira pronto`, {
           type: 'expiration',
@@ -98,7 +105,7 @@ export function PantryExpirationChecker() {
           },
           schedule: {
             // Notify 1 day before expiration
-            at: new Date(item.expirationDate).getTime() - 24 * 60 * 60 * 1000,
+            at: new Date(new Date(item.expirationDate).getTime() - 24 * 60 * 60 * 1000),
           },
           action: {
             label: 'Ver despensa',
@@ -173,7 +180,7 @@ export function VoiceCommandHandler() {
         confidence,
         duration: Date.now() - startTime,
         success: false,
-        errorReason: error.message,
+        errorReason: error instanceof Error ? error.message : String(error),
       });
       
       // Notify error
@@ -233,7 +240,7 @@ export function BarcodeScanner() {
     } catch (err: unknown) {
       // Track failed scan
       trackDuration('scan_failed', Date.now() - startTime, {
-        error: err.message,
+        error: err instanceof Error ? err.message : String(err),
       });
       
       // Show error notification

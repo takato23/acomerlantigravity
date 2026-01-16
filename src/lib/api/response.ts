@@ -113,7 +113,7 @@ export const notFoundResponse = (resource: string = 'Resource') =>
   errorResponse(ApiErrorCode.NOT_FOUND, `${resource} not found`, 404);
 
 export const validationErrorResponse = (errors: ZodError | any) => {
-  const details = errors instanceof ZodError ? errors.errors : errors;
+  const details = errors instanceof ZodError ? errors.issues : errors;
   return errorResponse(
     ApiErrorCode.VALIDATION_ERROR,
     'Validation failed',
@@ -169,7 +169,7 @@ export function handleDatabaseError(error: any): NextResponse<ApiErrorResponse> 
 
 // Wrapper function for consistent error handling
 export async function withErrorHandling<T>(
-  handler: () => Promise<NextResponse<T>>
+  handler: () => Promise<NextResponse<ApiSuccessResponse<T> | ApiErrorResponse>>
 ): Promise<NextResponse<ApiSuccessResponse<T> | ApiErrorResponse>> {
   try {
     return await handler();

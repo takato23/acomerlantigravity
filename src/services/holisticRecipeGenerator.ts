@@ -172,6 +172,10 @@ export class HolisticRecipeGenerator {
           mealTypes: [context.mealType],
           servings: userPreferences.householdSize,
           maxPrepTime: 60,
+          pantryItems: [],
+          excludeRecipes: [],
+          preferredShoppingDays: [],
+          maxShoppingTrips: 0,
           budgetLimit: undefined
         },
         history: [],
@@ -344,7 +348,7 @@ export class HolisticRecipeGenerator {
   /**
    * Procesar ingredientes con alternativas
    */
-  private processIngredients(ingredients: any[]): HolisticRecipeResponse['recipe']['ingredients'] {
+  private processIngredients(ingredients: any[]): NonNullable<HolisticRecipeResponse['recipe']>['ingredients'] {
     return ingredients.map(ing => ({
       name: typeof ing === 'string' ? ing : ing.name,
       quantity: typeof ing === 'object' ? ing.quantity : 1,
@@ -357,7 +361,7 @@ export class HolisticRecipeGenerator {
   /**
    * Procesar instrucciones con técnicas y tips
    */
-  private processInstructions(instructions: any[]): HolisticRecipeResponse['recipe']['instructions'] {
+  private processInstructions(instructions: any[]): NonNullable<HolisticRecipeResponse['recipe']>['instructions'] {
     return instructions.map((inst, index) => ({
       step: index + 1,
       description: typeof inst === 'string' ? inst : inst.description || inst.instruction,

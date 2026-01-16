@@ -7,12 +7,23 @@ import type {
   RecipeFormData,
   RecipeStats,
   CookingSession,
-  RecipeCollection,
   PantryCompatibility,
-  RecipeSortBy
+  RecipeSortBy,
+  RecipeCategory,
+  CuisineType,
+  DifficultyLevel
 } from '../../types/recipes';
 import type { PantryItem } from '../../types/pantry';
 import { sampleRecipes } from '../../../lib/data/sample-data';
+
+interface RecipeCollection {
+  id: string;
+  name: string;
+  description?: string;
+  user_id?: string;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+}
 
 export class RecipeService {
   private static instance: RecipeService;
@@ -317,7 +328,7 @@ export class RecipeService {
 
       if (error) throw error;
 
-      return recipes?.map(recipe => this.transformRecipeData(recipe)) || [];
+      return recipes?.map((recipe: any) => this.transformRecipeData(recipe)) || [];
     } catch (error: unknown) {
       throw new Error(handleSupabaseError(error));
     }
@@ -340,7 +351,7 @@ export class RecipeService {
 
       if (error) throw error;
 
-      return recipes?.map(recipe => this.transformRecipeData(recipe)) || [];
+      return recipes?.map((recipe: any) => this.transformRecipeData(recipe)) || [];
     } catch (error: unknown) {
       throw new Error(handleSupabaseError(error));
     }
@@ -369,14 +380,14 @@ export class RecipeService {
       if (error) throw error;
 
       // Filter recipes where all non-optional ingredients are available
-      const recipesCanMake = recipes?.filter(recipe => {
-        const requiredIngredients = recipe.recipe_ingredients.filter(ing => !ing.is_optional);
-        return requiredIngredients.every(ing => 
+      const recipesCanMake = recipes?.filter((recipe: any) => {
+        const requiredIngredients = recipe.recipe_ingredients.filter((ing: any) => !ing.is_optional);
+        return requiredIngredients.every((ing: any) => 
           availableIngredientIds.includes(ing.ingredient_id)
         );
       }) || [];
 
-      return recipesCanMake.map(recipe => this.transformRecipeData(recipe));
+      return recipesCanMake.map((recipe: any) => this.transformRecipeData(recipe));
     } catch (error: unknown) {
       throw new Error(handleSupabaseError(error));
     }
@@ -477,7 +488,7 @@ export class RecipeService {
 
       if (error) throw error;
 
-      return favorites?.map(fav => this.transformRecipeData(fav.recipes)) || [];
+      return favorites?.map((fav: any) => this.transformRecipeData(fav.recipes)) || [];
     } catch (error: unknown) {
       throw new Error(handleSupabaseError(error));
     }
@@ -608,9 +619,9 @@ export class RecipeService {
 
       const stats: RecipeStats = {
         total_recipes: recipes?.length || 0,
-        by_category: {},
-        by_cuisine: {},
-        by_difficulty: {},
+        by_category: {} as Record<RecipeCategory, number>,
+        by_cuisine: {} as Record<CuisineType, number>,
+        by_difficulty: {} as Record<DifficultyLevel, number>,
         average_cook_time: 0,
         average_rating: 0,
         most_popular: [],
@@ -620,28 +631,31 @@ export class RecipeService {
 
       // Calculate statistics
       if (recipes) {
-        recipes.forEach(recipe => {
+        recipes.forEach((recipe: any) => {
           // Category stats
           if (recipe.category) {
-            stats.by_category[recipe.category] = (stats.by_category[recipe.category] || 0) + 1;
+            const category = recipe.category as RecipeCategory;
+            stats.by_category[category] = (stats.by_category[category] || 0) + 1;
           }
 
           // Cuisine stats
           if (recipe.cuisine_type) {
-            stats.by_cuisine[recipe.cuisine_type] = (stats.by_cuisine[recipe.cuisine_type] || 0) + 1;
+            const cuisine = recipe.cuisine_type as CuisineType;
+            stats.by_cuisine[cuisine] = (stats.by_cuisine[cuisine] || 0) + 1;
           }
 
           // Difficulty stats
           if (recipe.difficulty) {
-            stats.by_difficulty[recipe.difficulty] = (stats.by_difficulty[recipe.difficulty] || 0) + 1;
+            const difficulty = recipe.difficulty as DifficultyLevel;
+            stats.by_difficulty[difficulty] = (stats.by_difficulty[difficulty] || 0) + 1;
           }
         });
 
         // Calculate averages
-        const totalTime = recipes.reduce((sum, recipe) => sum + (recipe.cook_time || 0), 0);
+        const totalTime = recipes.reduce((sum: number, recipe: any) => sum + (recipe.cook_time || 0), 0);
         stats.average_cook_time = totalTime / recipes.length;
 
-        const totalRating = recipes.reduce((sum, recipe) => sum + (recipe.rating_average || 0), 0);
+        const totalRating = recipes.reduce((sum: number, recipe: any) => sum + (recipe.rating_average || 0), 0);
         stats.average_rating = totalRating / recipes.length;
       }
 

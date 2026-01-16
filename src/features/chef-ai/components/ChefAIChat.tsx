@@ -31,7 +31,7 @@ interface ChefAIChatProps {
 }
 
 export function ChefAIChat({ className = '', onClose, isOpen = true }: ChefAIChatProps) {
-    const { currentWeekPlan, userPreferences } = useMealPlanningStore();
+    const { currentWeekPlan, preferences } = useMealPlanningStore();
     const { checkAccess, trackAction } = useMonetization();
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
@@ -98,9 +98,9 @@ export function ChefAIChat({ className = '', onClose, isOpen = true }: ChefAICha
                         endDate: currentWeekPlan?.endDate,
                         meals: planContext
                     } : undefined,
-                    userPreferences: userPreferences ? {
-                        dietaryRestrictions: userPreferences.dietaryRestrictions,
-                        householdSize: userPreferences.householdSize
+                    userPreferences: preferences ? {
+                        dietaryRestrictions: preferences.dietaryPreferences || preferences.dietary?.restrictions || [],
+                        householdSize: preferences.family?.householdSize || 1
                     } : undefined
                 })
             });

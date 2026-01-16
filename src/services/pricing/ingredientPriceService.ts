@@ -169,7 +169,7 @@ export class IngredientPriceService {
       // Extract prices for this ingredient
       const prices: number[] = [];
 
-      receipts.forEach(receipt => {
+      receipts.forEach((receipt: any) => {
         const items = receipt.detected_items as any[];
         if (Array.isArray(items)) {
           items.forEach(item => {

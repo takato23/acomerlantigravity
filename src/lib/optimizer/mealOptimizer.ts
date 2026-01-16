@@ -78,7 +78,7 @@ export async function optimizeWeeklyPlan(
 ): Promise<ArgentineWeeklyPlan> {
   const startTime = Date.now();
   
-  logger.info('[Optimizer] Starting optimization', {
+  logger.info('[Optimizer] Starting optimization', 'Optimizer', {
     mode: context.mode,
     season: context.season,
     pantryItems: context.pantry.length,
@@ -103,7 +103,7 @@ export async function optimizeWeeklyPlan(
     
     // Optimize each meal
     for (const mealType of ['almuerzo', 'cena'] as MealType[]) {
-      const currentMeal = day.meals[mealType];
+      const currentMeal = day[mealType];
       if (!currentMeal?.recipe) continue;
       
       // Calculate current score
@@ -127,7 +127,7 @@ export async function optimizeWeeklyPlan(
         );
         
         if (betterRecipe) {
-          logger.info('[Optimizer] Found better recipe', {
+          logger.info('[Optimizer] Found better recipe', 'Optimizer', {
             dayIndex,
             mealType,
             oldRecipe: currentMeal.recipe.name,
@@ -143,10 +143,9 @@ export async function optimizeWeeklyPlan(
           });
           
           // Update the plan
-          optimizedPlan.days[dayIndex].meals[mealType] = {
+          optimizedPlan.days[dayIndex][mealType] = {
             ...currentMeal,
             recipe: betterRecipe,
-            recipeId: betterRecipe.id,
           };
         }
       }
@@ -154,7 +153,7 @@ export async function optimizeWeeklyPlan(
   }
   
   const duration = Date.now() - startTime;
-  logger.info('[Optimizer] Optimization complete', {
+  logger.info('[Optimizer] Optimization complete', 'Optimizer', {
     duration,
     mode: context.mode,
   });
@@ -220,7 +219,7 @@ function calculateCostScore(recipe: Recipe, context: OptimizationContext): numbe
   
   for (const ingredient of recipe.ingredients) {
     const price = getIngredientPrice(ingredient.name, context.season);
-    const quantity = ingredient.quantity || 1;
+    const quantity = ingredient.amount || 1;
     totalCost += price * quantity;
   }
   
@@ -323,8 +322,9 @@ function calculateVarietyScore(
     if (i === currentDayIndex) continue;
     
     const day = plan.days[i];
-    for (const meal of Object.values(day.meals)) {
-      if (meal.recipe && areSimilarRecipes(recipe, meal.recipe)) {
+    const meals = [day.desayuno, day.almuerzo, day.merienda, day.cena];
+    for (const meal of meals) {
+      if (meal?.recipe && areSimilarRecipes(recipe, meal.recipe)) {
         repetitions++;
       }
     }

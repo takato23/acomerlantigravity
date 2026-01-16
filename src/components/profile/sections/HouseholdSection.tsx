@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useProfileContext } from '@/contexts/ProfileContext';
-import { householdMemberSchema } from '@/lib/schemas/profile';
+import { householdMemberSchema, type HouseholdMemberFormData } from '@/lib/schemas/profile';
 import {
   Dialog,
   DialogContent,
@@ -52,7 +52,7 @@ export function HouseholdSection() {
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([
     {
       id: '1',
-      name: profile?.name || 'You',
+      name: profile?.fullName || 'You',
       isAdmin: true,
       dietaryRestrictions: profile?.dietaryRestrictions,
       preferences: 'Admin of household',

@@ -263,7 +263,13 @@ export function VoiceRecorder({
             <Button
               variant={isListening ? 'secondary' : 'primary'}
               size="lg"
-              onClick={isListening ? stopListening : startListening}
+              onClick={() => {
+                if (isListening) {
+                  stopListening();
+                } else {
+                  startListening();
+                }
+              }}
               className={`
                     relative overflow-hidden transition-all duration-300 w-full max-w-xs
                     ${isListening ? 'bg-red-600 hover:bg-red-700 text-white' : ''}
@@ -387,33 +393,39 @@ export function VoiceRecorder({
               Ingredientes Detectados:
             </Text>
             <div className="space-y-2">
-              {parsedItems.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md"
-                >
-                  <div className="flex items-center gap-3">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <div>
-                      <Text className="font-medium text-gray-900">
-                        {item.name}
-                      </Text>
-                      <Text size="sm" className="text-gray-600">
-                        {item.amount.value} {item.amount.unit}
-                      </Text>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={item.confidence > 0.8 ? 'success' : 'warning'}
-                    size="sm"
+              {parsedItems.map((item, index) => {
+                const quantity = item.quantity ?? 1;
+                const unit = item.unit ?? 'un';
+                const confidence = item.confidence ?? 0.8;
+
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md"
                   >
-                    {Math.round(item.confidence * 100)}%
-                  </Badge>
-                </motion.div>
-              ))}
+                    <div className="flex items-center gap-3">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <div>
+                        <Text className="font-medium text-gray-900">
+                          {item.name}
+                        </Text>
+                        <Text size="sm" className="text-gray-600">
+                          {quantity} {unit}
+                        </Text>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={confidence > 0.8 ? 'success' : 'warning'}
+                      size="sm"
+                    >
+                      {Math.round(confidence * 100)}%
+                    </Badge>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -233,8 +233,8 @@ export class ApiErrorHandler {
    * Normaliza diferentes tipos de errores a ApiError
    */
   private normalizeError(error: any, endpoint: string, method: string): ApiError {
-    if (error instanceof ApiError) {
-      return error;
+    if (error instanceof Error && ('status' in error || 'code' in error)) {
+      return error as ApiError;
     }
 
     let status = 0;
@@ -243,11 +243,13 @@ export class ApiErrorHandler {
 
     if (error instanceof Error) {
       message = error.message;
-      if ('status' in error) {
-        status = error.status;
+      const statusValue = (error as ApiError).status;
+      if (typeof statusValue === 'number') {
+        status = statusValue;
       }
-      if ('code' in error) {
-        code = error.code;
+      const codeValue = (error as ApiError).code;
+      if (typeof codeValue === 'string') {
+        code = codeValue;
       }
     } else if (typeof error === 'string') {
       message = error;

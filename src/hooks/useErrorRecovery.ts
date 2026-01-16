@@ -348,7 +348,7 @@ export function useErrorRecovery(config: ErrorRecoveryConfig = {}) {
   /**
    * Get error icon for UI
    */
-  const getErrorIcon = useCallback((error?: UserProfileError) => {
+  const getErrorIcon = useCallback((error?: UserProfileError | null) => {
     if (!error) return 'AlertCircle';
 
     switch (error.code) {
@@ -365,7 +365,7 @@ export function useErrorRecovery(config: ErrorRecoveryConfig = {}) {
         return 'Database';
       
       case 'INVALID_PROFILE_DATA':
-      case 'VALIDATION_FAILED':
+      case 'REQUIRED_FIELD_MISSING':
         return 'AlertTriangle';
       
       default:

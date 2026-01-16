@@ -76,10 +76,10 @@ const UltraModernDashboard: React.FC = () => {
 
     return recipesToShow.map(r => ({
       id: r.recipe.id,
-      name: r.recipe.name || 'Receta',
+      name: r.recipe.title || 'Receta',
       image: r.recipe.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
       time: `${(r.recipe.prep_time || 0) + (r.recipe.cook_time || 0)} min`,
-      rating: r.recipe.avg_rating || 4.5
+      rating: r.recipe.rating || 4.5
     }));
   }, [canCookNow, sortedByAvailability]);
 

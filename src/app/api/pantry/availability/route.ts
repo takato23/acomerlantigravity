@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { getUser } from '@/lib/auth/supabase-auth';
 import { db } from '@/lib/supabase/database.service';
+import { createClient } from '@/lib/supabase/server';
+import {
+  checkPantryAvailability,
+  generateShoppingList
+} from '@/features/pantry/utils/mealPlanIntegration';
+import type {
+  RecipeIngredient,
+  PantryItem,
+  ShoppingListItem,
+  PantryAvailability
+} from '@/features/pantry/types';
+
+interface PantryAPIResponse<T> {
+  data: T;
+  success: boolean;
+  message: string;
+}
 
 interface IngredientAvailability {
   ingredient_name: string;
@@ -47,8 +65,8 @@ export async function GET(request: NextRequest) {
 
     // Create pantry availability map
     const pantryMap = new Map<string, { quantity: number; unit: string }>();
-    pantryItems.forEach(item => {
-      const ingredientName = item.ingredient?.name?.toLowerCase();
+    pantryItems.forEach((item: PantryItem & { ingredient?: { name?: string | null } }) => {
+      const ingredientName = (item.ingredient?.name ?? item.ingredient_name)?.toLowerCase();
       if (ingredientName) {
         const existing = pantryMap.get(ingredientName);
         if (existing && existing.unit === item.unit) {
@@ -83,11 +101,11 @@ export async function GET(request: NextRequest) {
           const requiredQuantity = recipeIngredient.quantity * servings;
           const available = pantryMap.get(ingredientName);
           const availableQuantity = available?.quantity || 0;
-          
-          const availabilityPercentage = requiredQuantity > 0 
+
+          const availabilityPercentage = requiredQuantity > 0
             ? Math.min(100, (availableQuantity / requiredQuantity) * 100)
             : 100;
-          
+
           const sufficient = availableQuantity >= requiredQuantity;
           const shortage = Math.max(0, requiredQuantity - availableQuantity);
 
@@ -117,7 +135,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const overallAvailability = ingredientAvailabilities.length > 0 
+    const overallAvailability = ingredientAvailabilities.length > 0
       ? Math.round(totalAvailabilityScore / ingredientAvailabilities.length)
       : 0;
 
@@ -145,8 +163,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {

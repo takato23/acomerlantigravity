@@ -5,6 +5,12 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 import { createServerSupabaseClient } from '@/lib/supabase/client';
 
+interface PantryItemSummary {
+  name?: string | null;
+  quantity?: number | null;
+  unit?: string | null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
@@ -47,21 +53,23 @@ export async function POST(request: NextRequest) {
 
     const profile = profileResult.data;
     const preferences = preferencesResult.data;
-    const pantryItems = pantryResult.data || [];
+    const pantryItems = (pantryResult.data || []) as PantryItemSummary[];
 
-    const cookingPersonaDescriptions = {
+    const cookingPersonaDescriptions: Record<'beginner' | 'home_cook' | 'foodie' | 'health_conscious', string> = {
       beginner: 'Principiante entusiasta que prefiere recetas simples con instrucciones claras',
       home_cook: 'Cocinero casero con experiencia en recetas familiares tradicionales',
       foodie: 'Foodie aventurero que disfruta experimentar con sabores y técnicas nuevas',
       health_conscious: 'Consciente de la salud, prioriza nutrición y ingredientes naturales'
     };
+    const cookingPersonaKey = (profile?.cooking_persona ?? 'beginner') as keyof typeof cookingPersonaDescriptions;
+    const cookingPersonaDescription = cookingPersonaDescriptions[cookingPersonaKey] || cookingPersonaDescriptions.beginner;
 
     // Build system prompt for personalized suggestions
     const systemPrompt = `Eres un chef personal experto que conoce íntimamente los gustos y preferencias de tu cliente. Tu objetivo es sugerir recetas perfectamente personalizadas que se adapten a su estilo de cocina, preferencias y restricciones.
 
 PERFIL DEL USUARIO:
 - Nombre: ${profile?.display_name || 'Usuario'}
-- Estilo de cocina: ${cookingPersonaDescriptions[profile?.cooking_persona || 'beginner']}
+- Estilo de cocina: ${cookingPersonaDescription}
 - Bio: ${profile?.bio || 'No especificada'}
 
 REGLAS IMPORTANTES:
@@ -128,7 +136,7 @@ RESTRICCIONES Y PREFERENCIAS:
 - Ingredientes a evitar: ${preferences?.disliked_ingredients?.join(', ') || 'Ninguno'}
 
 ${pantryItems.length > 0 ? `INGREDIENTES EN DESPENSA:
-${pantryItems.slice(0, 20).map(item => `- ${item.name}: ${item.quantity} ${item.unit}`).join('\n')}
+${pantryItems.slice(0, 20).map((item: PantryItemSummary) => `- ${item.name}: ${item.quantity} ${item.unit}`).join('\n')}
 ${pantryItems.length > 20 ? `... y ${pantryItems.length - 20} más` : ''}` : 'DESPENSA: No hay información disponible'}
 
 INSTRUCCIONES ESPECIALES:
@@ -164,12 +172,13 @@ Genera las recetas personalizadas:`;
     });
 
   } catch (error: unknown) {
-    logger.error('Personalized recipe generation error:', 'API:route', error);
-    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Personalized recipe generation error', 'API:route', error);
+
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to generate personalized recipes',
-        details: error.message 
+        details: errorMessage
       },
       { status: 500 }
     );
@@ -246,7 +255,8 @@ async function parseAndValidateResponse(aiResponse: string): Promise<any> {
 
     return responseData;
   } catch (error: unknown) {
-    throw new Error(`Failed to parse response: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to parse response: ${errorMessage}`);
   }
 }
 

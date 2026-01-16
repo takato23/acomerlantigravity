@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { Database } from '@/types/database'
+import { Database } from '../../types/database'
 
 /**
  * Supabase Auth Service
@@ -38,11 +38,11 @@ export async function createClient() {
 export async function getUser() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
-  
+
   if (error || !user) {
     return null
   }
-  
+
   return user
 }
 

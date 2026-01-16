@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 import { useCookingAssistantStore } from '../store/cookingAssistantStore';
 
-import { GlassCard } from '@/components/dashboard/DashboardLayout';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface MeasurementConverterProps {
   onClose: () => void;

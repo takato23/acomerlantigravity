@@ -57,10 +57,11 @@ export default function ReceiptCamera({ onCapture, onClose, isProcessing }: Rece
     } catch (err: unknown) {
       logger.error('Camera error:', 'ReceiptCamera', err);
       setHasPermission(false);
-      
-      if (err.name === 'NotAllowedError') {
+
+      const errorName = err instanceof Error ? err.name : undefined;
+      if (errorName === 'NotAllowedError') {
         setError('Se requiere permiso para acceder a la cámara');
-      } else if (err.name === 'NotFoundError') {
+      } else if (errorName === 'NotFoundError') {
         setError('No se encontró una cámara disponible');
       } else {
         setError('Error al acceder a la cámara');

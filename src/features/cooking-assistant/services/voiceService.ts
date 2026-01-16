@@ -40,6 +40,9 @@ export class VoiceService {
 
       // Initialize Speech Recognition
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        throw new Error('Speech recognition not supported in this browser');
+      }
       this.recognition = new SpeechRecognition();
       
       this.recognition.continuous = true;

@@ -3,12 +3,11 @@
 import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useProfileCache, useProfileCacheWarmup } from '@/hooks/useProfileCache';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import type { Database } from '@/types/supabase';
 import { logger } from '@/services/logger';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type ProfilePreferences = Database['public']['Tables']['profile_preferences']['Row'];
-type ProfileStats = Database['public']['Tables']['profile_stats']['Row'];
+type Profile = Record<string, any>;
+type ProfilePreferences = Record<string, any>;
+type ProfileStats = Record<string, any>;
 
 interface CachedProfileContextValue {
   profile: Profile | null;

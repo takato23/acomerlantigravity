@@ -1,5 +1,8 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { UnifiedAIService } from '@/services/ai';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/services/logger';
 import type { Database } from '@/lib/supabase/database.types';
 
 export async function POST(request: NextRequest) {
@@ -29,11 +32,10 @@ export async function POST(request: NextRequest) {
       ingredients: body.ingredients,
       preferences: {
         dietary: body.dietaryRestrictions,
-        cuisine: body.cuisinePreference,
-        difficulty: body.difficulty,
-        servings: body.servings,
-        maxCookTime: body.maxTime
-      }
+        cuisinePreferences: body.cuisinePreference ? [body.cuisinePreference] : [],
+        cookingSkillLevel: body.difficulty,
+        familySize: body.servings,
+      } as any
     });
 
     // Optionally save to database if requested
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ recipe: generatedRecipe });
-  } catch (error: unknown) {
+  } catch (error: any) {
     logger.error('Recipe generation error:', 'API:route', error);
     return NextResponse.json(
       { error: error.message || 'Failed to generate recipe' },

@@ -1,11 +1,11 @@
 // src/lib/services/geminiMealService.ts
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import geminiConfig from '@/lib/config/gemini.config';;
+import { defaultGeminiConfig, getGeminiApiKey } from '@/lib/config/gemini.config';
 import { logger } from '@/services/logger';
-import { generateArgentineMealPlanPrompt, generateDailyMealPrompt, ARGENTINE_MEAL_CULTURE } from '@/lib/prompts/argentineMealPrompts';
+import { generateArgentineMealPlanPrompt, ARGENTINE_MEAL_CULTURE } from '@/lib/prompts/argentineMealPrompts';
 import { z } from 'zod';
 
-const genAI = new GoogleGenerativeAI(geminiConfig.getApiKey()!);
+const genAI = new GoogleGenerativeAI(getGeminiApiKey()!);
 
 const RecipeSchema = z.object({
   name: z.string(),
@@ -29,9 +29,15 @@ const RecipeSchema = z.object({
   culturalNotes: z.string().optional()
 });
 
-const MealPlanSchema = z.record(z.record(z.object({
-  recipe: RecipeSchema
-})));
+const MealPlanSchema = z.record(
+  z.string(),
+  z.record(
+    z.string(),
+    z.object({
+      recipe: RecipeSchema
+    })
+  )
+);
 
 export async function generateMealPlan(options: {
   weekStart: Date;
@@ -40,7 +46,7 @@ export async function generateMealPlan(options: {
   culturalContext: any;
 }) {
   const model = genAI.getGenerativeModel({ 
-    model: geminiConfig.default.model,
+    model: defaultGeminiConfig.model,
     generationConfig: {
       temperature: 0.8,
       topK: 40,
@@ -81,7 +87,7 @@ export async function generateMealPlan(options: {
     
     return validated;
   } catch (error) {
-    logger.error('Error generando plan:', error);
+    logger.error('Error generando plan:', 'geminiMealService', error);
     
     // Retry con temperatura más baja
     if (error instanceof z.ZodError) {
@@ -98,7 +104,7 @@ export async function regenerateMeal(options: {
   currentPlan: any;
   avoidRepetition: boolean;
 }) {
-  const model = genAI.getGenerativeModel({ model: geminiConfig.default.model });
+  const model = genAI.getGenerativeModel({ model: defaultGeminiConfig.model });
   
   // Obtener comidas existentes para evitar repetición
   const existingMeals = new Set<string>();
@@ -222,7 +228,7 @@ function getDayName(index: number): string {
 async function generateMealPlanWithLowerTemp(options: any) {
   // Implementación con temperatura más baja para mayor precisión
   const model = genAI.getGenerativeModel({ 
-    model: geminiConfig.default.model,
+    model: defaultGeminiConfig.model,
     generationConfig: {
       temperature: 0.3,
       topK: 20,

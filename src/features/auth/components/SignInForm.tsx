@@ -4,10 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
-import { useAppStore } from '@/store';
+import { useAppStore } from '../../../store';
 import { SignInFormData } from '../types';
 
-export function SignInForm() {
+interface SignInFormProps {
+  onSuccess?: () => void;
+}
+
+export function SignInForm({ onSuccess }: SignInFormProps) {
   const router = useRouter();
   const isLoading = useAppStore((state) => state.user.isLoading);
   const setAuthLoading = useAppStore((state) => state.setAuthLoading);
@@ -31,24 +35,28 @@ export function SignInForm() {
 
     try {
       setAuthLoading(true);
-      
-      // Here you would typically call your auth service
-      // For now, simulating a login with mock user data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      // Mock successful authentication
-      const mockUser = {
-        id: '1',
+
+      const { AuthService } = await import('../services/authService');
+      const { user: authUser } = await AuthService.getInstance().signInWithEmail({
         email: formData.email,
-        name: formData.email.split('@')[0],
-        avatar: '',
-        createdAt: new Date(),
+        password: formData.password,
+        remember: formData.remember
+      });
+
+      // Map AuthUser to UserProfile store type
+      const profileUser = {
+        id: authUser.id,
+        email: authUser.email,
+        name: authUser.name || authUser.email.split('@')[0] || 'Usuario',
+        avatar: authUser.avatar_url,
+        createdAt: authUser.created_at,
         lastLogin: new Date()
       };
-      
-      setUser(mockUser);
+
+      setUser(profileUser);
+      onSuccess?.();
       router.push('/app');
-    } catch (error: unknown) {
+    } catch (error: any) {
       setError(error instanceof Error ? error.message : 'Sign in failed');
     } finally {
       setAuthLoading(false);

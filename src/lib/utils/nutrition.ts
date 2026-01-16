@@ -444,14 +444,28 @@ export function deriveNutritionSummary(
   preferences?: UserPreferences
 ): WeeklyNutritionSummary {
   const { daily, weekly } = calculateWeeklyNutrition(weeklyPlan);
+  const normalizedDaily = {
+    calories: daily.calories,
+    protein: daily.protein,
+    carbs: daily.carbs,
+    fat: daily.fat,
+    fiber: daily.fiber ?? 0,
+  };
+  const normalizedWeekly = {
+    calories: weekly.calories,
+    protein: weekly.protein,
+    carbs: weekly.carbs,
+    fat: weekly.fat,
+    fiber: weekly.fiber ?? 0,
+  };
   const balance = analyzeNutritionBalance(weeklyPlan, preferences);
   const recommendations = generateNutritionRecommendations(weeklyPlan, preferences);
   const achievements = generateNutritionAchievements(weeklyPlan);
   const warnings = generateNutritionWarnings(weeklyPlan, preferences);
 
   return {
-    daily,
-    weekly,
+    daily: normalizedDaily,
+    weekly: normalizedWeekly,
     balance,
     recommendations,
     achievements,

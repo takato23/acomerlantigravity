@@ -62,11 +62,12 @@ class ApiClient {
 
       return data;
     } catch (error: unknown) {
-      if (error.error) {
+      if (error && typeof error === 'object' && 'error' in error) {
         throw error;
       }
+      const message = error instanceof Error ? error.message : 'Network error';
       throw {
-        error: error.message || 'Network error',
+        error: message,
         status: 0,
       };
     }

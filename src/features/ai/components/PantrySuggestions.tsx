@@ -54,7 +54,7 @@ export function PantrySuggestions({ isOpen, onClose }: PantrySuggestionsProps) {
 
       setSuggestions(data.suggestions || []);
     } catch (err: unknown) {
-      setError(err.message || 'Failed to get suggestions');
+      setError(err instanceof Error ? err.message : 'Failed to get suggestions');
     } finally {
       setIsLoading(false);
     }

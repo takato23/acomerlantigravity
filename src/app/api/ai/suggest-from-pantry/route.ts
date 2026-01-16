@@ -84,12 +84,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract ingredient names and quantities
-    const availableIngredients = pantryItems.map(item => ({
+    const availableIngredients = (pantryItems as any[]).map((item: any) => ({
       name: item.ingredient?.name || '',
       quantity: item.quantity,
       unit: item.unit,
       expirationDate: item.expiration_date
-    })).filter(item => item.name);
+    })).filter((item: any) => item.name);
 
     // Get optional request body for preferences
     const body = await request.json().catch(() => ({}));

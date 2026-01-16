@@ -70,7 +70,7 @@ export function VoiceInput({
       
       // Convert to ParsedIngredient format
       const parsedIngredients: ParsedIngredient[] = ingredients.map(ingredient => ({
-        name: ingredient.extracted_name,
+        name: ingredient.extracted_name || ingredient.raw_text || 'Ingrediente',
         quantity: ingredient.quantity || 1,
         unit: ingredient.unit || 'pcs',
         confidence: ingredient.confidence,
@@ -155,7 +155,7 @@ export function VoiceInput({
                 <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                   <span className="text-sm text-red-700">
-                    {error.message}
+                  {error}
                   </span>
                 </div>
               )}

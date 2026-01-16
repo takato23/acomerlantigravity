@@ -16,10 +16,10 @@ export interface iOS26EnhancedCardProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
 }
 
-const iOS26EnhancedCard = forwardRef<HTMLDivElement, iOS26EnhancedCardProps>(
-  ({ 
-    className, 
-    variant = 'liquid', 
+const IOS26EnhancedCard = forwardRef<HTMLDivElement, iOS26EnhancedCardProps>(
+  ({
+    className,
+    variant = 'liquid',
     elevation = 'medium',
     liquidEffect = true,
     glowEffect = false,
@@ -28,28 +28,28 @@ const iOS26EnhancedCard = forwardRef<HTMLDivElement, iOS26EnhancedCardProps>(
     interactive = false,
     gradient = false,
     children,
-    ...restProps 
+    ...restProps
   }, ref) => {
     // Remove all custom props that shouldn't be passed to DOM
     const [isHovered, setIsHovered] = useState(false);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    
+
     // Filter out custom props before passing to DOM
-    const domProps = Object.keys(restProps).reduce((acc, key) => {
+    const domProps = Object.keys(restProps).reduce((acc: any, key) => {
       // Only pass through standard HTML attributes
       if (!['liquidEffect', 'glowEffect', 'morphEffect', 'floatEffect', 'interactive', 'gradient', 'variant', 'elevation'].includes(key)) {
-        acc[key] = restProps[key];
+        acc[key] = (restProps as any)[key];
       }
       return acc;
-    }, {} as any);
+    }, {});
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
       if (!interactive) return;
-      
+
       const rect = e.currentTarget.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 100;
       const y = ((e.clientY - rect.top) / rect.height) * 100;
-      
+
       setMousePosition({ x, y });
     };
 
@@ -154,6 +154,8 @@ const iOS26EnhancedCard = forwardRef<HTMLDivElement, iOS26EnhancedCardProps>(
   }
 );
 
-iOS26EnhancedCard.displayName = 'iOS26EnhancedCard';
+IOS26EnhancedCard.displayName = 'IOS26EnhancedCard';
 
-export { iOS26EnhancedCard };
+export { IOS26EnhancedCard };
+export const iOS26EnhancedCard = IOS26EnhancedCard;
+export type IOS26EnhancedCardProps = iOS26EnhancedCardProps;

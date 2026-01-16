@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 
 interface PushSubscriptionRequest {
@@ -18,7 +19,8 @@ interface PushSubscriptionRequest {
 
 export async function POST(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
 
         // Get current user
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -89,7 +91,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
 
         // Get current user
         const { data: { user }, error: authError } = await supabase.auth.getUser();

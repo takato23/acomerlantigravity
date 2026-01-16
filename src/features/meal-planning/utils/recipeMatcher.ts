@@ -204,7 +204,7 @@ function calculateVarietyScore(recipe: Recipe, existingMeals: Recipe[]): number 
  */
 function extractMainIngredients(recipe: Recipe): string[] {
   return (recipe.ingredients || [])
-    .filter(i => (i.amount > 50 || i.category === 'meat' || i.category === 'produce'))
+    .filter(i => ((i.amount ?? 0) > 50 || i.category === 'meat' || i.category === 'produce'))
     .map(i => (i.name || '').toLowerCase())
     .slice(0, 3);
 }

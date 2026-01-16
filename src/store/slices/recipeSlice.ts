@@ -143,7 +143,7 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     lastSync: undefined
   },
 
-  addRecipe: (recipe) => set((state) => {
+  addRecipe: (recipe) => set((state: RecipeSlice) => {
     const newRecipe: Recipe = {
       ...recipe,
       id: Date.now().toString(),
@@ -172,20 +172,20 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     });
   }),
 
-  updateRecipe: (id, updates) => set((state) => {
+  updateRecipe: (id, updates) => set((state: RecipeSlice) => {
     const index = state.recipes.items.findIndex(recipe => recipe.id === id);
     if (index !== -1) {
       Object.assign(state.recipes.items[index], updates, { updatedAt: new Date() });
     }
   }),
 
-  deleteRecipe: (id) => set((state) => {
+  deleteRecipe: (id) => set((state: RecipeSlice) => {
     state.recipes.items = state.recipes.items.filter(recipe => recipe.id !== id);
     state.recipes.favorites = state.recipes.favorites.filter(favId => favId !== id);
     state.recipes.recentlyViewed = state.recipes.recentlyViewed.filter(viewId => viewId !== id);
   }),
 
-  favoriteRecipe: (id, favorite) => set((state) => {
+  favoriteRecipe: (id, favorite) => set((state: RecipeSlice) => {
     const recipe = state.recipes.items.find(recipe => recipe.id === id);
     if (recipe) {
       const isFavorite = favorite !== undefined ? favorite : !recipe.isFavorite;
@@ -200,7 +200,7 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     }
   }),
 
-  rateRecipe: (id, rating) => set((state) => {
+  rateRecipe: (id, rating) => set((state: RecipeSlice) => {
     const recipe = state.recipes.items.find(recipe => recipe.id === id);
     if (recipe) {
       // Simple rating update (in real app, would handle user-specific ratings)
@@ -213,7 +213,7 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     }
   }),
 
-  addToRecentlyViewed: (id) => set((state) => {
+  addToRecentlyViewed: (id) => set((state: RecipeSlice) => {
     // Remove if already exists and add to front
     state.recipes.recentlyViewed = state.recipes.recentlyViewed.filter(viewId => viewId !== id);
     state.recipes.recentlyViewed.unshift(id);
@@ -224,7 +224,7 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     }
   }),
 
-  markAsCooked: (id) => set((state) => {
+  markAsCooked: (id) => set((state: RecipeSlice) => {
     const recipe = state.recipes.items.find(recipe => recipe.id === id);
     if (recipe) {
       recipe.lastCooked = new Date();
@@ -233,15 +233,15 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     }
   }),
 
-  setRecipeFilter: (filter) => set((state) => {
+  setRecipeFilter: (filter) => set((state: RecipeSlice) => {
     Object.assign(state.recipes.currentFilter, filter);
   }),
 
-  clearRecipeFilter: () => set((state) => {
+  clearRecipeFilter: () => set((state: RecipeSlice) => {
     state.recipes.currentFilter = {};
   }),
 
-  addSearchTerm: (term) => set((state) => {
+  addSearchTerm: (term) => set((state: RecipeSlice) => {
     const trimmedTerm = term.trim().toLowerCase();
     if (trimmedTerm && !state.recipes.searchHistory.includes(trimmedTerm)) {
       state.recipes.searchHistory.unshift(trimmedTerm);
@@ -253,15 +253,15 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     }
   }),
 
-  clearSearchHistory: () => set((state) => {
+  clearSearchHistory: () => set((state: RecipeSlice) => {
     state.recipes.searchHistory = [];
   }),
 
-  setRecipesLoading: (loading) => set((state) => {
+  setRecipesLoading: (loading) => set((state: RecipeSlice) => {
     state.recipes.isLoading = loading;
   }),
 
-  importRecipes: (recipes) => set((state) => {
+  importRecipes: (recipes) => set((state: RecipeSlice) => {
     recipes.forEach(recipe => {
       // Check if recipe already exists
       const existingIndex = state.recipes.items.findIndex(existing =>
@@ -281,7 +281,7 @@ export const createRecipeSlice: StateCreator<any, [], [], RecipeSlice> = (set, g
     });
   }),
 
-  duplicateRecipe: (id) => set((state) => {
+  duplicateRecipe: (id) => set((state: RecipeSlice) => {
     const original = state.recipes.items.find(recipe => recipe.id === id);
     if (original) {
       const duplicate: Recipe = {

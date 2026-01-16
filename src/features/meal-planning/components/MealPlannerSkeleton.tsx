@@ -2,14 +2,14 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
 
 export function MealPlannerSkeleton() {
   const days = Array.from({ length: 7 });
   const meals = Array.from({ length: 4 });
 
   return (
-    <iOS26EnhancedCard
+    <IOS26EnhancedCard
       variant="aurora"
       elevation="high"
       className="relative overflow-hidden"
@@ -82,14 +82,14 @@ export function MealPlannerSkeleton() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: (mealIndex * 7 + dayIndex) * 0.02 }}
                   >
-                    <iOS26EnhancedCard
+                    <IOS26EnhancedCard
                       variant="glass"
                       className="h-32 animate-pulse"
                     >
                       <div className="h-full flex items-center justify-center">
                         <div className="w-10 h-10 bg-white/20 rounded-full" />
                       </div>
-                    </iOS26EnhancedCard>
+                    </IOS26EnhancedCard>
                   </motion.div>
                 ))}
               </div>
@@ -135,14 +135,14 @@ export function MealPlannerSkeleton() {
                 <div className="h-3 w-16 bg-white/10 rounded animate-pulse ml-auto" />
               </div>
               
-              <iOS26EnhancedCard
+              <IOS26EnhancedCard
                 variant="glass"
                 className="h-32 animate-pulse"
               >
                 <div className="h-full flex items-center justify-center">
                   <div className="w-10 h-10 bg-white/20 rounded-full" />
                 </div>
-              </iOS26EnhancedCard>
+              </IOS26EnhancedCard>
             </motion.div>
           ))}
         </div>
@@ -159,6 +159,6 @@ export function MealPlannerSkeleton() {
           ))}
         </div>
       </div>
-    </iOS26EnhancedCard>
+    </IOS26EnhancedCard>
   );
 }

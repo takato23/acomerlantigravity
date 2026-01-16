@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 import { StoreComparison } from '@/services/pricing';
-import { iOS26LiquidCard, iOS26LiquidButton } from '@/components/ios26';
+import { IOS26LiquidCard, IOS26LiquidButton } from '@/components/ios26';
 import { cn } from '@/lib/utils';
 
 interface StoreComparisonTableProps {
@@ -88,7 +88,7 @@ export const StoreComparisonTable: React.FC<StoreComparisonTableProps> = ({
   return (
     <div className={cn("space-y-6", className)}>
       {/* Summary Header */}
-      <iOS26LiquidCard variant="medium" glow className="p-6">
+      <IOS26LiquidCard variant="medium" glow className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-slate-900">
             Comparacion de Tiendas
@@ -131,17 +131,17 @@ export const StoreComparisonTable: React.FC<StoreComparisonTableProps> = ({
 
         {onOptimizeRoute && selectedStores.size > 0 && (
           <div className="mt-4">
-            <iOS26LiquidButton
+            <IOS26LiquidButton
               variant="primary"
               onClick={onOptimizeRoute}
               icon={<Navigation className="w-4 h-4" />}
               glow
             >
               Optimizar Ruta de Compras
-            </iOS26LiquidButton>
+            </IOS26LiquidButton>
           </div>
         )}
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Store Comparison Cards */}
       <div className="space-y-4">
@@ -157,7 +157,7 @@ export const StoreComparisonTable: React.FC<StoreComparisonTableProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <iOS26LiquidCard
+              <IOS26LiquidCard
                 variant={isBestValue ? "medium" : "subtle"}
                 glow={isBestValue}
                 className={cn(
@@ -267,7 +267,7 @@ export const StoreComparisonTable: React.FC<StoreComparisonTableProps> = ({
 
                   {/* Action Buttons */}
                   <div className="flex gap-2 pt-2">
-                    <iOS26LiquidButton
+                    <IOS26LiquidButton
                       variant={showBreakdown === comparison.store.id ? "secondary" : "ghost"}
                       size="sm"
                       onClick={(e) => {
@@ -278,10 +278,10 @@ export const StoreComparisonTable: React.FC<StoreComparisonTableProps> = ({
                       }}
                     >
                       Ver Desglose
-                    </iOS26LiquidButton>
+                    </IOS26LiquidButton>
 
                     {onSelectStore && (
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         variant="primary"
                         size="sm"
                         onClick={(e) => {
@@ -290,7 +290,7 @@ export const StoreComparisonTable: React.FC<StoreComparisonTableProps> = ({
                         }}
                       >
                         Seleccionar Tienda
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     )}
                   </div>
 
@@ -324,7 +324,7 @@ export const StoreComparisonTable: React.FC<StoreComparisonTableProps> = ({
                     )}
                   </AnimatePresence>
                 </div>
-              </iOS26LiquidCard>
+              </IOS26LiquidCard>
             </motion.div>
           );
         })}

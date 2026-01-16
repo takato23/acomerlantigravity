@@ -126,7 +126,12 @@ export function extractUserPreferences(profile: UserProfile): Partial<UserPrefer
 /**
  * Map numeric skill level to enum
  */
-function mapNumericSkillLevel(level: 1 | 2 | 3 | 4 | 5): 'beginner' | 'intermediate' | 'advanced' | 'expert' {
+function mapNumericSkillLevel(
+  level: 1 | 2 | 3 | 4 | 5 | 'beginner' | 'intermediate' | 'advanced' | 'expert'
+): 'beginner' | 'intermediate' | 'advanced' | 'expert' {
+  if (typeof level === 'string') {
+    return level;
+  }
   switch (level) {
     case 1:
     case 2:

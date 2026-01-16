@@ -300,7 +300,7 @@ export function ProfileLeaderboard({ currentUserId }: ProfileLeaderboardProps) {
                         <p className="font-medium flex items-center gap-2">
                           {user.fullName}
                           {user.isCurrentUser && (
-                            <Badge variant="secondary" size="sm">You</Badge>
+                            <Badge variant="secondary">You</Badge>
                           )}
                         </p>
                         <p className="text-sm text-slate-600">

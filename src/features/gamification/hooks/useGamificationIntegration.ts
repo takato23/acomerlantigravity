@@ -5,6 +5,7 @@ import { useAppStore } from '@/store';
 import { useXPSystem } from '../store/gamificationStore';
 import { XPEventType } from '../types';
 import { progressTrackingService } from '../services/progressTrackingService';
+import { xpService } from '../services/xpService';
 
 interface GamificationIntegrationHook {
   // Core tracking functions
@@ -39,7 +40,8 @@ export function useGamificationIntegration(): GamificationIntegrationHook {
 
     try {
       // Award XP through the store
-      await awardXP(eventType, metadata);
+      const xpAmount = xpService.calculateXP(eventType, metadata);
+      await awardXP(eventType, xpAmount, metadata);
       
       // Track progress
       await progressTrackingService.trackEvent(user.id, eventType, metadata);

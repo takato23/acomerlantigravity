@@ -11,8 +11,8 @@ import {
     ShoppingCart,
     RefreshCw
 } from 'lucide-react';
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
 
 interface RecipeQuickViewProps {
     recipe: {
@@ -64,7 +64,7 @@ export function RecipeQuickViewModal({
                     onClick={(e) => e.stopPropagation()}
                     className="w-full max-w-md"
                 >
-                    <iOS26EnhancedCard
+                    <IOS26EnhancedCard
                         variant="aurora"
                         elevation="floating"
                         className="max-h-[85vh] overflow-hidden"
@@ -191,8 +191,8 @@ export function RecipeQuickViewModal({
                         {/* Footer */}
                         <div className="px-6 py-4 border-t border-white/10 flex gap-2">
                             {onReplace && (
-                                <iOS26LiquidButton
-                                    variant="glass"
+                                <IOS26LiquidButton
+                                    variant="ghost"
                                     icon={<RefreshCw className="w-4 h-4" />}
                                     iconPosition="left"
                                     onClick={onReplace}
@@ -200,11 +200,11 @@ export function RecipeQuickViewModal({
                                     className="flex-1"
                                 >
                                     Cambiar
-                                </iOS26LiquidButton>
+                                </IOS26LiquidButton>
                             )}
                             {onAddToShoppingList && (
-                                <iOS26LiquidButton
-                                    variant="glass"
+                                <IOS26LiquidButton
+                                    variant="ghost"
                                     icon={<ShoppingCart className="w-4 h-4" />}
                                     iconPosition="left"
                                     onClick={onAddToShoppingList}
@@ -212,17 +212,17 @@ export function RecipeQuickViewModal({
                                     className="flex-1"
                                 >
                                     A la lista
-                                </iOS26LiquidButton>
+                                </IOS26LiquidButton>
                             )}
-                            <iOS26LiquidButton
+                            <IOS26LiquidButton
                                 variant="primary"
                                 onClick={onClose}
                                 className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500"
                             >
                                 Cerrar
-                            </iOS26LiquidButton>
+                            </IOS26LiquidButton>
                         </div>
-                    </iOS26EnhancedCard>
+                    </IOS26EnhancedCard>
                 </motion.div>
             </motion.div>
         </AnimatePresence>

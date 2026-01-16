@@ -12,6 +12,7 @@ import { useProfileContext } from '@/contexts/ProfileContext';
 
 import { ProfileStats } from './ProfileStats';
 import { ProfileProgress, ProfileSegment } from './ProfileProgress';
+import { IOS26LiquidCard, IOS26LiquidButton, IOS26LiquidInput } from '@/components/ios26';
 
 interface ProfileHeaderProps {
   className?: string;
@@ -104,7 +105,7 @@ function EnhancedAvatarUpload({
       }}
       transition={{ duration: 0.2 }}
     >
-      <iOS26LiquidCard
+      <IOS26LiquidCard
         variant="medium"
         interactive={isEditing}
         glow={isDragging}
@@ -195,7 +196,7 @@ function EnhancedAvatarUpload({
             <span className="text-white text-lg">{badge.icon}</span>
           </motion.div>
         )}
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       <input
         ref={fileInputRef}
@@ -309,7 +310,7 @@ function ProfileGamification({ percentage, level }: { percentage: number; level:
   const nextMilestone = achievements.find(a => !a.unlocked);
 
   return (
-    <iOS26LiquidCard variant="subtle" className="p-4">
+    <IOS26LiquidCard variant="subtle" className="p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
@@ -361,7 +362,7 @@ function ProfileGamification({ percentage, level }: { percentage: number; level:
           </div>
         </motion.div>
       )}
-    </iOS26LiquidCard>
+    </IOS26LiquidCard>
   );
 }
 
@@ -369,7 +370,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
   const { profile, updateProfile, uploadAvatar } = useProfileContext();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    name: profile?.name || '',
+    fullName: profile?.fullName || '',
     username: profile?.username || '',
     bio: profile?.bio || '',
   });
@@ -382,7 +383,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
       {
         id: 'basic',
         label: 'Basic Info',
-        completed: !!(profile.name && profile.username && profile.avatarUrl),
+        completed: !!(profile.fullName && profile.username && profile.avatarUrl),
         weight: 30,
       },
       {
@@ -390,7 +391,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
         label: 'Preferences',
         completed: !!(
           profile.dietaryRestrictions?.length ||
-          profile.cuisinePreferences?.length ||
+          profile.preferredCuisines?.length ||
           profile.cookingSkillLevel
         ),
         weight: 30,
@@ -405,9 +406,9 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
         id: 'settings',
         label: 'Settings',
         completed: !!(
-          profile.weeklyBudget ||
-          profile.defaultServingSize ||
-          profile.mealPlanningEnabled !== undefined
+          profile.monthlyBudget ||
+          profile.budget?.weekly ||
+          profile.budget?.monthly
         ),
         weight: 20,
       },
@@ -426,6 +427,9 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
   // Calculate user level based on activity (mock data for now)
   const userLevel = Math.min(5, Math.floor((percentage / 100) * 5) + 1);
   const levelProgress = (percentage % 20) * 5;
+  const locationLabel = profile.location
+    ? [profile.location.city, profile.location.country].filter(Boolean).join(', ')
+    : undefined;
 
   const handleSave = async () => {
     try {
@@ -440,7 +444,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
 
   const handleCancel = () => {
     setEditData({
-      name: profile.name || '',
+      fullName: profile.fullName || '',
       username: profile.username || '',
       bio: profile.bio || '',
     });
@@ -461,7 +465,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
       className={cn('space-y-6', className)}
     >
       {/* Main Profile Card */}
-      <iOS26LiquidCard
+      <IOS26LiquidCard
         variant="medium"
         glow
         shimmer
@@ -473,9 +477,11 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
             {/* Enhanced Avatar with Drag & Drop */}
             <EnhancedAvatarUpload
               src={profile.avatarUrl}
-              alt={profile.name || profile.username || 'User'}
+              alt={profile.fullName || profile.username || 'User'}
               isEditing={isEditing}
-              onUpload={uploadAvatar}
+              onUpload={async (file) => {
+                await uploadAvatar(file);
+              }}
               badge={mockBadge}
             />
 
@@ -499,17 +505,17 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                       exit={{ opacity: 0, x: 20 }}
                       className="space-y-4"
                     >
-                      <iOS26LiquidInput
+                      <IOS26LiquidInput
                         label="Full Name"
-                        value={editData.name}
+                        value={editData.fullName}
                         onChange={(e) =>
-                          setEditData({ ...editData, name: e.target.value })
+                          setEditData({ ...editData, fullName: e.target.value })
                         }
                         placeholder="Enter your full name"
                         size="lg"
                         fluid
                       />
-                      <iOS26LiquidInput
+                      <IOS26LiquidInput
                         label="Username"
                         value={editData.username}
                         onChange={(e) =>
@@ -556,7 +562,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                     >
                       <div>
                         <h1 className="text-3xl font-bold text-slate-900">
-                          {profile.name || 'Welcome to KeCarajoComer!'}
+                          {profile.fullName || 'Welcome to KeCarajoComer!'}
                         </h1>
                         <p className="text-lg text-slate-600">
                           @{profile.username || 'your-username'}
@@ -588,15 +594,15 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                       exit={{ opacity: 0, scale: 0.8 }}
                       className="flex gap-3"
                     >
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         size="sm"
                         variant="ghost"
                         onClick={handleCancel}
                         icon={<X className="w-4 h-4" />}
                       >
                         Cancel
-                      </iOS26LiquidButton>
-                      <iOS26LiquidButton
+                      </IOS26LiquidButton>
+                      <IOS26LiquidButton
                         size="sm"
                         variant="primary"
                         onClick={handleSave}
@@ -604,7 +610,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                         glow
                       >
                         Save
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -613,14 +619,14 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
                     >
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         size="sm"
                         variant="secondary"
                         onClick={() => setIsEditing(true)}
                         icon={<Edit2 className="w-4 h-4" />}
                       >
                         Edit Profile
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -638,9 +644,9 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
               levelProgress={levelProgress}
               completionPercentage={percentage}
               quickStats={{
-                location: profile.location,
+                location: locationLabel,
                 householdSize: profile.householdSize || 1,
-                primaryCuisine: profile.cuisinePreferences?.[0],
+                primaryCuisine: profile.preferredCuisines?.[0],
               }}
             />
 
@@ -651,7 +657,7 @@ export function ProfileHeader({ className }: ProfileHeaderProps) {
             />
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Gamification Section */}
       <ProfileGamification percentage={percentage} level={userLevel} />

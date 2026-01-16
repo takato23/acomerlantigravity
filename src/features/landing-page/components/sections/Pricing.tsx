@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
 
-import { PricingProps } from '../../types';
+import { PricingPlan, PricingProps } from '../../types';
 import { GlassPricingCard } from '../ui/GlassCard';
 import { CTAButton, SecondaryButton } from '../ui/GradientButton';
 import { ValuePropositionIllustration } from '../ui/FlatIllustrations';
@@ -370,7 +370,7 @@ export function ProductPricing({
 }: Partial<PricingProps>) {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
-  const plans = [
+  const plans: PricingPlan[] = [
     {
       id: 'free',
       name: 'Free',

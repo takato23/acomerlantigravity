@@ -156,7 +156,7 @@ export const CodeExamples: StoryObj = {
         The function <Code>calculateTotal()</Code> returns the sum of all items.
       </Text>
       <div className="p-4 bg-gray-100 rounded-lg">
-        <Code block className="text-sm">
+        <Code variant="block" className="text-sm">
 {`// Recipe calculation example
 const servings = 4;
 const ingredients = ['tomato', 'onion', 'garlic'];

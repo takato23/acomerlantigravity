@@ -6,12 +6,20 @@ import { logger } from '@/services/logger';
 import { AIRecipeRequest, AIRecipeResponse } from '../../../types';
 
 const featureConfig = geminiConfig.getFeatureConfig('recipeGeneration');
-const genAI = new GoogleGenerativeAI(featureConfig.apiKey);
 
 export async function POST(request: NextRequest) {
   try {
+    if (!featureConfig.apiKey) {
+      logger.error('Missing Gemini API key', 'recipes:route');
+      return NextResponse.json(
+        { error: 'Gemini API key not configured' },
+        { status: 500 }
+      );
+    }
+
     const body: AIRecipeRequest = await request.json();
 
+    const genAI = new GoogleGenerativeAI(featureConfig.apiKey);
     const model = genAI.getGenerativeModel({ model: geminiConfig.default.model });
 
     const prompt = buildGeminiPrompt(body);

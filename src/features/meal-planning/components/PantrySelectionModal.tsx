@@ -4,8 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Package, Check, Filter } from 'lucide-react';
 import { usePantryStore } from '@/features/pantry/store/pantryStore';
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
 import type { PantryItem } from '@/features/pantry/types';
 import { toast } from 'sonner';
 
@@ -58,7 +58,7 @@ export function PantrySelectionModal({ onClose, onSelect }: PantrySelectionModal
                     onClick={(e) => e.stopPropagation()}
                     className="w-full max-w-lg"
                 >
-                    <iOS26EnhancedCard
+                    <IOS26EnhancedCard
                         variant="aurora"
                         elevation="floating"
                         className="max-h-[85vh] overflow-hidden flex flex-col"
@@ -165,15 +165,15 @@ export function PantrySelectionModal({ onClose, onSelect }: PantrySelectionModal
 
                         {/* Footer */}
                         <div className="px-6 py-4 border-t border-white/10 shrink-0">
-                            <iOS26LiquidButton
-                                variant="glass"
+                            <IOS26LiquidButton
+                                variant="ghost"
                                 onClick={onClose}
                                 className="w-full"
                             >
                                 Cancelar
-                            </iOS26LiquidButton>
+                            </IOS26LiquidButton>
                         </div>
-                    </iOS26EnhancedCard>
+                    </IOS26EnhancedCard>
                 </motion.div>
             </motion.div>
         </AnimatePresence>

@@ -71,8 +71,8 @@ const ACTIVITY_LEVELS = [
 export function NutritionGoalsStep({ onNext, onBack }: NutritionGoalsStepProps) {
   const { data, savePreferences } = useOnboardingStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState(data.preferences?.nutrition_goal || '');
-  const [activityLevel, setActivityLevel] = useState(data.preferences?.activity_level || 'moderate');
+  const [selectedGoal, setSelectedGoal] = useState('');
+  const [activityLevel, setActivityLevel] = useState('moderate');
   const [customizeNutrition, setCustomizeNutrition] = useState(false);
   const [customCalories, setCustomCalories] = useState(2000);
   const [macros, setMacros] = useState({
@@ -105,8 +105,6 @@ export function NutritionGoalsStep({ onNext, onBack }: NutritionGoalsStepProps) 
       const adjustedCalories = Math.round(baseCalories * activityMultiplier);
 
       await savePreferences({
-        nutrition_goal: selectedGoal,
-        activity_level: activityLevel,
         nutrition_goals: {
           daily_calories: adjustedCalories,
           protein_percentage: macros.protein,

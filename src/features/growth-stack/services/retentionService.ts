@@ -438,8 +438,9 @@ class RetentionService {
         }
 
         // Respect action delay
-        if (action.delay_hours) {
-          await new Promise(resolve => setTimeout(resolve, action.delay_hours * 3600000));
+        const delayHours = action.delay_hours ?? 0;
+        if (delayHours > 0) {
+          await new Promise(resolve => setTimeout(resolve, delayHours * 3600000));
         }
       }
     }

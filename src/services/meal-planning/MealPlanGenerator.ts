@@ -1,8 +1,10 @@
 import { supabase } from '@/lib/supabase/client';
 import { logger } from '@/services/logger';
 import { GeminiService } from '@/services/ai/GeminiService';
-import { ProfileData } from '@/types/profile';
-import { Recipe } from '@/types/recipe';
+import type { UserProfile } from '@/types/profile';
+import { Recipe } from '@/types/recipes';
+
+type ProfileData = UserProfile;
 
 export interface MealPlanRequest {
   userId: string;
@@ -285,11 +287,11 @@ export class MealPlanGenerator {
     };
 
     const totalDistribution = mealsPerDay.reduce((sum, meal) => 
-      sum + (distribution[meal] || 0.25), 0
+      sum + (distribution[meal as keyof typeof distribution] || 0.25), 0
     );
 
     mealsPerDay.forEach(meal => {
-      const mealRatio = (distribution[meal] || 0.25) / totalDistribution;
+      const mealRatio = (distribution[meal as keyof typeof distribution] || 0.25) / totalDistribution;
       
       targets[meal] = {
         calories: Math.round((nutritionalGoals.dailyCalories || 2000) * mealRatio),
@@ -335,7 +337,7 @@ export class MealPlanGenerator {
     }
 
     // Evaluar y ordenar recetas por ajuste nutricional
-    const scoredRecipes = recipes.map(recipe => ({
+    const scoredRecipes = (recipes as Recipe[]).map(recipe => ({
       recipe,
       score: this.calculateNutritionalScore(recipe, targetNutrition, currentDailyNutrition)
     }));
@@ -430,7 +432,7 @@ export class MealPlanGenerator {
     `;
 
     try {
-      const response = await this.geminiService.generateRecipe(prompt);
+      const response = await this.geminiService.generateContent(prompt);
       const generatedRecipe = JSON.parse(response);
       
       // Guardar la receta generada en la base de datos si tenemos userId
@@ -461,15 +463,15 @@ export class MealPlanGenerator {
             // Agregar el ID de la receta guardada al objeto
             generatedRecipe.ai_recipe_id = savedRecipe.id;
           }
-        } catch (saveError) {
-          logger.error('Error guardando receta AI:', saveError);
+        } catch (saveError: unknown) {
+          logger.error('Error guardando receta AI:', 'MealPlanGenerator', saveError);
           // No fallar si no se puede guardar, solo loguear el error
         }
       }
 
       return generatedRecipe;
-    } catch (error) {
-      logger.error('Error generando receta con IA:', error);
+    } catch (error: unknown) {
+      logger.error('Error generando receta con IA:', 'MealPlanGenerator', error);
       // Retornar una receta básica de respaldo
       return this.getFallbackRecipe(mealType, targetNutrition);
     }
@@ -518,18 +520,30 @@ export class MealPlanGenerator {
   private combinePreferences(requestPrefs: any, userProfile: ProfileData | null): any {
     if (!userProfile) return requestPrefs || {};
 
+    const profileDietaryRestrictions =
+      (userProfile as any).dietaryRestrictions ??
+      (userProfile as any).dietary_restrictions ??
+      [];
+    const profileCuisinePreferences =
+      (userProfile as any).cuisinePreferences ??
+      (userProfile as any).cuisine_preferences ??
+      [];
+    const profileAllergies =
+      (userProfile as any).allergies ??
+      [];
+
     return {
       dietaryRestrictions: [
         ...(requestPrefs?.dietaryRestrictions || []),
-        ...(userProfile.dietary_restrictions || [])
+        ...profileDietaryRestrictions
       ],
       cuisinePreferences: [
         ...(requestPrefs?.cuisinePreferences || []),
-        ...(userProfile.cuisine_preferences || [])
+        ...profileCuisinePreferences
       ],
       avoidIngredients: [
         ...(requestPrefs?.avoidIngredients || []),
-        ...(userProfile.allergies || [])
+        ...profileAllergies
       ],
       preferIngredients: requestPrefs?.preferIngredients || []
     };
@@ -539,14 +553,15 @@ export class MealPlanGenerator {
    * Combina los objetivos nutricionales
    */
   private combineNutritionalGoals(requestGoals: any, userProfile: ProfileData | null): any {
-    if (!userProfile || !userProfile.nutrition_goals) return requestGoals || {};
+    const profileGoals = (userProfile as any)?.nutrition_goals ?? (userProfile as any)?.nutritionGoals;
+    if (!userProfile || !profileGoals) return requestGoals || {};
 
     return {
-      dailyCalories: requestGoals?.dailyCalories || userProfile.nutrition_goals.daily_calories || 2000,
-      proteinGrams: requestGoals?.proteinGrams || userProfile.nutrition_goals.protein_grams || 50,
-      carbsGrams: requestGoals?.carbsGrams || userProfile.nutrition_goals.carbs_grams || 250,
-      fatGrams: requestGoals?.fatGrams || userProfile.nutrition_goals.fat_grams || 65,
-      fiberGrams: requestGoals?.fiberGrams || userProfile.nutrition_goals.fiber_grams || 25
+      dailyCalories: requestGoals?.dailyCalories || profileGoals.daily_calories || profileGoals.dailyCalories || 2000,
+      proteinGrams: requestGoals?.proteinGrams || profileGoals.protein_grams || profileGoals.proteinGrams || 50,
+      carbsGrams: requestGoals?.carbsGrams || profileGoals.carbs_grams || profileGoals.carbsGrams || 250,
+      fatGrams: requestGoals?.fatGrams || profileGoals.fat_grams || profileGoals.fatGrams || 65,
+      fiberGrams: requestGoals?.fiberGrams || profileGoals.fiber_grams || profileGoals.fiberGrams || 25
     };
   }
 
@@ -588,7 +603,7 @@ export class MealPlanGenerator {
    * Verifica si una receta es adecuada para un tipo de comida
    */
   private isRecipeSuitableForMeal(recipe: Recipe, mealType: string): boolean {
-    return recipe.meal_types?.includes(mealType) || false;
+    return (recipe as any).meal_types?.includes(mealType) || false;
   }
 
   /**
@@ -598,7 +613,7 @@ export class MealPlanGenerator {
     // Verificar restricciones dietéticas
     if (preferences.dietaryRestrictions?.length > 0) {
       const hasAllRestrictions = preferences.dietaryRestrictions.every(
-        (restriction: string) => recipe.dietary_tags?.includes(restriction)
+        (restriction: string) => (recipe as any).dietary_tags?.includes(restriction)
       );
       if (!hasAllRestrictions) return false;
     }
@@ -735,7 +750,8 @@ export class MealPlanGenerator {
       }
     };
 
-    return fallbackRecipes[mealType] || fallbackRecipes.lunch;
+    const key = mealType as keyof typeof fallbackRecipes;
+    return fallbackRecipes[key] || fallbackRecipes.lunch;
   }
 
   /**
@@ -753,7 +769,7 @@ export class MealPlanGenerator {
     // Agrupar por fecha
     const dailyStats = new Map<string, DailyNutrition>();
 
-    items.forEach(item => {
+    items.forEach((item: any) => {
       const dateKey = item.date.toString();
       
       if (!dailyStats.has(dateKey)) {

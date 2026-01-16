@@ -160,6 +160,7 @@ export const AppShell: React.FC<AppShellProps> = ({
     glass: 'bg-gradient-to-br from-lime-50/50 to-purple-50/50'
   };
 
+  const contentEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
   const contentVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -167,7 +168,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       y: 0,
       transition: {
         duration: 0.4,
-        ease: 'easeOut'
+        ease: contentEase
       }
     }
   };

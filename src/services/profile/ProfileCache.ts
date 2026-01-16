@@ -1,11 +1,11 @@
 import { CacheManager } from '@/lib/cache/CacheManager';
-import { createClient } from '@/lib/supabase/client';
-import type { Database } from '@/types/supabase';
+import { supabase } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/types';
 import { logger } from '@/services/logger';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type ProfilePreferences = Database['public']['Tables']['profile_preferences']['Row'];
-type ProfileStats = Database['public']['Tables']['profile_stats']['Row'];
+type Profile = Database['public']['Tables']['user_profiles']['Row'];
+type ProfilePreferences = Database['public']['Tables']['user_preferences']['Row'];
+type ProfileStats = Record<string, any> | null;
 
 interface ProfileCacheData {
   profile: Profile | null;
@@ -24,7 +24,7 @@ interface ProfileCacheOptions {
 
 export class ProfileCache {
   private cache: CacheManager<ProfileCacheData>;
-  private supabase = createClient();
+  private supabase = supabase;
   private options: Required<ProfileCacheOptions>;
   private updateQueue: Map<string, any> = new Map();
   private warmupPromise: Promise<void> | null = null;
@@ -64,7 +64,7 @@ export class ProfileCache {
     // Try to get from cache first
     const cached = await this.cache.get(cacheKey, {
       allowStale: true,
-      revalidate: () => this.fetchProfile(userId),
+      revalidate: async () => (await this.fetchProfile(userId)) ?? this.createEmptyCacheData(),
     });
 
     if (cached) {
@@ -89,6 +89,15 @@ export class ProfileCache {
     return profile ? profile[component] : null;
   }
 
+  private createEmptyCacheData(): ProfileCacheData {
+    return {
+      profile: null,
+      preferences: null,
+      stats: null,
+      lastFetched: Date.now(),
+    };
+  }
+
   // Update profile with optimistic updates
   async updateProfile(
     userId: string,
@@ -109,9 +118,9 @@ export class ProfileCache {
     try {
       // Perform actual update
       const { data, error } = await this.supabase
-        .from('profiles')
+        .from('user_profiles')
         .update(updates)
-        .eq('user_id', userId)
+        .eq('id', userId)
         .select()
         .single();
 
@@ -153,7 +162,7 @@ export class ProfileCache {
     try {
       // Perform actual update
       const { data, error } = await this.supabase
-        .from('profile_preferences')
+        .from('user_preferences')
         .update(updates)
         .eq('user_id', userId)
         .select()
@@ -226,8 +235,8 @@ export class ProfileCache {
         {
           event: '*',
           schema: 'public',
-          table: 'profiles',
-          filter: `user_id=eq.${userId}`,
+          table: 'user_profiles',
+          filter: `id=eq.${userId}`,
         },
         async () => {
           this.invalidateProfile(userId);
@@ -240,21 +249,7 @@ export class ProfileCache {
         {
           event: '*',
           schema: 'public',
-          table: 'profile_preferences',
-          filter: `user_id=eq.${userId}`,
-        },
-        async () => {
-          this.invalidateProfile(userId);
-          const fresh = await this.getProfile(userId);
-          if (fresh) callback(fresh);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profile_stats',
+          table: 'user_preferences',
           filter: `user_id=eq.${userId}`,
         },
         async () => {
@@ -279,19 +274,14 @@ export class ProfileCache {
   private async fetchProfile(userId: string): Promise<ProfileCacheData | null> {
     try {
       // Fetch all profile data in parallel
-      const [profileResult, preferencesResult, statsResult] = await Promise.all([
+      const [profileResult, preferencesResult] = await Promise.all([
         this.supabase
-          .from('profiles')
+          .from('user_profiles')
           .select('*')
-          .eq('user_id', userId)
+          .eq('id', userId)
           .single(),
         this.supabase
-          .from('profile_preferences')
-          .select('*')
-          .eq('user_id', userId)
-          .single(),
-        this.supabase
-          .from('profile_stats')
+          .from('user_preferences')
           .select('*')
           .eq('user_id', userId)
           .single(),
@@ -300,7 +290,7 @@ export class ProfileCache {
       return {
         profile: profileResult.data,
         preferences: preferencesResult.data,
-        stats: statsResult.data,
+        stats: null,
         lastFetched: Date.now(),
       };
     } catch (error) {
@@ -342,7 +332,7 @@ export class ProfileCache {
     setInterval(() => {
       const stats = this.getStats();
       if (stats.cacheStats.entries > 0) {
-        logger.debug('Profile cache stats:', {
+        logger.debug('Profile cache stats:', 'ProfileCache', {
           hitRate: `${(stats.cacheStats.hitRate * 100).toFixed(2)}%`,
           entries: stats.cacheStats.entries,
           size: `${(stats.cacheStats.size / 1024).toFixed(2)}KB`,

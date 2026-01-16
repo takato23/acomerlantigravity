@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import { logger } from '@/lib/logger';
+import { getUser } from '@/lib/auth/supabase-auth';
 
 // authOptions removed - using Supabase Auth;
 import { db } from '@/lib/supabase/database.service';
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   try {
     const user = await getUser();
     
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -19,42 +19,22 @@ export async function POST(req: Request) {
     const data = await req.json();
     
     // Update or create user preferences
-    const preferences = await prisma.userPreferences.upsert({
-      where: {
-        userId: user.id,
-      },
-      update: {
-        dietaryRestrictions: data.dietaryRestrictions || [],
-        allergies: data.allergies || [],
-        favoriteCuisines: data.favoriteCuisines || [],
-        householdSize: data.householdSize || 1,
-        cookingSkillLevel: data.cookingSkillLevel || "intermediate",
-        preferredMealTypes: data.preferredMealTypes || [],
-        avoidIngredients: data.avoidIngredients || [],
-        calorieTarget: data.calorieTarget,
-        proteinTarget: data.proteinTarget,
-        carbTarget: data.carbTarget,
-        fatTarget: data.fatTarget,
-      },
-      create: {
-        userId: user.id,
-        dietaryRestrictions: data.dietaryRestrictions || [],
-        allergies: data.allergies || [],
-        favoriteCuisines: data.favoriteCuisines || [],
-        householdSize: data.householdSize || 1,
-        cookingSkillLevel: data.cookingSkillLevel || "intermediate",
-        preferredMealTypes: data.preferredMealTypes || [],
-        avoidIngredients: data.avoidIngredients || [],
-        calorieTarget: data.calorieTarget,
-        proteinTarget: data.proteinTarget,
-        carbTarget: data.carbTarget,
-        fatTarget: data.fatTarget,
-      }
+    const preferences = await db.updateUserPreferences(user.id, {
+      dietary_restrictions: data.dietaryRestrictions || [],
+      cuisine_preferences: data.favoriteCuisines || [],
+      cooking_skill_level: data.cookingSkillLevel || "intermediate",
+      household_size: data.householdSize || 1,
+      preferred_meal_types: data.preferredMealTypes || [],
+      avoid_ingredients: data.avoidIngredients || [],
+      calorie_target: data.calorieTarget,
+      protein_target: data.proteinTarget,
+      carb_target: data.carbTarget,
+      fat_target: data.fatTarget,
     });
 
     // Update user's onboarding status
     await db.updateUserProfile(user.id, {
-      onboardingCompleted: true
+      onboarding_completed: true
     });
 
     return NextResponse.json({
@@ -74,20 +54,15 @@ export async function GET(req: Request) {
   try {
     const user = await getUser();
     
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const preferences = await prisma.userPreferences.findUnique({
-      where: {
-        userId: user.id
-      }
-    });
-
-    return NextResponse.json(preferences);
+    const profile = await db.getUserProfile(user.id);
+    return NextResponse.json(profile?.preferences || null);
   } catch (error: unknown) {
     logger.error("Error fetching preferences:", 'API:route', error);
     return NextResponse.json(

@@ -53,8 +53,6 @@ class EmailService {
         const apiKey = process.env.RESEND_API_KEY;
         if (apiKey) {
             this.resend = new Resend(apiKey);
-        } else {
-            logger.warn('RESEND_API_KEY not configured. Email sending is disabled.', 'EmailService');
         }
     }
 

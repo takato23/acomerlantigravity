@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { logger } from '@/services/logger';
-import { createClient } from '@/lib/supabase/server';
 
 // Types for AI providers and requests
 interface AIProxyRequest {
@@ -19,7 +20,7 @@ interface AIProxyResponse {
 export async function POST(req: NextRequest): Promise<NextResponse<AIProxyResponse>> {
   try {
     // Verify authentication
-    const supabase = createClient();
+    const supabase = createRouteHandlerClient({ cookies });
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AIProxyRespon
     return NextResponse.json({ success: true, data: response });
 
   } catch (error) {
-    logger.error('AI Proxy Error:', error);
+    logger.error('AI Proxy Error', 'API:route', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

@@ -198,7 +198,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       notify('Receta Generada', {
         type: 'success',
-        message: `Receta "${result.recipe.title}" creada con ${Math.round(result.confidence * 100)}% de confianza`
+        metadata: {
+          message: `Receta "${result.recipe.title}" creada con ${Math.round(result.confidence * 100)}% de confianza`,
+        },
       });
 
     } catch (error: unknown) {
@@ -208,12 +210,14 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       // Track error
       track('ai_recipe_generation_error', {
         provider: aiState.provider,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       notify('Error de Generación', {
         type: 'error',
-        message: 'No se pudo generar la receta. Intenta de nuevo.'
+        metadata: {
+          message: 'No se pudo generar la receta. Intenta de nuevo.',
+        },
       });
     }
   };
@@ -263,7 +267,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
         notify('Error de Escaneo', {
           type: 'error',
-          message: result.errors?.[0] || 'No se pudo extraer la receta de la imagen'
+          metadata: {
+            message: result.errors?.[0] || 'No se pudo extraer la receta de la imagen',
+          },
         });
       }
 
@@ -273,13 +279,15 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       // Track error
       track('photo_scan_error', {
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         use_camera: scanState.useCamera,
       });
 
       notify('Error de Escaneo', {
         type: 'error',
-        message: 'No se pudo procesar la imagen'
+        metadata: {
+          message: 'No se pudo procesar la imagen',
+        },
       });
     }
   };
@@ -332,7 +340,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       notify('Importación Completada', {
         type: result.success ? 'success' : 'warning',
-        message: `${result.imported} recetas importadas, ${result.updated} actualizadas, ${result.skipped} omitidas, ${result.errors.length} errores`
+        metadata: {
+          message: `${result.imported} recetas importadas, ${result.updated} actualizadas, ${result.skipped} omitidas, ${result.errors.length} errores`,
+        },
       });
 
       onClose();
@@ -344,12 +354,14 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       // Track error
       track('recipe_import_error', {
         file_name: importFile.name,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       notify('Error de Importación', {
         type: 'error',
-        message: 'No se pudo importar el archivo de recetas'
+        metadata: {
+          message: 'No se pudo importar el archivo de recetas',
+        },
       });
     }
   };
@@ -363,7 +375,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       notify('Acceso Denegado', {
         type: 'error',
-        message: 'Solo los administradores pueden importar el archivo completo de recetas'
+        metadata: {
+          message: 'Solo los administradores pueden importar el archivo completo de recetas',
+        },
       });
       return;
     }
@@ -402,7 +416,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       notify('Importación Masiva Completada', {
         type: result.success ? 'success' : 'warning',
-        message: `${result.imported} recetas importadas, ${result.updated} actualizadas, ${result.skipped} omitidas del archivo oficial`
+        metadata: {
+          message: `${result.imported} recetas importadas, ${result.updated} actualizadas, ${result.skipped} omitidas del archivo oficial`,
+        },
       });
 
       onClose();
@@ -413,12 +429,14 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       // Track error
       track('bulk_import_error', {
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
       notify('Error de Importación', {
         type: 'error',
-        message: 'No se pudo importar el archivo de recetas completo'
+        metadata: {
+          message: 'No se pudo importar el archivo de recetas completo',
+        },
       });
     }
   };
@@ -429,7 +447,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       if (!userId) {
         notify('No Autenticado', {
           type: 'error',
-          message: 'Debes iniciar sesión para guardar recetas'
+          metadata: {
+            message: 'Debes iniciar sesión para guardar recetas',
+          },
         });
         return;
       }
@@ -437,7 +457,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       // Show saving state
       notify('Guardando...', {
         type: 'info',
-        message: 'Guardando tu receta en la base de datos'
+        metadata: {
+          message: 'Guardando tu receta en la base de datos',
+        },
       });
 
       // Save to Supabase - map fields to match DB schema
@@ -447,8 +469,8 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       const dbRecipe: any = {
         name: recipe.title,
         ingredients: recipe.ingredients.map(ing => ({
-          ingredient: ing.ingredient,
-          amount: ing.amount,
+          ingredient: ing.name || ing.ingredient_id,
+          amount: ing.quantity,
           unit: ing.unit
         }))
       };
@@ -557,27 +579,38 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
       notify('¡Receta Guardada!', {
         type: 'success',
-        message: `"${data.name}" ha sido guardada exitosamente`,
+        metadata: {
+          message: `"${data.name}" ha sido guardada exitosamente`,
+        },
         channels: ['toast'],
         voice: false
       });
     } catch (error: unknown) {
+      const errorDetails =
+        typeof error === 'object' && error !== null
+          ? (error as { message?: string; code?: string; details?: string; hint?: string })
+          : {};
+      const errorMessage =
+        error instanceof Error ? error.message : errorDetails.message || 'Unknown error';
+
       logger.error('Error saving recipe', 'EnhancedRecipeCreationModal', error);
 
       // Log specific error details
-      if (error.message) {
-        logger.error(`Supabase error: ${error.message}`, 'EnhancedRecipeCreationModal', {
-          code: error.code,
-          details: error.details,
-          hint: error.hint
+      if (errorDetails.message) {
+        logger.error(`Supabase error: ${errorDetails.message}`, 'EnhancedRecipeCreationModal', {
+          code: errorDetails.code,
+          details: errorDetails.details,
+          hint: errorDetails.hint
         });
       }
 
       // Check if it's a schema cache error
-      if (error.code === 'PGRST204') {
+      if (errorDetails.code === 'PGRST204') {
         notify('Error de Cache de Esquema', {
           type: 'error',
-          message: 'Hay un problema con el cache de la base de datos. La receta se guardó con campos mínimos. Contacta al administrador para actualizar el cache de PostgREST.'
+          metadata: {
+            message: 'Hay un problema con el cache de la base de datos. La receta se guardó con campos mínimos. Contacta al administrador para actualizar el cache de PostgREST.',
+          },
         });
 
         logger.info('Schema cache issue detected. Admin should:', 'EnhancedRecipeCreationModal');
@@ -587,7 +620,9 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       } else {
         notify('Error al Guardar', {
           type: 'error',
-          message: error.message || 'No se pudo guardar la receta. Por favor intenta de nuevo.'
+          metadata: {
+            message: errorMessage || 'No se pudo guardar la receta. Por favor intenta de nuevo.',
+          },
         });
       }
     }
@@ -908,7 +943,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-100 text-purple-700 font-medium">
                     {idx + 1}
                   </span>
-                  <p className="flex-1">{instruction}</p>
+                  <p className="flex-1">{instruction.text}</p>
                 </div>
               ))}
             </div>
@@ -1152,11 +1187,16 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
   const renderManualMode = () => {
     const addIngredient = () => {
-      if (currentIngredient.name && currentIngredient.quantity) {
+      const quantity = Number(currentIngredient.quantity);
+      if (currentIngredient.name && Number.isFinite(quantity) && quantity > 0) {
         setManualFormData(prev => ({
           ...prev,
           ingredients: [...(prev.ingredients || []), {
-            ...currentIngredient,
+            ingredient_id: crypto.randomUUID(),
+            name: currentIngredient.name,
+            quantity,
+            unit: currentIngredient.unit || 'unit',
+            optional: false,
             notes: ''
           }]
         }));
@@ -1168,21 +1208,27 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
       if (currentInstruction.trim()) {
         setManualFormData(prev => ({
           ...prev,
-          instructions: [...(prev.instructions || []), currentInstruction.trim()]
+          instructions: [
+            ...(prev.instructions || []),
+            {
+              step_number: (prev.instructions?.length || 0) + 1,
+              text: currentInstruction.trim(),
+            },
+          ]
         }));
         setCurrentInstruction('');
       }
     };
 
     const removeIngredient = (index: number) => {
-      setFormData(prev => ({
+      setManualFormData(prev => ({
         ...prev,
         ingredients: (prev.ingredients || []).filter((_, i) => i !== index)
       }));
     };
 
     const removeInstruction = (index: number) => {
-      setFormData(prev => ({
+      setManualFormData(prev => ({
         ...prev,
         instructions: (prev.instructions || []).filter((_, i) => i !== index)
       }));
@@ -1190,10 +1236,11 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
 
     const handleSaveManualRecipe = async () => {
       if (!manualFormData.title || !manualFormData.ingredients?.length || !manualFormData.instructions?.length) {
-        notify({
+        notify('Campos Requeridos', {
           type: 'error',
-          title: 'Campos Requeridos',
-          message: 'Por favor completa título, ingredientes e instrucciones'
+          metadata: {
+            message: 'Por favor completa título, ingredientes e instrucciones',
+          },
         });
         return;
       }
@@ -1211,11 +1258,12 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
         servings: manualFormData.servings || 4,
         difficulty: manualFormData.difficulty || 'medium',
         cuisine_type: 'other',
-        meal_type: 'main',
+        meal_types: ['dinner'],
         dietary_tags: [],
         rating: 0,
         times_cooked: 0,
         ai_generated: false,
+        is_public: true,
         nutritional_info: {
           calories: 0,
           protein: 0,
@@ -1483,7 +1531,7 @@ export const EnhancedRecipeCreationModal: React.FC<EnhancedRecipeCreationModalPr
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-amber-500 text-white font-bold text-sm shadow-sm">
                       {idx + 1}
                     </span>
-                    <p className="flex-1 text-gray-700 leading-relaxed">{instruction}</p>
+                    <p className="flex-1 text-gray-700 leading-relaxed">{instruction.text}</p>
                     <Button
                       variant="ghost"
                       size="sm"

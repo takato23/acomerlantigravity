@@ -8,7 +8,7 @@ import { performanceMonitor } from '../performance/PerformanceMonitor';
 
 export interface CacheEntry<T = any> {
   key: string;
-  value: T;
+  value: T | string;
   timestamp: number;
   ttl: number;
   hits: number;
@@ -42,7 +42,7 @@ export interface CacheStats {
  * Caché optimizado con múltiples estrategias
  */
 export class OptimizedCache {
-  private static instances = new Map<string, OptimizedCache>();
+  static instances = new Map<string, OptimizedCache>();
   private cache = new Map<string, CacheEntry>();
   private stats: CacheStats = {
     hits: 0,
@@ -143,7 +143,7 @@ export class OptimizedCache {
 
     try {
       const mergedOptions = { ...this.options, ...options };
-      let finalValue = value;
+      let finalValue: T | string = value;
       let compressed = false;
       let size = this.estimateSize(value);
 

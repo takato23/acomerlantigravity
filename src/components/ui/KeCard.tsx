@@ -6,10 +6,10 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-interface KeCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface KeCardProps extends HTMLMotionProps<'div'> {
   variant?: 'default' | 'elevated' | 'outline' | 'recipe' | 'pantry' | 'meal';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hoverable?: boolean;

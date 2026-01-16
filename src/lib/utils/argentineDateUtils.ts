@@ -59,7 +59,11 @@ export function getCurrentArgentineSeason(): 'verano' | 'otoño' | 'invierno' | 
   const currentDate = getArgentineDate();
   const month = currentDate.getMonth() + 1; // getMonth() returns 0-11
 
-  for (const [season, months] of Object.entries(ARGENTINE_SEASONS)) {
+  const seasonEntries = Object.entries(ARGENTINE_SEASONS) as Array<
+    [keyof typeof ARGENTINE_SEASONS, readonly number[]]
+  >;
+
+  for (const [season, months] of seasonEntries) {
     if (months.includes(month)) {
       return season as keyof typeof ARGENTINE_SEASONS;
     }
@@ -75,7 +79,11 @@ export function getCurrentArgentineSeason(): 'verano' | 'otoño' | 'invierno' | 
 export function getSeasonForDate(date: Date): 'verano' | 'otoño' | 'invierno' | 'primavera' {
   const month = date.getMonth() + 1;
 
-  for (const [season, months] of Object.entries(ARGENTINE_SEASONS)) {
+  const seasonEntries = Object.entries(ARGENTINE_SEASONS) as Array<
+    [keyof typeof ARGENTINE_SEASONS, readonly number[]]
+  >;
+
+  for (const [season, months] of seasonEntries) {
     if (months.includes(month)) {
       return season as keyof typeof ARGENTINE_SEASONS;
     }
@@ -100,7 +108,7 @@ export function isArgentineHoliday(date: Date): { isHoliday: boolean; holiday?: 
   const day = date.getDate();
 
   for (const [key, holiday] of Object.entries(ARGENTINE_HOLIDAYS)) {
-    if (!holiday.variable && holiday.month === month && holiday.day === day) {
+    if (!('variable' in holiday) && holiday.month === month && holiday.day === day) {
       return { isHoliday: true, holiday: holiday.name };
     }
   }
@@ -137,7 +145,12 @@ export function getWeekEnd(date: Date): string {
 /**
  * Generate array of dates for a week starting from a given date
  */
-export function getWeekDates(startDate: string): Array<{ date: string; dayName: string; isWeekend: boolean }> {
+export function getWeekDates(startDate: string): Array<{
+  date: string;
+  dayName: string;
+  isWeekend: boolean;
+  isHoliday: boolean;
+}> {
   const start = new Date(startDate);
   const dates = [];
 
@@ -151,6 +164,7 @@ export function getWeekDates(startDate: string): Array<{ date: string; dayName: 
       date: date.toISOString().split('T')[0],
       dayName: dayNames[date.getDay()],
       isWeekend: isWeekend(date),
+      isHoliday: false,
     });
   }
 

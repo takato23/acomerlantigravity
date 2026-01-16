@@ -5,6 +5,7 @@
 
 import {
   AIProvider,
+  AIModel,
   AIServiceConfig,
   AITextRequest,
   AIImageRequest,
@@ -39,7 +40,8 @@ export class UnifiedAIService {
   private constructor(config: AIServiceConfig = {}) {
     this.config = {
       provider: 'auto',
-      model: geminiConfig.default.model,
+      model: geminiConfig.default.model as AIModel,
+      apiKey: config.apiKey ?? '',
       temperature: 0.7,
       maxTokens: 2048,
       topP: 1,
@@ -74,8 +76,8 @@ export class UnifiedAIService {
 
     if (isClientSide) {
       // Client-side: Use proxy endpoints (no API keys exposed)
-      this.providers.set('openai', new OpenAIProvider({ useProxy: true }));
-      this.providers.set('anthropic', new AnthropicProvider({ useProxy: true }));
+      this.providers.set('openai', new OpenAIProvider({ apiKey: '', useProxy: true }));
+      this.providers.set('anthropic', new AnthropicProvider({ apiKey: '', useProxy: true }));
       this.providers.set('gemini', new GeminiProvider({ useProxy: true }));
     } else {
       // Server-side: Use API keys directly (secure)
@@ -752,7 +754,7 @@ Respond with complete meal plan in JSON format.`;
       if (!response.success) {
         throw new AIServiceError(
           response.error || 'Failed to generate recipe',
-          'PROXY_ERROR',
+          'PROVIDER_ERROR',
           request.provider || 'gemini'
         );
       }
@@ -760,7 +762,7 @@ Respond with complete meal plan in JSON format.`;
       return response.data;
     } else {
       // Use direct provider for server-side calls
-      return this.generateRecipe(request);
+      return this.generateRecipe(request as AIRecipeRequest);
     }
   }
 
@@ -770,7 +772,7 @@ Respond with complete meal plan in JSON format.`;
   async generateTextSecure(
     prompt: string,
     provider: 'openai' | 'anthropic' | 'gemini' = 'gemini',
-    config?: Partial<AIServiceConfig>
+    config?: (Partial<AIServiceConfig> & { systemPrompt?: string })
   ): Promise<string> {
     const isClientSide = typeof window !== 'undefined';
 
@@ -794,7 +796,7 @@ Respond with complete meal plan in JSON format.`;
   async generateJSONSecure<T = any>(
     prompt: string,
     provider: 'openai' | 'anthropic' | 'gemini' = 'gemini',
-    config?: Partial<AIServiceConfig>
+    config?: (Partial<AIServiceConfig> & { systemPrompt?: string })
   ): Promise<T> {
     const isClientSide = typeof window !== 'undefined';
 
@@ -838,8 +840,8 @@ Respond with complete meal plan in JSON format.`;
       }
 
       const response = await this.analyzeImage({
-        imageUrl: imageData,
-        analysisType: 'general',
+        image: imageData,
+        analysisType: 'analysis',
         prompt
       }, { provider });
 

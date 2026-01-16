@@ -7,7 +7,7 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import geminiConfig from '@/lib/config/gemini.config';;
+import { defaultGeminiConfig, getGeminiApiKey } from '@/lib/config/gemini.config';
 import { Redis } from '@upstash/redis';
 import { nanoid } from 'nanoid';
 import { aiCoalescer, RequestCoalescer } from './requestCoalescer';
@@ -24,7 +24,7 @@ try {
     });
   }
 } catch (error) {
-  logger.warn('Redis initialization failed, using memory cache', error);
+  logger.warn('Redis initialization failed, using memory cache', 'GeminiServer', error);
 }
 
 // Memory cache fallback
@@ -41,7 +41,7 @@ interface GeminiServerConfig {
 }
 
 const DEFAULT_CONFIG: GeminiServerConfig = {
-  model: geminiConfig.default.model,
+  model: defaultGeminiConfig.model,
   temperature: 0.7,
   maxOutputTokens: 2048,
   topP: 0.95,
@@ -81,7 +81,7 @@ export class GeminiServer {
       const cached = await this.getFromCache(cacheKey);
       if (cached) {
         this.cacheHits++;
-        logger.info(`[Gemini] Cache hit for request ${requestId}`, {
+        logger.info(`[Gemini] Cache hit for request ${requestId}`, 'GeminiServer', {
           duration: Date.now() - startTime,
           cacheKey,
         });
@@ -100,7 +100,7 @@ export class GeminiServer {
     const result = await aiCoalescer.execute(coalescerKey, async () => {
       this.requestCount++;
       
-      logger.info(`[Gemini] Generating content for request ${requestId}`, {
+      logger.info(`[Gemini] Generating content for request ${requestId}`, 'GeminiServer', {
         model: this.config.model,
         promptLength: prompt.length,
         metadata: options?.metadata,
@@ -116,7 +116,6 @@ export class GeminiServer {
               maxOutputTokens: this.config.maxOutputTokens,
               topP: this.config.topP,
               topK: this.config.topK,
-              responseMimeType: 'application/json',
             },
           });
 
@@ -127,11 +126,10 @@ export class GeminiServer {
           return this.parseAIResponse(text);
         },
         {
-          retries: 3,
-          delays: [500, 1000, 2000],
-          onRetry: (attempt, error) => {
-            logger.warn(`[Gemini] Retry attempt ${attempt} for request ${requestId}`, error);
-          },
+          maxRetries: 3,
+          initialDelay: 500,
+          maxDelay: 2000,
+          backoffFactor: 2,
         }
       );
 
@@ -141,7 +139,7 @@ export class GeminiServer {
         await this.setInCache(cacheKey, response, ttl);
       }
 
-      logger.info(`[Gemini] Successfully generated content for request ${requestId}`, {
+      logger.info(`[Gemini] Successfully generated content for request ${requestId}`, 'GeminiServer', {
         duration: Date.now() - startTime,
         cached: false,
       });
@@ -160,7 +158,7 @@ export class GeminiServer {
     try {
       return JSON.parse(text);
     } catch (e) {
-      logger.debug('[Gemini] Direct JSON parse failed, trying cleanup');
+      logger.debug('[Gemini] Direct JSON parse failed, trying cleanup', 'GeminiServer');
     }
 
     // Strategy 2: Clean markdown code blocks
@@ -172,7 +170,7 @@ export class GeminiServer {
     try {
       return JSON.parse(cleanedText);
     } catch (e) {
-      logger.debug('[Gemini] Cleaned JSON parse failed, trying extraction');
+      logger.debug('[Gemini] Cleaned JSON parse failed, trying extraction', 'GeminiServer');
     }
 
     // Strategy 3: Extract JSON from mixed content
@@ -181,7 +179,7 @@ export class GeminiServer {
       try {
         return JSON.parse(jsonMatch[0]);
       } catch (e) {
-        logger.debug('[Gemini] JSON extraction failed, trying array extraction');
+        logger.debug('[Gemini] JSON extraction failed, trying array extraction', 'GeminiServer');
       }
     }
 
@@ -191,12 +189,12 @@ export class GeminiServer {
       try {
         return JSON.parse(arrayMatch[0]);
       } catch (e) {
-        logger.debug('[Gemini] Array extraction failed');
+        logger.debug('[Gemini] Array extraction failed', 'GeminiServer');
       }
     }
 
     // Strategy 5: Return as structured text
-    logger.error('[Gemini] All JSON parsing strategies failed', { text });
+    logger.error('[Gemini] All JSON parsing strategies failed', 'GeminiServer', { text });
     throw new Error('Failed to parse AI response as JSON');
   }
 
@@ -232,7 +230,7 @@ export class GeminiServer {
         }
       }
     } catch (error) {
-      logger.error('[Gemini] Cache get error', error);
+      logger.error('[Gemini] Cache get error', 'GeminiServer', error);
     }
     return null;
   }
@@ -261,7 +259,7 @@ export class GeminiServer {
         }
       }
     } catch (error) {
-      logger.error('[Gemini] Cache set error', error);
+      logger.error('[Gemini] Cache set error', 'GeminiServer', error);
     }
   }
 
@@ -288,7 +286,7 @@ export class GeminiServer {
     if (redis) {
       // Clear Redis keys with pattern
       // Note: This is a simplified version, in production use SCAN
-      logger.info('[Gemini] Clearing Redis cache');
+      logger.info('[Gemini] Clearing Redis cache', 'GeminiServer');
     }
     
     memoryCache.clear();
@@ -297,7 +295,7 @@ export class GeminiServer {
     this.cacheHits = 0;
     this.cacheMisses = 0;
     
-    logger.info('[Gemini] Cache cleared');
+    logger.info('[Gemini] Cache cleared', 'GeminiServer');
   }
 }
 
@@ -306,13 +304,13 @@ let geminiServer: GeminiServer | null = null;
 
 export function getGeminiServer(): GeminiServer {
   if (!geminiServer) {
-    const apiKey = geminiConfig.getApiKey() || geminiConfig.getApiKey();
+    const apiKey = getGeminiApiKey();
     if (!apiKey) {
       throw new Error('Gemini API key not found in environment variables');
     }
     
     geminiServer = new GeminiServer(apiKey, {
-      model: process.env.NODE_ENV === 'production' ? geminiConfig.default.model : geminiConfig.default.model,
+      model: process.env.NODE_ENV === 'production' ? defaultGeminiConfig.model : defaultGeminiConfig.model,
       cacheEnabled: process.env.NODE_ENV === 'production',
       cacheTTL: 3600, // 1 hour in production
     });

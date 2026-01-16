@@ -130,12 +130,13 @@ Genera las sugerencias de recetas:`;
     return NextResponse.json(enhancedSuggestions);
 
   } catch (error: unknown) {
-    logger.error('Pantry suggestions error:', 'API:route', error);
-    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Pantry suggestions error', 'API:route', error);
+
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to generate pantry suggestions',
-        details: error.message 
+        details: errorMessage
       },
       { status: 500 }
     );
@@ -376,7 +377,8 @@ async function parseAndValidateSuggestionsResponse(aiResponse: string): Promise<
 
     return suggestionsData;
   } catch (error: unknown) {
-    throw new Error(`Failed to parse suggestions response: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to parse suggestions response: ${errorMessage}`);
   }
 }
 

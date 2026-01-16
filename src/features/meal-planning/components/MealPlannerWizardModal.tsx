@@ -95,7 +95,7 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
         try {
           setData(JSON.parse(saved));
         } catch (error) {
-          logger.error('Error loading saved data:', error);
+          logger.error('Error loading saved data:', 'MealPlannerWizardModal', error);
         }
       }
     }
@@ -111,11 +111,7 @@ export function MealPlannerWizardModal({ isOpen, onComplete, onClose }: MealPlan
   // Particle effect on step change
   useEffect(() => {
     if (isOpen && currentStep > 0 && currentStep < steps.length - 1) {
-      const particles = confetti.create(undefined, {
-        resize: true,
-        useWorker: true,
-      });
-      particles({
+      confetti({
         particleCount: 20,
         spread: 70,
         origin: { y: 0.6 },

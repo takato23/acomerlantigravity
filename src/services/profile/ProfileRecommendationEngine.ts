@@ -680,8 +680,9 @@ export class ProfileRecommendationEngine {
       
       let isEmpty = false;
       if (Array.isArray(profileValue) || Array.isArray(prefValue)) {
-        isEmpty = (!profileValue || profileValue.length === 0) && 
-                 (!prefValue || (prefValue as any[]).length === 0);
+        const profileArray = Array.isArray(profileValue) ? profileValue : [];
+        const prefArray = Array.isArray(prefValue) ? prefValue : [];
+        isEmpty = profileArray.length === 0 && prefArray.length === 0;
       } else {
         isEmpty = !profileValue && !prefValue;
       }

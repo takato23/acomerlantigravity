@@ -1,11 +1,12 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { User } from '@supabase/supabase-js';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { unauthorizedResponse, ApiErrorCode, errorResponse } from './response';
+import type { Database } from '@/lib/supabase/database.types';
 
 export interface AuthenticatedRequest {
   user: User;
-  supabase: ReturnType<typeof createRouteHandlerClient>;
+  supabase: SupabaseClient<Database>;
 }
 
 /**
@@ -13,11 +14,11 @@ export interface AuthenticatedRequest {
  * Returns user and supabase client if authenticated, otherwise returns error response
  */
 export async function requireAuth(): Promise<
-  { authenticated: true; user: User; supabase: ReturnType<typeof createRouteHandlerClient> } |
+  { authenticated: true; user: User; supabase: SupabaseClient<Database> } |
   { authenticated: false; response: ReturnType<typeof unauthorizedResponse> }
 > {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createRouteHandlerClient<Database>({ cookies });
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
@@ -48,8 +49,8 @@ export async function requireAuth(): Promise<
  * Helper to check if a resource belongs to the authenticated user
  */
 export async function verifyResourceOwnership(
-  supabase: ReturnType<typeof createRouteHandlerClient>,
-  tableName: string,
+  supabase: SupabaseClient<Database>,
+  tableName: keyof Database['public']['Tables'],
   resourceId: string,
   userId: string,
   userIdColumn: string = 'user_id'

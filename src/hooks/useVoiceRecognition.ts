@@ -8,15 +8,6 @@ import { logger } from '@/services/logger';
 
 import { SmartParser, type ParsedIngredient } from '@/services/voice';
 
-// Extend Window interface for WebKit Speech Recognition
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-    webkitAudioContext: typeof AudioContext;
-  }
-}
-
 interface UseVoiceRecognitionOptions {
   language?: string;
   continuous?: boolean;
@@ -84,6 +75,10 @@ export const useVoiceRecognition = ({
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('Tu navegador no soporta reconocimiento de voz');
+      return;
+    }
     const recognition = new SpeechRecognition();
     
     recognition.continuous = continuous;

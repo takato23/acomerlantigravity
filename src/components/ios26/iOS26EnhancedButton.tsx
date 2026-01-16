@@ -15,11 +15,11 @@ export interface iOS26EnhancedButtonProps extends ButtonHTMLAttributes<HTMLButto
   children: React.ReactNode;
 }
 
-const iOS26EnhancedButton = forwardRef<HTMLButtonElement, iOS26EnhancedButtonProps>(
-  ({ 
-    className, 
-    variant = 'liquid', 
-    size = 'md', 
+const IOS26EnhancedButton = forwardRef<HTMLButtonElement, iOS26EnhancedButtonProps>(
+  ({
+    className,
+    variant = 'liquid',
+    size = 'md',
     liquidEffect = true,
     glowEffect = true,
     rippleEffect = true,
@@ -27,10 +27,10 @@ const iOS26EnhancedButton = forwardRef<HTMLButtonElement, iOS26EnhancedButtonPro
     floatEffect = false,
     children,
     onClick,
-    ...props 
+    ...props
   }, ref) => {
     const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
-    const buttonRef = useRef<HTMLButtonElement>(null);
+    const buttonRef = useRef<HTMLButtonElement | null>(null);
     const rippleId = useRef(0);
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -78,7 +78,7 @@ const iOS26EnhancedButton = forwardRef<HTMLButtonElement, iOS26EnhancedButtonPro
         ref={(node) => {
           if (ref) {
             if (typeof ref === 'function') ref(node);
-            else ref.current = node;
+            else (ref as React.MutableRefObject<HTMLButtonElement | null>).current = node;
           }
           if (node) buttonRef.current = node;
         }}
@@ -99,7 +99,7 @@ const iOS26EnhancedButton = forwardRef<HTMLButtonElement, iOS26EnhancedButtonPro
       >
         {/* Background gradient animation layer */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-liquid-shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
+
         {/* Refraction effect layer */}
         <div className="absolute inset-0 animate-refraction-shift opacity-30">
           <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-radial from-white/10 to-transparent blur-xl" />
@@ -137,6 +137,8 @@ const iOS26EnhancedButton = forwardRef<HTMLButtonElement, iOS26EnhancedButtonPro
   }
 );
 
-iOS26EnhancedButton.displayName = 'iOS26EnhancedButton';
+IOS26EnhancedButton.displayName = 'IOS26EnhancedButton';
 
-export { iOS26EnhancedButton };
+export { IOS26EnhancedButton };
+export const iOS26EnhancedButton = IOS26EnhancedButton;
+export type IOS26EnhancedButtonProps = iOS26EnhancedButtonProps;

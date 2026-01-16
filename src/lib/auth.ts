@@ -4,6 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
+import { getUser } from './auth/supabase-auth';
 
 // Mock authOptions for development
 export const authOptions = {
@@ -23,11 +24,13 @@ export const authOptions = {
 };
 
 export async function getServerSession() {
-  // Basic implementation - would integrate with NextAuth in production
+  const user = await getUser();
+  if (!user) return null;
+
   return {
     user: {
-      id: 'demo-user',
-      email: 'demo@example.com'
+      id: user.id,
+      email: user.email
     }
   };
 }
@@ -36,9 +39,9 @@ export async function requireAuth(request: NextRequest) {
   // Basic auth check - would implement proper auth in production
   const user = await getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  return session;
+  return { user };
 }

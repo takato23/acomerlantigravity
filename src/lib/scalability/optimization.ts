@@ -388,7 +388,11 @@ class ScalabilityOptimizer {
     priority: 'high' | 'medium' | 'low';
     impact: string;
   }[] {
-    const recommendations = [];
+    const recommendations: Array<{
+      recommendation: string;
+      priority: 'high' | 'medium' | 'low';
+      impact: string;
+    }> = [];
     const recentMetrics = this.resourceMetrics.slice(-10);
     
     if (recentMetrics.length === 0) return [];

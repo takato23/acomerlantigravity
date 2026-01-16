@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { iOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26LiquidCard } from '@/components/ios26/iOS26LiquidCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
 // Simple toast function
 function showToast(message: string, type: 'success' | 'error' = 'success') {
   const toast = document.createElement('div');
@@ -209,20 +209,20 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
           exit={{ opacity: 0, scale: 0.9 }}
           className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden"
         >
-          <iOS26LiquidCard variant="medium" className="p-0">
+          <IOS26LiquidCard variant="medium" className="p-0">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                   <Camera className="h-6 w-6 text-primary" />
                   <h2 className="text-2xl font-bold">Reconocimiento de Alimentos</h2>
                 </div>
-                <iOS26LiquidButton
+                <IOS26LiquidButton
                   variant="secondary"
                   size="sm"
                   onClick={handleClose}
                 >
                   <X className="h-5 w-5" />
-                </iOS26LiquidButton>
+                </IOS26LiquidButton>
               </div>
 
               {/* Main Content */}
@@ -253,14 +253,14 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
 
                     {/* Camera Option */}
                     <div className="flex justify-center gap-4">
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         variant="primary"
                         onClick={startCamera}
                         className="gap-2"
                       >
                         <Camera className="h-5 w-5" />
                         Usar Cámara
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     </div>
                   </div>
                 )}
@@ -285,7 +285,7 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                       </div>
                     </div>
                     <div className="flex justify-center gap-4">
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         variant="primary"
                         onClick={capturePhoto}
                         className="gap-2"
@@ -293,13 +293,13 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                       >
                         <Camera className="h-5 w-5" />
                         Capturar
-                      </iOS26LiquidButton>
-                      <iOS26LiquidButton
+                      </IOS26LiquidButton>
+                      <IOS26LiquidButton
                         variant="secondary"
                         onClick={stopCamera}
                       >
                         Cancelar
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     </div>
                   </div>
                 )}
@@ -330,14 +330,14 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                           <h3 className="text-lg font-semibold">
                             Alimentos Detectados ({recognizedFoods.length})
                           </h3>
-                          <iOS26LiquidButton
+                          <IOS26LiquidButton
                             variant="secondary"
                             size="sm"
                             onClick={reset}
                           >
                             <RefreshCw className="h-4 w-4 mr-1" />
                             Nueva Imagen
-                          </iOS26LiquidButton>
+                          </IOS26LiquidButton>
                         </div>
 
                         <div className="space-y-2">
@@ -348,11 +348,11 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.1 }}
                             >
-                              <iOS26LiquidCard
+                              <IOS26LiquidCard
                                 variant="subtle"
                                 className={`p-4 cursor-pointer transition-all ${selectedFoods.has(index)
-                                    ? 'ring-2 ring-primary'
-                                    : 'hover:ring-1 hover:ring-gray-300'
+                                  ? 'ring-2 ring-primary'
+                                  : 'hover:ring-1 hover:ring-gray-300'
                                   }`}
                                 onClick={() => toggleFoodSelection(index)}
                               >
@@ -391,13 +391,13 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                                     </div>
                                   </div>
                                 </div>
-                              </iOS26LiquidCard>
+                              </IOS26LiquidCard>
                             </motion.div>
                           ))}
                         </div>
 
                         {selectedFoods.size > 0 && (
-                          <iOS26LiquidButton
+                          <IOS26LiquidButton
                             variant="primary"
                             onClick={handleAddSelected}
                             className="w-full"
@@ -405,7 +405,7 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                           >
                             <Check className="h-5 w-5 mr-2" />
                             Agregar {selectedFoods.size} alimento{selectedFoods.size !== 1 ? 's' : ''}
-                          </iOS26LiquidButton>
+                          </IOS26LiquidButton>
                         )}
                       </div>
                     )}
@@ -422,7 +422,7 @@ export const PhotoRecognition = React.memo<PhotoRecognitionProps>(({
                 )}
               </div>
             </div>
-          </iOS26LiquidCard>
+          </IOS26LiquidCard>
         </motion.div>
       </div>
     </AnimatePresence>

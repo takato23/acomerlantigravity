@@ -40,14 +40,14 @@ export default function OnboardingPage() {
     // Profile
     username: '',
     fullName: '',
-    
+
     // Preferences
     dietaryRestrictions: [] as string[],
     allergies: [] as string[],
     cuisinePreferences: [] as string[],
     cookingSkillLevel: 'intermediate',
     householdSize: 2,
-    
+
     // Goals
     nutritionGoals: {
       type: 'balanced',
@@ -110,7 +110,7 @@ export default function OnboardingPage() {
 
       // Redirect to app
       router.push('/app');
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || 'Failed to complete onboarding');
       setIsLoading(false);
     }

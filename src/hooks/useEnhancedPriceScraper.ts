@@ -87,6 +87,7 @@ export function useEnhancedPriceScraper(options: UseEnhancedPriceScraperOptions 
       });
 
       const responseTime = Date.now() - startTimeRef.current;
+      const cacheHit = responseTime < 100;
 
       // Group products if requested
       let productGroups: ProductGroup[] = [];
@@ -102,14 +103,14 @@ export function useEnhancedPriceScraper(options: UseEnhancedPriceScraperOptions 
         products,
         productGroups,
         responseTime,
-        cacheHit: responseTime < 100, // Assume cache hit if very fast
+        cacheHit, // Assume cache hit if very fast
         error: null,
         progress: null
       }));
 
       // Show success notification
       if (showNotifications && products.length > 0) {
-        const message = prev.cacheHit 
+        const message = cacheHit 
           ? `Se encontraron ${products.length} productos (desde caché)`
           : `Se encontraron ${products.length} productos`;
         toast.success(message);

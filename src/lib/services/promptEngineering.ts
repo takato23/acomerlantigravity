@@ -305,7 +305,7 @@ CONTEXTO DEL USUARIO:
 - ID de usuario: {{userId}}
 - Tamaño del hogar: {{householdSize}} personas
 - Nivel de cocina: {{cookingSkillLevel}}
-- Presupuesto semanal: ${{weeklyBudget}} ARS
+- Presupuesto semanal: \${{weeklyBudget}} ARS
 - Fecha actual: {{currentDate}}
 - Temporada: {{currentSeason}}
 
@@ -323,7 +323,7 @@ METAS NUTRICIONALES:
 
 RESTRICCIONES DE TIEMPO Y PRESUPUESTO:
 - Tiempo máximo de preparación: {{maxPrepTime}} minutos
-- Límite de presupuesto: ${{budgetLimit}} ARS
+- Límite de presupuesto: \${{budgetLimit}} ARS
 - Porciones por comida: {{servings}}
 - Tipos de comida: {{mealTypes}}
 
@@ -765,7 +765,7 @@ Procesa el ticket ahora:
     });
 
     // Handle arrays with {{#each}}
-    result = result.replace(/\{\{#each\s+([^}]+)\}\}(.*?)\{\{\/each\}\}/gs, (match, arrayKey, content) => {
+    result = result.replace(/\{\{#each\s+([^}]+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, arrayKey, content) => {
       const array = this.getNestedValue(parameters, arrayKey.trim());
       if (Array.isArray(array)) {
         return array.map(item => {

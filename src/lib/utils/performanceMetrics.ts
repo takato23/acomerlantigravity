@@ -522,10 +522,3 @@ export function createTimer(operationName: string, metadata?: Record<string, any
 
 // Export the collector class for advanced usage
 export { PerformanceMetricsCollector };
-
-// Export types
-export type {
-  PerformanceMetric,
-  AggregatedMetrics,
-  PerformanceThresholds,
-};

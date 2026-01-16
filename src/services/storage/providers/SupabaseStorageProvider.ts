@@ -241,7 +241,8 @@ export class SupabaseStorageProvider extends StorageProviderInterface {
   async uploadFile(file: File | Blob, options: FileUploadOptions = {}): Promise<FileInfo> {
     try {
       const bucket = options.bucket || this.config.bucket!;
-      const fileName = options.fileName || `${Date.now()}_${file.name || 'file'}`;
+      const originalName = 'name' in file ? file.name : 'file';
+      const fileName = options.fileName || `${Date.now()}_${originalName}`;
       const path = options.path ? `${options.path}/${fileName}` : fileName;
 
       // Upload to Supabase Storage

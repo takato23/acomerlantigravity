@@ -103,6 +103,7 @@ const STARTER_KITS = {
     ]
   }
 };
+type CookingPersonaKey = keyof typeof STARTER_KITS;
 
 export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
   const { data, savePantryItems } = useOnboardingStore();
@@ -116,7 +117,7 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
   const [personalizedSuggestions, setPersonalizedSuggestions] = useState<string[]>([]);
   const [showStarterKit, setShowStarterKit] = useState(true);
 
-  const cookingPersona = data.profile?.cooking_persona || 'beginner';
+  const cookingPersona = (data.profile as { cooking_persona?: CookingPersonaKey } | undefined)?.cooking_persona || 'beginner';
   const dietaryRestrictions = data.preferences?.dietary_restrictions || [];
 
   const filteredCommonItems = COMMON_ITEMS[selectedCategory]?.filter(item =>
@@ -149,17 +150,16 @@ export function PantrySetupStep({ onNext, onBack }: PantrySetupStepProps) {
       
       Responde SOLO con un JSON array de 6 strings con los nombres de los ingredientes, sin markdown ni explicaciones.`;
 
-      const result = await aiService.generateText({ prompt: prompt });
-      const response = await result.response;
-      let text = response.text().trim();
+      const result = await aiService.generateText({ prompt });
+      let text = result.data.trim();
 
       // Clean markdown if present
       if (text.startsWith('```json')) text = text.slice(7);
       if (text.startsWith('```')) text = text.slice(3);
       if (text.endsWith('```')) text = text.slice(0, -3);
 
-      const suggestions = JSON.parse(text.trim());
-      setPersonalizedSuggestions(suggestions.filter(s =>
+      const suggestions = JSON.parse(text.trim()) as string[];
+      setPersonalizedSuggestions(suggestions.filter((s) =>
         !pantryItems.some(item => item.name.toLowerCase() === s.toLowerCase())
       ));
     } catch (error) {

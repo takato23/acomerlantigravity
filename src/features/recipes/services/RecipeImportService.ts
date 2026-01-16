@@ -8,7 +8,9 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { NotificationManager } from '@/services/notifications';
 import { getVoiceService } from '@/services/voice/UnifiedVoiceService';
 import { logger } from '@/services/logger';
+import { UnifiedStorageService } from '@/services/storage/UnifiedStorageService';
 
+import type { Database } from '@/lib/supabase/types';
 import type { Recipe } from '../types';
 
 type RecipeRow = Database['public']['Tables']['recipes']['Row'];
@@ -56,6 +58,7 @@ export interface ImportOptions {
   skipDuplicates?: boolean;
   updateExisting?: boolean;
   validateOnly?: boolean;
+  validateImages?: boolean;
   userId: string;
   isAdmin: boolean;
 }
@@ -94,6 +97,7 @@ export interface ImportRecipeData {
 export class RecipeImportService {
   private supabase = createServerSupabaseClient();
   private notificationService = new NotificationManager();
+  private storageService = UnifiedStorageService.getInstance();
   private progressCallback?: (progress: ImportProgress) => void;
 
   constructor(progressCallback?: (progress: ImportProgress) => void) {
@@ -133,8 +137,10 @@ export class RecipeImportService {
       // Notificar inicio
       await this.notificationService.notify('Importación Iniciada', {
         type: 'info',
-        message: 'Comenzando importación de recetas desde recipes_full.json',
-        userId: options.userId,
+        metadata: {
+          message: 'Comenzando importación de recetas desde recipes_full.json',
+          userId: options.userId,
+        },
         priority: 'medium'
       });
 
@@ -178,7 +184,9 @@ export class RecipeImportService {
 
       await this.notificationService.notify('Error en Importación', {
         type: 'error',
-        message: 'No se pudo completar la importación de recetas',
+        metadata: {
+          message: 'No se pudo completar la importación de recetas',
+        },
         priority: 'high'
       });
 
@@ -580,23 +588,31 @@ export class RecipeImportService {
    * Insertar nueva receta
    */
   private async insertRecipe(recipe: ImportRecipeData, userId: string): Promise<void> {
+    const slug = recipe.title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
     const recipeData: RecipeInsert = {
-      user_id: userId,
+      created_by: userId,
       name: recipe.title,
+      slug,
       description: recipe.description,
-      preparation_time: recipe.prepTimeMinutes || null,
-      cooking_time: recipe.cookTimeMinutes || null,
-      servings: recipe.servings || null,
-      difficulty_level: recipe.difficulty || null,
-      cuisine_type: recipe.cuisine || null,
-      image_url: recipe.imageUrl || null,
+      prep_time: recipe.prepTimeMinutes ?? 0,
+      cook_time: recipe.cookTimeMinutes ?? 0,
+      servings: recipe.servings ?? undefined,
+      difficulty: recipe.difficulty || undefined,
+      cuisine_types: recipe.cuisine ? [recipe.cuisine] : undefined,
+      image_url: recipe.imageUrl || undefined,
       instructions: recipe.instructions,
       ingredients: recipe.ingredients as any,
-      macronutrients: recipe.nutritionInfo as any || null,
-      tags: recipe.tags || null,
-      is_ai_generated: recipe.source === 'ai-generated',
+      nutrition_per_serving: recipe.nutritionInfo as any || undefined,
+      tags: recipe.tags?.length ? recipe.tags : undefined,
+      ai_generated: recipe.source === 'ai-generated',
       is_public: recipe.isPublic ?? true,
-      source_url: null
+      source_url: undefined
     };
 
     const { error } = await this.supabase
@@ -614,16 +630,16 @@ export class RecipeImportService {
   private async updateRecipe(recipeId: string, recipe: ImportRecipeData, userId: string): Promise<void> {
     const updateData: Partial<RecipeInsert> = {
       description: recipe.description,
-      preparation_time: recipe.prepTimeMinutes || null,
-      cooking_time: recipe.cookTimeMinutes || null,
-      servings: recipe.servings || null,
-      difficulty_level: recipe.difficulty || null,
-      cuisine_type: recipe.cuisine || null,
-      image_url: recipe.imageUrl || null,
+      prep_time: recipe.prepTimeMinutes || undefined,
+      cook_time: recipe.cookTimeMinutes || undefined,
+      servings: recipe.servings || undefined,
+      difficulty: recipe.difficulty || undefined,
+      cuisine_types: recipe.cuisine ? [recipe.cuisine] : undefined,
+      image_url: recipe.imageUrl || undefined,
       instructions: recipe.instructions,
       ingredients: recipe.ingredients as any,
-      macronutrients: recipe.nutritionInfo as any || null,
-      tags: recipe.tags || null,
+      nutrition_per_serving: recipe.nutritionInfo as any || undefined,
+      tags: recipe.tags?.length ? recipe.tags : undefined,
       is_public: recipe.isPublic ?? true,
       updated_at: new Date().toISOString()
     };
@@ -701,13 +717,13 @@ export class RecipeImportService {
 
       await this.notificationService.notify('Importación de Recetas', {
         type: result.success ? 'success' : 'error',
-        message,
-        userId,
-        priority: 'high',
-        data: {
+        metadata: {
+          message,
+          userId,
           result,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
+        priority: 'high',
       });
 
       // Feedback de voz en español
@@ -717,7 +733,7 @@ export class RecipeImportService {
           ? `Importación completada exitosamente. ${result.imported} recetas importadas.`
           : `Importación fallida. Se encontraron ${result.errors.length} errores.`;
 
-        await voiceService.speak(voiceMessage, { lang: 'es-MX' });
+        await voiceService.speak(voiceMessage, { language: 'es-MX' });
       } catch (voiceError: unknown) {
         logger.warn('Error en feedback de voz:', 'RecipeImportService', voiceError);
       }
@@ -759,28 +775,38 @@ export class RecipeImportService {
       }
 
       // Create recipe object
+      const instructionTexts = Array.isArray(recipeData.instructions)
+        ? recipeData.instructions
+        : recipeData.instructions.split('\n').filter(Boolean);
+
       const recipe: Recipe = {
         id: recipeData.id || crypto.randomUUID(),
         user_id: options.userId,
         title: recipeData.title,
         description: recipeData.description || '',
-        instructions: Array.isArray(recipeData.instructions)
-          ? recipeData.instructions
-          : recipeData.instructions.split('\n').filter(Boolean),
+        instructions: instructionTexts.map((text: string, index: number) => ({
+          step_number: index + 1,
+          text,
+        })),
         ingredients: this.normalizeIngredients(recipeData.ingredients),
         prep_time: recipeData.prepTimeMinutes || 15,
         cook_time: recipeData.cookTimeMinutes || 20,
         total_time: (recipeData.prepTimeMinutes || 15) + (recipeData.cookTimeMinutes || 20),
         servings: recipeData.servings || 4,
         difficulty: recipeData.difficulty || 'medium',
-        cuisine: recipeData.cuisine || 'international',
-        tags: recipeData.tags || [],
-        image_url: imageUrl,
-        nutritional_info: recipeData.nutritionalInfo,
+        cuisine_type: (recipeData.cuisine || 'other') as Recipe['cuisine_type'],
+        meal_types: ['dinner'],
+        dietary_tags: [],
+        image_url: imageUrl || undefined,
+        nutritional_info: recipeData.nutritionInfo || {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
         ai_generated: false,
         is_public: true, // Imported recipes are public by default
         times_cooked: 0,
-        source: 'imported',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -846,10 +872,12 @@ export class RecipeImportService {
    */
   private normalizeIngredients(ingredients: any[]): any[] {
     return ingredients.map(ing => ({
+      ingredient_id: crypto.randomUUID(),
       name: ing.name || ing.ingredient || '',
       quantity: ing.quantity || ing.amount || 1,
       unit: ing.unit || 'u',
-      notes: ing.notes || ing.note || undefined
+      notes: ing.notes || ing.note || undefined,
+      optional: false,
     }));
   }
 

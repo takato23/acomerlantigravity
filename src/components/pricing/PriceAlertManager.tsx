@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 import { PriceAlert } from '@/services/pricing';
-import { iOS26LiquidCard, iOS26LiquidButton, iOS26LiquidInput } from '@/components/ios26';
+import { IOS26LiquidCard, IOS26LiquidButton, IOS26LiquidInput } from '@/components/ios26';
 import { cn } from '@/lib/utils';
 
 interface PriceAlertManagerProps {
@@ -118,19 +118,19 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
           <Bell className="w-6 h-6" />
           Alertas de Precio
         </h2>
-        <iOS26LiquidButton
+        <IOS26LiquidButton
           variant="primary"
           onClick={() => setShowCreateForm(!showCreateForm)}
           icon={<Plus className="w-4 h-4" />}
           glow
         >
           Nueva Alerta
-        </iOS26LiquidButton>
+        </IOS26LiquidButton>
       </div>
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <iOS26LiquidCard variant="subtle" className="p-4">
+        <IOS26LiquidCard variant="subtle" className="p-4">
           <div className="text-center">
             <Bell className="w-8 h-8 text-slate-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-slate-700">
@@ -138,9 +138,9 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
             </p>
             <p className="text-sm text-slate-600">Alertas activas</p>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
 
-        <iOS26LiquidCard variant="subtle" className="p-4">
+        <IOS26LiquidCard variant="subtle" className="p-4">
           <div className="text-center">
             <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-green-700">
@@ -148,9 +148,9 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
             </p>
             <p className="text-sm text-green-600">Alertas cumplidas</p>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
 
-        <iOS26LiquidCard variant="subtle" className="p-4">
+        <IOS26LiquidCard variant="subtle" className="p-4">
           <div className="text-center">
             <TrendingDown className="w-8 h-8 text-slate-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-slate-700">
@@ -158,7 +158,7 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
             </p>
             <p className="text-sm text-slate-600">Ahorro total</p>
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
       </div>
 
       {/* Create Alert Form */}
@@ -170,20 +170,20 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <iOS26LiquidCard variant="medium" className="p-6">
+            <IOS26LiquidCard variant="medium" className="p-6">
               <h3 className="text-lg font-semibold mb-4 text-slate-900">
                 Crear Nueva Alerta
               </h3>
 
               <div className="space-y-4">
-                <iOS26LiquidInput
+                <IOS26LiquidInput
                   label="Nombre del producto"
                   value={newAlert.productName}
                   onChange={(e) => handleInputChange('productName', e.target.value)}
                   placeholder="Ej: Aceite de oliva"
                 />
 
-                <iOS26LiquidInput
+                <IOS26LiquidInput
                   label="Precio objetivo (ARS)"
                   type="number"
                   value={newAlert.targetPrice}
@@ -193,24 +193,24 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
                 />
 
                 <div className="flex gap-2">
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="primary"
                     onClick={handleCreateAlert}
                     disabled={!newAlert.isValid}
                     icon={<Plus className="w-4 h-4" />}
                   >
                     Crear Alerta
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
 
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="ghost"
                     onClick={() => setShowCreateForm(false)}
                   >
                     Cancelar
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
                 </div>
               </div>
-            </iOS26LiquidCard>
+            </IOS26LiquidCard>
           </motion.div>
         )}
       </AnimatePresence>
@@ -234,7 +234,7 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <iOS26LiquidCard variant="medium" glow className="p-4">
+                <IOS26LiquidCard variant="medium" glow className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={cn("p-2 rounded-full", status.bg)}>
@@ -265,7 +265,7 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
                       </p>
                     </div>
                   </div>
-                </iOS26LiquidCard>
+                </IOS26LiquidCard>
               </motion.div>
             );
           })}
@@ -291,7 +291,7 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <iOS26LiquidCard variant="subtle" className="p-4">
+                <IOS26LiquidCard variant="subtle" className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={cn("p-2 rounded-full", status.bg)}>
@@ -329,17 +329,17 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
                         </p>
                       </div>
 
-                      <iOS26LiquidButton
+                      <IOS26LiquidButton
                         variant="danger"
                         size="sm"
                         onClick={() => onDeleteAlert?.(alert.id)}
                         icon={<Trash2 className="w-4 h-4" />}
                       >
                         Eliminar
-                      </iOS26LiquidButton>
+                      </IOS26LiquidButton>
                     </div>
                   </div>
-                </iOS26LiquidCard>
+                </IOS26LiquidCard>
               </motion.div>
             );
           })}
@@ -348,7 +348,7 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
 
       {/* Empty State */}
       {alerts.length === 0 && (
-        <iOS26LiquidCard variant="subtle" className="p-12 text-center">
+        <IOS26LiquidCard variant="subtle" className="p-12 text-center">
           <BellOff className="w-16 h-16 text-slate-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-slate-600 mb-2">
             No tienes alertas de precio
@@ -356,14 +356,14 @@ export const PriceAlertManager: React.FC<PriceAlertManagerProps> = ({
           <p className="text-slate-500 mb-4">
             Crea alertas para ser notificado cuando los precios bajen
           </p>
-          <iOS26LiquidButton
+          <IOS26LiquidButton
             variant="primary"
             onClick={() => setShowCreateForm(true)}
             icon={<Plus className="w-4 h-4" />}
           >
             Crear Primera Alerta
-          </iOS26LiquidButton>
-        </iOS26LiquidCard>
+          </IOS26LiquidButton>
+        </IOS26LiquidCard>
       )}
     </div>
   );

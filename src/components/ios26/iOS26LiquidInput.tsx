@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 import { useIOS26 } from './iOS26Provider';
 
-export interface iOS26LiquidInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface IOS26LiquidInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -25,7 +25,7 @@ export interface iOS26LiquidInputProps extends Omit<React.InputHTMLAttributes<HT
   fluid?: boolean;
 }
 
-export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputProps>(({
+export const IOS26LiquidInput = forwardRef<HTMLInputElement, IOS26LiquidInputProps>(({
   label,
   error,
   helperText,
@@ -48,33 +48,33 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
   const [isFocused, setIsFocused] = useState(false);
   const [hasValue, setHasValue] = useState(!!value);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     setHasValue(!!value);
   }, [value]);
-  
+
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(true);
     onFocus?.(e);
   };
-  
+
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(false);
     onBlur?.(e);
   };
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHasValue(!!e.target.value);
     onChange?.(e);
   };
-  
+
   const handleClear = () => {
     if (onClear) {
       onClear();
     }
     setHasValue(false);
   };
-  
+
   const sizeClasses = {
     sm: {
       container: 'h-9',
@@ -95,11 +95,11 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
       icon: 'w-6 h-6'
     }
   };
-  
+
   const sizeConfig = sizeClasses[size];
-  
+
   return (
-    <div 
+    <div
       ref={containerRef}
       className={cn(
         'relative',
@@ -123,7 +123,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
           {label}
         </motion.label>
       )}
-      
+
       {/* Input Container */}
       <div className="relative">
         <motion.div
@@ -149,7 +149,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
               {icon}
             </div>
           )}
-          
+
           {/* Input */}
           <input
             ref={ref}
@@ -169,7 +169,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
             disabled={disabled}
             {...props}
           />
-          
+
           {/* End Icon / Clear Button */}
           {(endIcon || (showClear && hasValue)) && (
             <div className={cn(
@@ -207,12 +207,12 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
               </AnimatePresence>
             </div>
           )}
-          
+
           {/* Focus Ring Animation */}
           <motion.div
             className="absolute inset-0 rounded-xl pointer-events-none"
             animate={{
-              boxShadow: isFocused 
+              boxShadow: isFocused
                 ? `0 0 0 2px ${theme === 'elegant' ? '#8B5CF6' : '#3B82F6'}40`
                 : '0 0 0 0px transparent'
             }}
@@ -220,7 +220,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
           />
         </motion.div>
       </div>
-      
+
       {/* Helper Text / Error */}
       <AnimatePresence mode="wait">
         {(error || helperText) && (
@@ -241,4 +241,7 @@ export const iOS26LiquidInput = forwardRef<HTMLInputElement, iOS26LiquidInputPro
   );
 });
 
-iOS26LiquidInput.displayName = 'iOS26LiquidInput';
+IOS26LiquidInput.displayName = 'IOS26LiquidInput';
+
+// Alias for backward compatibility
+export const iOS26LiquidInput = IOS26LiquidInput;

@@ -7,8 +7,8 @@ import { X, Plus, Search } from 'lucide-react';
 import type { Database } from '@/lib/supabase/types';
 
 type ShoppingListItem = Omit<
-  Database['public']['Tables']['shopping_list_items']['Row'],
-  'id' | 'shopping_list_id' | 'created_at'
+  Database['public']['Tables']['shopping_items']['Insert'],
+  'id' | 'shopping_list_id'
 >;
 
 interface AddShoppingItemModalProps {
@@ -37,11 +37,15 @@ const COMMON_ITEMS = [
 
 export function AddShoppingItemModal({ isOpen, onClose, onAdd }: AddShoppingItemModalProps) {
   const [formData, setFormData] = useState<ShoppingListItem>({
-    ingredient_id: '',
+    ingredient_id: null,
+    custom_item_name: '',
     quantity: 1,
     unit: 'piece',
+    category: 'pantry',
     is_checked: false,
     notes: null,
+    priority: 'medium',
+    recipe_names: [],
   });
   const [ingredientName, setIngredientName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,15 +59,20 @@ export function AddShoppingItemModal({ isOpen, onClose, onAdd }: AddShoppingItem
     onAdd({
       ...formData,
       ingredient_id: `temp-${Date.now()}`,
+      custom_item_name: ingredientName,
     });
 
     // Reset form
     setFormData({
-      ingredient_id: '',
+      ingredient_id: null,
+      custom_item_name: '',
       quantity: 1,
       unit: 'piece',
+      category: 'pantry',
       is_checked: false,
       notes: null,
+      priority: 'medium',
+      recipe_names: [],
     });
     setIngredientName('');
     setSearchQuery('');
@@ -75,6 +84,7 @@ export function AddShoppingItemModal({ isOpen, onClose, onAdd }: AddShoppingItem
     setFormData(prev => ({
       ...prev,
       unit: item.unit,
+      category: item.category,
     }));
   };
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-import { useProfile } from '@/contexts/ProfileContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase';
 import { useUser } from '@/store';
@@ -11,8 +10,7 @@ import { useAppStore } from '@/store';
 export function ProfileDebug() {
   const user = useAppStore((state) => state.user.profile);
   const userStore = useUser();
-  const { profile, preferences, isLoading, error } = userStore || {};
-  const profileContext = useProfile();
+  const { profile, preferences, isLoading } = userStore || {};
   const [dbData, setDbData] = useState<any>({});
 
   useEffect(() => {
@@ -62,7 +60,6 @@ export function ProfileDebug() {
             <h3 className="font-semibold mb-2">User Store State:</h3>
             <div className="bg-muted p-2 rounded text-xs">
               <p>Loading: {isLoading ? 'Yes' : 'No'}</p>
-              <p>Error: {error || 'None'}</p>
               <p>Profile: {profile ? 'Loaded' : 'Not loaded'}</p>
               <p>Preferences: {preferences ? 'Loaded' : 'Not loaded'}</p>
             </div>

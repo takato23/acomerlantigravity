@@ -120,10 +120,8 @@ export const offlineShoppingService = {
             user_id: 'offline-user', // Mock User ID
             name: list.name || 'Nueva Lista',
             is_active: list.is_active ?? false,
-            is_archived: false,
-            is_shared: false,
-            color: null,
-            icon: null
+            description: list.description ?? null,
+            total_estimated_cost: list.total_estimated_cost ?? null
         };
 
         if (newList.is_active) {
@@ -187,7 +185,7 @@ export const offlineShoppingService = {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             custom_name: item.custom_name || null,
-            product_id: item.product_id || null,
+            ingredient_id: item.ingredient_id ?? null,
             quantity: item.quantity || 1,
             unit: item.unit || 'unidades',
             category: item.category || 'otros',
@@ -195,8 +193,9 @@ export const offlineShoppingService = {
             priority: nextPriority,
             notes: item.notes || null,
             estimated_cost: item.estimated_cost || null,
+            actual_cost: item.actual_cost ?? null,
             source: item.source || null,
-            added_by: 'offline-user'
+            source_id: item.source_id ?? null
         };
 
         items.push(newItem);

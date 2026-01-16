@@ -31,7 +31,7 @@ import { NavigationControls } from './NavigationControls';
 import { ProgressBar } from './ProgressBar';
 import { InsightPanel } from './InsightPanel';
 
-import { GlassCard } from '@/components/dashboard/DashboardLayout';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface CookingAssistantProps {
   recipeId: string;

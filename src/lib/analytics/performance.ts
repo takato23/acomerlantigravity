@@ -162,7 +162,7 @@ class PerformanceMonitor {
     }
   }
 
-  public trackAIMetric(metric: AIPerformanceMetrics) {
+  public trackAIMetric(metric: Omit<AIPerformanceMetrics, 'timestamp' | 'userId'>) {
     this.aiMetrics.push({
       ...metric,
       timestamp: Date.now(),
@@ -353,7 +353,7 @@ export function usePerformanceMonitor() {
   return {
     trackMetric: (metric: Partial<PerformanceMetrics>) => 
       performanceMonitor.trackMetric(metric),
-    trackAIMetric: (metric: AIPerformanceMetrics) => 
+    trackAIMetric: (metric: Omit<AIPerformanceMetrics, 'timestamp' | 'userId'>) => 
       performanceMonitor.trackAIMetric(metric),
     trackDatabaseMetric: (metric: Omit<DatabaseMetrics, 'timestamp' | 'userId'>) => 
       performanceMonitor.trackDatabaseMetric(metric),

@@ -89,7 +89,7 @@ export function ScrollTriggeredAnimation({
       whileInView="visible"
       viewport={{ once: true, amount: threshold }}
       variants={animations[animation]}
-      transition={{ duration, delay, ease: 'easeOut' }}
+      transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
       className={className}
     >
       {children}
@@ -137,7 +137,7 @@ export function FloatingElement({
       transition={{
         duration,
         repeat: Infinity,
-        ease: 'easeInOut'
+        ease: [0.4, 0, 0.6, 1] as [number, number, number, number]
       }}
       className={className}
     >
@@ -197,7 +197,7 @@ export function StaggeredContainer({ children, staggerDelay = 0.1, className }: 
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' }
+      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }
     }
   };
 

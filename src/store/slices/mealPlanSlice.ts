@@ -4,9 +4,9 @@
  */
 
 import { StateCreator } from 'zustand';
-import { supabase } from '@/lib/supabase/client';
-import { logger } from '@/lib/logger';
-import { MealPlanService } from '@/lib/supabase/meal-plans';
+import { supabase } from '../../lib/supabase/client';
+import { logger } from '../../lib/logger';
+import { MealPlanService } from '../../lib/supabase/meal-plans';
 import { debounce } from 'lodash';
 import { format, startOfWeek, addDays } from 'date-fns';
 
@@ -20,7 +20,7 @@ import type {
   MealType,
   AIGeneratedPlan,
   AIPlannerConfig
-} from '@/features/meal-planning/types';
+} from '../../features/meal-planning/types';
 
 // ============================================================================
 // CONSTANTS & HELPERS
@@ -65,7 +65,7 @@ export interface MealPlanState {
     error: string | null;
     currentDate: string;
     staples: Recipe[];
-    activeModal: 'add-recipe' | 'edit-slot' | null;
+    activeModal: 'add-recipe' | 'edit-slot' | 'recipe-select' | 'preferences' | 'shopping-list' | 'recipe-detail' | 'ai-planner' | null;
     selectedMeal: MealSlot | null;
 
     // Sync & Cache state
@@ -105,7 +105,7 @@ export interface MealPlanActions {
   // UI Actions
   setCurrentDate: (date: string) => void;
   setStaples: (staples: Recipe[]) => void;
-  setActiveModal: (modal: 'add-recipe' | 'edit-slot' | null) => void;
+  setActiveModal: (modal: 'add-recipe' | 'edit-slot' | 'recipe-select' | 'preferences' | 'shopping-list' | 'recipe-detail' | 'ai-planner' | null) => void;
   setSelectedMeal: (meal: MealSlot | null) => void;
 
   // Utilities
@@ -168,7 +168,7 @@ export const createMealPlanSlice: StateCreator<
 
   // Core actions
   loadWeekPlan: async (startDate: string) => {
-    set((state) => { state.mealPlan.isLoading = true; state.mealPlan.error = null; });
+    set((state: any) => { state.mealPlan.isLoading = true; state.mealPlan.error = null; });
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -184,7 +184,7 @@ export const createMealPlanSlice: StateCreator<
         // Use currentWeekPlan if it matches the date and is not expired
         const current = get().mealPlan.currentWeekPlan;
         if (current && current.startDate === startDate) {
-          set((state) => { state.mealPlan.isLoading = false; });
+          set((state: any) => { state.mealPlan.isLoading = false; });
           return;
         }
       }
@@ -193,7 +193,7 @@ export const createMealPlanSlice: StateCreator<
 
       if (error) throw error;
 
-      set((state) => {
+      set((state: any) => {
         state.mealPlan.currentWeekPlan = data;
         state.mealPlan.cacheTimestamps[startDate] = Date.now();
         state.mealPlan.isLoading = false;
@@ -201,14 +201,14 @@ export const createMealPlanSlice: StateCreator<
         // Evict old cache entries if exceeding limit
         const entries = Object.entries(state.mealPlan.cacheTimestamps);
         if (entries.length > MAX_CACHE_ENTRIES) {
-          const oldestKey = entries.sort((a, b) => a[1] - b[1])[0][0];
+          const oldestKey = entries.sort((a: any, b: any) => a[1] - b[1])[0][0];
           delete state.mealPlan.cacheTimestamps[oldestKey];
           // Note: Since we only persist one plan (current), this mainly cleans up the timestamps Record
         }
       });
     } catch (error) {
       logger.error('Failed to load week plan', 'mealPlanSlice', error);
-      set((state) => {
+      set((state: any) => {
         state.mealPlan.error = error instanceof Error ? error.message : 'Unknown error';
         state.mealPlan.isLoading = false;
       });
@@ -216,7 +216,7 @@ export const createMealPlanSlice: StateCreator<
   },
 
   saveWeekPlan: async (weekPlan: WeekPlan) => {
-    set((state) => { state.mealPlan.isSaving = true; });
+    set((state: any) => { state.mealPlan.isSaving = true; });
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -224,21 +224,21 @@ export const createMealPlanSlice: StateCreator<
       const { error } = await MealPlanService.saveWeekPlan(user.id, weekPlan.startDate, weekPlan.endDate, weekPlan);
       if (error) throw error;
 
-      set((state) => {
+      set((state: any) => {
         state.mealPlan.isSaving = false;
         state.mealPlan.isDirty = false;
         state.mealPlan.lastSyncedAt = new Date().toISOString();
       });
     } catch (error) {
       logger.error('Failed to save week plan', 'mealPlanSlice', error);
-      set((state) => {
+      set((state: any) => {
         state.mealPlan.error = error instanceof Error ? error.message : 'Unknown error';
         state.mealPlan.isSaving = false;
       });
     }
   },
 
-  setWeeklyPlan: (plan) => set((state) => {
+  setWeeklyPlan: (plan) => set((state: any) => {
     state.mealPlan.currentWeekPlan = plan;
     if (plan) {
       state.mealPlan.isDirty = true;
@@ -246,30 +246,30 @@ export const createMealPlanSlice: StateCreator<
     }
   }),
 
-  setPreferences: (preferences) => set((state) => {
+  setPreferences: (preferences) => set((state: any) => {
     state.mealPlan.preferences = { ...state.mealPlan.preferences, ...preferences };
     state.mealPlan.isDirty = true;
   }),
 
-  setMode: (mode) => set((state) => {
+  setMode: (mode) => set((state: any) => {
     state.mealPlan.mode = mode;
     state.mealPlan.isDirty = true;
   }),
 
-  setWeekKey: (key) => set((state) => {
+  setWeekKey: (key) => set((state: any) => {
     state.mealPlan.weekKey = key;
   }),
 
-  setDirty: (dirty) => set((state) => {
+  setDirty: (dirty) => set((state: any) => {
     state.mealPlan.isDirty = dirty;
   }),
 
   // Meal management
-  addMealToSlot: (slotData, recipe) => set((state) => {
+  addMealToSlot: (slotData, recipe) => set((state: any) => {
     if (!state.mealPlan.currentWeekPlan) return;
 
     const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex(
-      s => (slotData.id && s.id === slotData.id) ||
+      (s: any) => (slotData.id && s.id === slotData.id) ||
         (s.date === slotData.date && s.mealType === slotData.mealType)
     );
 
@@ -290,10 +290,10 @@ export const createMealPlanSlice: StateCreator<
     }
   }),
 
-  removeMealFromSlot: (slotId) => set((state) => {
+  removeMealFromSlot: (slotId) => set((state: any) => {
     if (!state.mealPlan.currentWeekPlan) return;
 
-    const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex(s => s.id === slotId);
+    const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex((s: any) => s.id === slotId);
     if (slotIndex !== -1) {
       state.mealPlan.currentWeekPlan.slots[slotIndex].recipeId = undefined;
       state.mealPlan.currentWeekPlan.slots[slotIndex].recipe = undefined;
@@ -304,12 +304,12 @@ export const createMealPlanSlice: StateCreator<
     }
   }),
 
-  moveMealSlot: (fromSlotId, toDayOfWeek, toMealType) => set((state) => {
+  moveMealSlot: (fromSlotId, toDayOfWeek, toMealType) => set((state: any) => {
     if (!state.mealPlan.currentWeekPlan) return;
 
-    const sourceIndex = state.mealPlan.currentWeekPlan.slots.findIndex(s => s.id === fromSlotId);
+    const sourceIndex = state.mealPlan.currentWeekPlan.slots.findIndex((s: any) => s.id === fromSlotId);
     const targetIndex = state.mealPlan.currentWeekPlan.slots.findIndex(
-      s => s.dayOfWeek === toDayOfWeek && s.mealType === toMealType
+      (s: any) => s.dayOfWeek === toDayOfWeek && s.mealType === toMealType
     );
 
     if (sourceIndex === -1 || targetIndex === -1) return;
@@ -342,10 +342,10 @@ export const createMealPlanSlice: StateCreator<
     debouncedSave(state.mealPlan.currentWeekPlan);
   }),
 
-  toggleSlotLock: (slotId) => set((state) => {
+  toggleSlotLock: (slotId) => set((state: any) => {
     if (!state.mealPlan.currentWeekPlan) return;
 
-    const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex(s => s.id === slotId);
+    const slotIndex = state.mealPlan.currentWeekPlan.slots.findIndex((s: any) => s.id === slotId);
     if (slotIndex !== -1) {
       state.mealPlan.currentWeekPlan.slots[slotIndex].isLocked = !state.mealPlan.currentWeekPlan.slots[slotIndex].isLocked;
       state.mealPlan.currentWeekPlan.slots[slotIndex].updatedAt = new Date().toISOString();
@@ -357,7 +357,7 @@ export const createMealPlanSlice: StateCreator<
 
   // AI Planning
   generateWeekWithAI: async (config: AIPlannerConfig): Promise<AIGeneratedPlan> => {
-    set((state) => { state.mealPlan.isLoading = true; });
+    set((state: any) => { state.mealPlan.isLoading = true; });
     try {
       // Logic for AI generation usually goes through service
       // Mocking for now to match legacy behavior
@@ -401,7 +401,7 @@ export const createMealPlanSlice: StateCreator<
         suggestions: ['Aumenta el consumo de legumbres', 'Prueba nuevas especias locales']
       };
 
-      set((state) => {
+      set((state: any) => {
         state.mealPlan.currentWeekPlan = aiGeneratedPlan.weekPlan;
         state.mealPlan.isLoading = false;
         state.mealPlan.isDirty = true;
@@ -410,7 +410,7 @@ export const createMealPlanSlice: StateCreator<
       debouncedSave(aiGeneratedPlan.weekPlan);
       return aiGeneratedPlan;
     } catch (error) {
-      set((state) => {
+      set((state: any) => {
         state.mealPlan.error = error instanceof Error ? error.message : 'AI Generation failed';
         state.mealPlan.isLoading = false;
       });
@@ -418,10 +418,10 @@ export const createMealPlanSlice: StateCreator<
     }
   },
 
-  clearWeek: () => set((state) => {
+  clearWeek: () => set((state: any) => {
     if (!state.mealPlan.currentWeekPlan) return;
 
-    state.mealPlan.currentWeekPlan.slots = state.mealPlan.currentWeekPlan.slots.map(slot => ({
+    state.mealPlan.currentWeekPlan.slots = state.mealPlan.currentWeekPlan.slots.map((slot: any) => ({
       ...slot,
       recipeId: undefined,
       recipe: undefined,
@@ -440,7 +440,7 @@ export const createMealPlanSlice: StateCreator<
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    set((state) => { state.mealPlan.isSaving = true; });
+    set((state: any) => { state.mealPlan.isSaving = true; });
 
     const targetEndDate = format(addDays(new Date(targetStartDate + 'T00:00:00'), 6), 'yyyy-MM-dd');
     const { data: targetPlan, error } = await MealPlanService.duplicateMealPlan(
@@ -451,19 +451,19 @@ export const createMealPlanSlice: StateCreator<
     );
 
     if (error) {
-      set((state) => { state.mealPlan.error = error.message; state.mealPlan.isSaving = false; });
+      set((state: any) => { state.mealPlan.error = error.message; state.mealPlan.isSaving = false; });
       return;
     }
 
     // After duplicating on server, we might want to load it or just notify
-    set((state) => { state.mealPlan.isSaving = false; });
+    set((state: any) => { state.mealPlan.isSaving = false; });
   },
 
-  batchUpdateSlots: (updates) => set((state) => {
+  batchUpdateSlots: (updates) => set((state: any) => {
     if (!state.mealPlan.currentWeekPlan) return;
 
     updates.forEach(({ slotId, changes }) => {
-      const index = state.mealPlan.currentWeekPlan!.slots.findIndex(s => s.id === slotId);
+      const index = state.mealPlan.currentWeekPlan!.slots.findIndex((s: any) => s.id === slotId);
       if (index !== -1) {
         state.mealPlan.currentWeekPlan!.slots[index] = {
           ...state.mealPlan.currentWeekPlan!.slots[index],
@@ -478,27 +478,37 @@ export const createMealPlanSlice: StateCreator<
   }),
 
   // Utilities
-  clearError: () => set((state) => {
+  clearError: () => set((state: any) => {
     state.mealPlan.error = null;
   }),
 
-  setCurrentDate: (date: string) => set((state) => {
+  setCurrentDate: (date: string) => set((state: any) => {
     state.mealPlan.currentDate = date;
   }),
 
-  setStaples: (staples: Recipe[]) => set((state) => {
+  setStaples: (staples: Recipe[]) => set((state: any) => {
     state.mealPlan.staples = staples;
   }),
 
-  setActiveModal: (modal: 'add-recipe' | 'edit-slot' | null) => set((state) => {
+  setActiveModal: (
+    modal:
+      | 'add-recipe'
+      | 'edit-slot'
+      | 'recipe-select'
+      | 'preferences'
+      | 'shopping-list'
+      | 'recipe-detail'
+      | 'ai-planner'
+      | null
+  ) => set((state: any) => {
     state.mealPlan.activeModal = modal;
   }),
 
-  setSelectedMeal: (meal: MealSlot | null) => set((state) => {
+  setSelectedMeal: (meal: MealSlot | null) => set((state: any) => {
     state.mealPlan.selectedMeal = meal;
   }),
 
-  resetMealPlanState: () => set((state) => {
+  resetMealPlanState: () => set((state: any) => {
     state.mealPlan = {
       currentWeekPlan: null,
       preferences: DEFAULT_PREFERENCES,

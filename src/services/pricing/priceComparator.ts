@@ -3,9 +3,13 @@
  * Real-time price comparison with caching and optimization
  */
 
-import { Store } from '@prisma/client';
-
 import { PriceTracker, PriceComparison, StoreComparison } from './priceTracker';
+
+interface Store {
+  id: string;
+  name: string;
+  location?: string | { lat: number; lng: number };
+}
 
 interface CachedComparison {
   data: PriceComparison | StoreComparison[];

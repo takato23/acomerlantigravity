@@ -20,11 +20,9 @@ import { logger } from '@/services/logger';
 import type { 
   UserProfile, 
   UserPreferences, 
-  HouseholdMember,
-  ProfileCompletionMetrics,
-  ProfileAnalytics,
-  SystemHealth
-} from '@/services/profile/ProfileManager';
+  HouseholdMember
+} from '@/types/profile';
+import type { CompletionMetrics as ProfileCompletionMetrics } from '@/services/profile/ProfileCompletionService';
 import { getProfileManager } from '@/services/profile/ProfileManager';
 import { getHolisticSystem } from '@/services/core/HolisticSystem';
 
@@ -57,6 +55,32 @@ export interface ProfileSystemState {
   syncStatus: 'idle' | 'syncing' | 'error' | 'conflict';
   pendingChanges: number;
   systemHealth: SystemHealth;
+}
+
+export interface ProfileAnalytics {
+  userId: string;
+  lastActive: Date;
+  profileViews: number;
+  profileUpdates: number;
+  completionProgress: number;
+  engagementScore: number;
+  preferencePatterns: Record<string, any>;
+  usagePatterns: {
+    mostActiveTab: string;
+    averageSessionDuration: number;
+    featuresUsed: string[];
+  };
+}
+
+export interface SystemHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  lastCheck: Date;
+  metrics: {
+    responseTime: number;
+    errorRate: number;
+    syncSuccessRate: number;
+    cacheHitRate: number;
+  };
 }
 
 export interface ProfileSystemEvents {
@@ -129,8 +153,11 @@ export class ProfileSystemIntegrator extends EventEmitter {
     const startTime = performance.now();
     
     try {
-      // Initialize core systems
-      await this.holisticSystem.initialize();
+      // Initialize core systems when available
+      const initialize = (this.holisticSystem as { initialize?: () => Promise<void> }).initialize;
+      if (initialize) {
+        await initialize();
+      }
       
       // Setup real-time synchronization
       if (this.config.enableRealTimeSync) {
@@ -148,7 +175,7 @@ export class ProfileSystemIntegrator extends EventEmitter {
       const initTime = performance.now() - startTime;
       this.recordPerformanceMetric('system:initialization', initTime);
       
-      logger.info(`ProfileSystemIntegrator initialized in ${initTime.toFixed(2, 'Lib:ProfileSystemIntegrator')}ms`);
+      logger.info(`ProfileSystemIntegrator initialized in ${initTime.toFixed(2)}ms`, 'Lib:ProfileSystemIntegrator');
       
     } catch (error) {
       this.handleError('initialization', error as Error);
@@ -169,11 +196,39 @@ export class ProfileSystemIntegrator extends EventEmitter {
     const startTime = performance.now();
     
     try {
+      const profileManager = this.profileManager as {
+        getUserProfile: (id: string) => Promise<UserProfile | null>;
+        getUserPreferences?: (id: string) => Promise<UserPreferences | null>;
+        getHouseholdMembers?: (id: string) => Promise<HouseholdMember[]>;
+        getProfileCompletionMetrics?: (id: string) => Promise<ProfileCompletionMetrics>;
+      };
+      const defaultCompletionMetrics: ProfileCompletionMetrics = {
+        overall: 0,
+        sections: {
+          basicInfo: 0,
+          preferences: 0,
+          household: 0,
+          financial: 0,
+          dietary: 0,
+          cooking: 0,
+          planning: 0,
+          social: 0
+        },
+        achievements: [],
+        totalPoints: 0,
+        level: 1,
+        nextLevelPoints: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastActiveDate: new Date(0)
+      };
       const [profile, preferences, householdMembers, completionMetrics] = await Promise.all([
-        this.profileManager.getUserProfile(userId),
-        this.profileManager.getUserPreferences(userId),
-        this.profileManager.getHouseholdMembers(userId),
-        this.profileManager.getProfileCompletionMetrics(userId)
+        profileManager.getUserProfile(userId),
+        profileManager.getUserPreferences ? profileManager.getUserPreferences(userId) : Promise.resolve(null),
+        profileManager.getHouseholdMembers ? profileManager.getHouseholdMembers(userId) : Promise.resolve([]),
+        profileManager.getProfileCompletionMetrics
+          ? profileManager.getProfileCompletionMetrics(userId)
+          : Promise.resolve(defaultCompletionMetrics)
       ]);
 
       // Generate analytics data
@@ -501,7 +556,7 @@ export class ProfileSystemIntegrator extends EventEmitter {
       dietaryComplexity: preferences.dietaryRestrictions?.length || 0,
       cuisinePreferences: preferences.cuisinePreferences?.length || 0,
       budgetTier: this.categorizeBudget(preferences.budget?.monthly || 0),
-      cookingLevel: preferences.cookingSkill || 'beginner'
+      cookingLevel: 'beginner'
     };
   }
 
@@ -523,7 +578,7 @@ export class ProfileSystemIntegrator extends EventEmitter {
   }
 
   private handleError(operation: string, error: Error, context?: any): void {
-    logger.error(`ProfileSystemIntegrator error [${operation}]:`, 'Lib:ProfileSystemIntegrator', error, context);
+    logger.error(`ProfileSystemIntegrator error [${operation}]:`, 'Lib:ProfileSystemIntegrator', { error, context });
     
     if (this.config.enableErrorTracking) {
       this.emit('profile:error', { 

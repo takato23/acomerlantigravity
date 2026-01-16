@@ -456,12 +456,12 @@ export const createPricingSlice: StateCreator<any, [], [], PricingSlice> = (set,
   checkPriceAlerts: () => {
     const state = get();
 
-    state.pricing.alerts.forEach(alert => {
+    state.pricing.alerts.forEach((alert: PriceAlert) => {
       if (alert.triggered) return;
 
       const currentPrices = state.pricing.prices
-        .filter(p => p.productId === alert.productId && p.active)
-        .map(p => p.price);
+        .filter((p: PriceData) => p.productId === alert.productId && p.active)
+        .map((p: PriceData) => p.price);
 
       if (currentPrices.length > 0) {
         const lowestCurrentPrice = Math.min(...currentPrices);

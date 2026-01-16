@@ -106,7 +106,7 @@ export function measurePerformance(name: string) {
 
     if (!originalMethod) return descriptor;
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (this: unknown, ...args: any[]) {
       const stopwatch = new MetricStopwatch(`${name}.${propertyKey}`);
       stopwatch.start();
 

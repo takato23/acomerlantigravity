@@ -121,9 +121,6 @@ class SentryMonitoringService implements MonitoringService {
         dsn: this.sentryDsn,
         environment: process.env.NODE_ENV,
         tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-        integrations: [
-          new Sentry.BrowserTracing(),
-        ],
         beforeSend: (event) => {
           // Filter out low-severity errors in production
           if (process.env.NODE_ENV === 'production' && 

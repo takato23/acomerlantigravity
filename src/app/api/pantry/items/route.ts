@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
           .eq('id', ingredientId);
       } catch (err) {
         // Non-critical error
-        logger.warn('Failed to update ingredient price history', err);
+        logger.warn('Failed to update ingredient price history', 'API:route', err);
       }
     }
 

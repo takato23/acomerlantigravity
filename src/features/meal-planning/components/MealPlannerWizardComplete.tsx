@@ -107,7 +107,7 @@ export function MealPlannerWizard({ onComplete, onSkip }: MealPlannerWizardProps
       try {
         setData(JSON.parse(saved));
       } catch (error) {
-        logger.error('Error loading saved data:', error);
+        logger.error('Error loading saved data:', 'MealPlannerWizardComplete', error);
       }
     }
   }, []);

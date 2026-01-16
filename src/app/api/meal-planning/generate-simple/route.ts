@@ -46,10 +46,11 @@ Responde SOLO con un JSON válido con esta estructura exacta:
 
 Incluye 7 días. Usa comida argentina típica para desayunos, almuerzos, meriendas (snack) y cenas.`;
 
-    const text = await aiService.generateCompletion(prompt, {
+    const aiResponse = await aiService.generateText({ prompt }, {
       provider: 'gemini',
       temperature: 0.7
     });
+    const text = aiResponse.data;
 
     logger.info('Unified AI response received', 'meal-planning/generate-simple');
 

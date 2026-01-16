@@ -199,8 +199,9 @@ export function UnifiedVoiceButton({
       {showVisualizer && isListening && (
         <div className="absolute -inset-2 pointer-events-none">
           <AudioVisualizer
-            isRecording={isListening}
-            size={size === 'sm' ? 64 : size === 'md' ? 80 : 96}
+            isActive={isListening}
+            audioLevel={isListening ? 0.6 : 0}
+            size={size}
           />
         </div>
       )}

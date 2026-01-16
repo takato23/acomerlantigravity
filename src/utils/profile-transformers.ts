@@ -140,6 +140,37 @@ export function transformProfileFromDB(dbProfile: any): UserProfile | null {
       shareMealPlans: false,
       shareRecipes: false
     },
+
+    // Household
+    householdSize: dbProfile.household_size ?? 1,
+    householdMembers: dbProfile.household_members ?? [],
+
+    // Financial
+    monthlyBudget: dbProfile.monthly_budget ?? 0,
+    budget: dbProfile.budget || { weekly: 0, monthly: 0, currency: 'USD' },
+
+    // Dietary
+    dietaryRestrictions: dbProfile.dietary_restrictions || [],
+    allergies: dbProfile.allergies || [],
+    preferredCuisines: dbProfile.preferred_cuisines || [],
+    dislikedIngredients: dbProfile.disliked_ingredients || [],
+
+    // Nutrition
+    nutritionalGoals: dbProfile.nutritional_goals || {},
+
+    // Taste
+    tasteProfile: dbProfile.taste_profile || {
+      spicyTolerance: 'medium',
+      sweetPreference: 'medium',
+      saltyPreference: 'medium',
+      sourPreference: 'medium',
+      bitterTolerance: 'medium',
+      umamiAppreciation: 'medium',
+      texturePreferences: ['crispy', 'creamy', 'soft']
+    },
+
+    // Skills
+    cookingSkillLevel: dbProfile.cooking_skill_level || 'intermediate',
     
     createdAt: new Date(dbProfile.created_at),
     updatedAt: new Date(dbProfile.updated_at)

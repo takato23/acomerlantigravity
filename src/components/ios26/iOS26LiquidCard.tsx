@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 import { useIOS26 } from './iOS26Provider';
 
-export interface iOS26LiquidCardProps extends Omit<HTMLMotionProps<"div">, 'children'> {
+export interface IOS26LiquidCardProps extends Omit<HTMLMotionProps<"div">, 'children'> {
   children: React.ReactNode;
   variant?: 'subtle' | 'medium' | 'strong' | 'ultra';
   interactive?: boolean;
@@ -23,7 +23,7 @@ export interface iOS26LiquidCardProps extends Omit<HTMLMotionProps<"div">, 'chil
   className?: string;
 }
 
-export const iOS26LiquidCard = forwardRef<HTMLDivElement, iOS26LiquidCardProps>((props, ref) => {
+export const IOS26LiquidCard = forwardRef<HTMLDivElement, IOS26LiquidCardProps>((props, ref) => {
   const {
     children,
     variant = 'medium',
@@ -36,54 +36,54 @@ export const iOS26LiquidCard = forwardRef<HTMLDivElement, iOS26LiquidCardProps>(
     onHoverStart,
     onHoverEnd,
     onTapStart,
-    onTapEnd,
+    onTap,
     ...restProps
   } = props;
   const { reduceMotion, theme } = useIOS26();
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: string }>>([]);
-  
-  const handleHoverStart = (e: any) => {
+
+  const handleHoverStart = (e: any, info: any) => {
     setIsHovered(true);
-    onHoverStart?.(e);
+    onHoverStart?.(e, info);
   };
-  
-  const handleHoverEnd = (e: any) => {
+
+  const handleHoverEnd = (e: any, info: any) => {
     setIsHovered(false);
-    onHoverEnd?.(e);
+    onHoverEnd?.(e, info);
   };
-  
-  const handleTapStart = (e: any) => {
+
+  const handleTapStart = (e: any, info: any) => {
     setIsPressed(true);
-    onTapStart?.(e);
+    onTapStart?.(e, info);
   };
-  
-  const handleTapEnd = (e: any) => {
+
+  const handleTap = (e: any, info: any) => {
     setIsPressed(false);
-    onTapEnd?.(e);
+    onTap?.(e, info);
   };
-  
+
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!interactive || reduceMotion) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const id = Date.now().toString();
-    
+
     setRipples(prev => [...prev, { x, y, id }]);
     setTimeout(() => {
       setRipples(prev => prev.filter(r => r.id !== id));
     }, 800);
   };
-  
+
   const cardVariants = {
     initial: { scale: 1 },
     hover: interactive && !reduceMotion ? { scale: 1.02 } : {},
     tap: interactive && !reduceMotion ? { scale: 0.98 } : {}
   };
-  
+
   const glowAnimation = glow && !reduceMotion ? {
     boxShadow: [
       '0 8px 32px rgba(0, 0, 0, 0.12)',
@@ -91,11 +91,11 @@ export const iOS26LiquidCard = forwardRef<HTMLDivElement, iOS26LiquidCardProps>(
       '0 8px 32px rgba(0, 0, 0, 0.12)'
     ]
   } : {};
-  
+
   const morphAnimation = morph && !reduceMotion ? {
     borderRadius: ['1rem', '1.25rem', '0.875rem', '1.125rem', '1rem']
   } : {};
-  
+
   // No need to filter props here since they're already extracted
 
   return (
@@ -126,13 +126,13 @@ export const iOS26LiquidCard = forwardRef<HTMLDivElement, iOS26LiquidCardProps>(
       onHoverStart={handleHoverStart}
       onHoverEnd={handleHoverEnd}
       onTapStart={handleTapStart}
-      onTapEnd={handleTapEnd}
+      onTap={handleTap}
       onClick={handleClick}
       {...restProps}
     >
       {/* Gradient overlay */}
       {gradient && (
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden"
           style={{
             background: `linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 60%)`,
@@ -141,19 +141,19 @@ export const iOS26LiquidCard = forwardRef<HTMLDivElement, iOS26LiquidCardProps>(
           }}
         />
       )}
-      
+
       {/* Content */}
       <div className="relative z-10">
         {children}
       </div>
-      
+
       {/* Shimmer effect */}
       {shimmer && !reduceMotion && (
         <div className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden">
           <div className="ios26-shimmer absolute inset-0" />
         </div>
       )}
-      
+
       {/* Ripple effects */}
       <AnimatePresence>
         {ripples.map(ripple => (
@@ -170,7 +170,7 @@ export const iOS26LiquidCard = forwardRef<HTMLDivElement, iOS26LiquidCardProps>(
           </motion.div>
         ))}
       </AnimatePresence>
-      
+
       {/* Pressed state overlay */}
       <AnimatePresence>
         {isPressed && interactive && (
@@ -190,4 +190,7 @@ export const iOS26LiquidCard = forwardRef<HTMLDivElement, iOS26LiquidCardProps>(
   );
 });
 
-iOS26LiquidCard.displayName = 'iOS26LiquidCard';
+IOS26LiquidCard.displayName = 'IOS26LiquidCard';
+
+// Alias for backward compatibility
+export const iOS26LiquidCard = IOS26LiquidCard;

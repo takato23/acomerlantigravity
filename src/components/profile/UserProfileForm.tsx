@@ -6,6 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ZodError } from 'zod';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/services/logger';
 import { 
@@ -32,9 +33,9 @@ import {
   UserPreferences, 
   UserPreferencesSchema,
   DietaryRestrictions,
-  Allergies,
-  Cuisines,
-  CookingSkillLevel
+  CommonAllergens,
+  CuisineTypes,
+  CookingSkillLevels
 } from '@/lib/types/mealPlanning';
 
 interface UserProfileFormProps {
@@ -130,7 +131,7 @@ export function UserProfileForm({ user, preferences, section }: UserProfileFormP
           break;
         case 'notifications':
           setFormData({
-            notifications: preferences.notifications || {
+            notifications: (preferences as Record<string, any>).notifications || {
               mealReminders: true,
               shoppingReminders: true,
               recipeRecommendations: true,
@@ -229,8 +230,8 @@ export function UserProfileForm({ user, preferences, section }: UserProfileFormP
 
             UserPreferencesSchema.parse(preferencesData);
           } catch (error: unknown) {
-            if (error.errors) {
-              error.errors.forEach((err: any) => {
+            if (error instanceof ZodError) {
+              error.issues.forEach((err) => {
                 const field = err.path.join('.');
                 newErrors[field] = newErrors[field] || [];
                 newErrors[field].push(err.message);
@@ -309,7 +310,7 @@ export function UserProfileForm({ user, preferences, section }: UserProfileFormP
         const errorData = await response.json();
         throw new MealPlanningError(
           'Failed to save profile',
-          MealPlanningErrorCodes.DATABASE_ERROR,
+          MealPlanningErrorCodes.DATABASE_CONNECTION_FAILED,
           { response: errorData },
           errorData.message || 'Error al guardar el perfil'
         );
@@ -468,7 +469,7 @@ export function UserProfileForm({ user, preferences, section }: UserProfileFormP
       <div>
         <Label className="text-base font-medium mb-3 block">Restricciones Dietarias</Label>
         <div className="flex flex-wrap gap-2">
-          {Object.values(DietaryRestrictions).map(restriction => (
+          {DietaryRestrictions.map((restriction) => (
             <Badge
               key={restriction}
               variant={formData.dietaryRestrictions?.includes(restriction) ? 'default' : 'outline'}
@@ -486,7 +487,7 @@ export function UserProfileForm({ user, preferences, section }: UserProfileFormP
       <div>
         <Label className="text-base font-medium mb-3 block">Alergias</Label>
         <div className="flex flex-wrap gap-2">
-          {Object.values(Allergies).map(allergy => (
+          {CommonAllergens.map((allergy) => (
             <Badge
               key={allergy}
               variant={formData.allergies?.includes(allergy) ? 'default' : 'outline'}
@@ -504,7 +505,7 @@ export function UserProfileForm({ user, preferences, section }: UserProfileFormP
       <div>
         <Label className="text-base font-medium mb-3 block">Cocinas Favoritas</Label>
         <div className="flex flex-wrap gap-2">
-          {Object.values(Cuisines).map(cuisine => (
+          {CuisineTypes.map((cuisine) => (
             <Badge
               key={cuisine}
               variant={formData.favoriteCuisines?.includes(cuisine) ? 'default' : 'outline'}
@@ -522,9 +523,9 @@ export function UserProfileForm({ user, preferences, section }: UserProfileFormP
       <div>
         <Label className="text-base font-medium mb-3 block">Nivel de Cocina</Label>
         <div className="space-y-2">
-          {Object.entries(CookingSkillLevel).map(([key, value]) => (
+          {CookingSkillLevels.map((value) => (
             <div
-              key={key}
+              key={value}
               className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                 formData.cookingSkillLevel === value
                   ? 'border-blue-500 bg-blue-50'

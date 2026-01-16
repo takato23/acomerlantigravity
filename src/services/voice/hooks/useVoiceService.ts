@@ -7,14 +7,16 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 
 import { getVoiceService } from '../UnifiedVoiceService';
 import { 
+  ParsedIngredient,
   VoiceCommand, 
+  VoiceOptions,
   VoiceServiceConfig, 
   VoiceServiceStatus,
   VoiceAnalytics,
   VoiceServiceEvents
 } from '../types';
 
-export interface UseVoiceServiceOptions extends VoiceServiceConfig {
+export interface UseVoiceServiceOptions extends VoiceOptions {
   onCommand?: (command: VoiceCommand) => void;
   onError?: (error: Error) => void;
   onStart?: () => void;
@@ -25,15 +27,17 @@ export interface UseVoiceServiceOptions extends VoiceServiceConfig {
 
 export interface UseVoiceServiceReturn {
   // State
+  state: VoiceServiceStatus;
   isListening: boolean;
   isProcessing: boolean;
   isSpeaking: boolean;
   transcript: string;
   interimTranscript: string;
   lastCommand: VoiceCommand | null;
-  error: Error | null;
+  error: string | null;
   status: VoiceServiceStatus;
   analytics: VoiceAnalytics;
+  isSupported: boolean;
   
   // Actions
   startListening: (options?: Partial<VoiceServiceConfig>) => Promise<void>;
@@ -41,6 +45,10 @@ export interface UseVoiceServiceReturn {
   speak: (text: string, options?: any) => Promise<void>;
   executeCommand: (command: VoiceCommand) => Promise<void>;
   reset: () => void;
+  resetTranscript: () => void;
+  start: (options?: Partial<VoiceServiceConfig>) => Promise<void>;
+  stop: () => void;
+  clear: () => void;
   
   // Configuration
   updateConfig: (config: Partial<VoiceServiceConfig>) => void;
@@ -57,7 +65,7 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [lastCommand, setLastCommand] = useState<VoiceCommand | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<VoiceServiceStatus>(service.getStatus());
   const [analytics, setAnalytics] = useState<VoiceAnalytics>(service.getAnalytics());
 
@@ -65,6 +73,44 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
+
+  // Keep service configuration in sync with options
+  useEffect(() => {
+    const config: Partial<VoiceServiceConfig> = {};
+
+    if (options.language !== undefined) config.language = options.language;
+    if (options.continuous !== undefined) config.continuous = options.continuous;
+    if (options.interimResults !== undefined) config.interimResults = options.interimResults;
+    if (options.enableWakeWord !== undefined) config.enableWakeWord = options.enableWakeWord;
+    if (options.enableFeedback !== undefined) config.enableFeedback = options.enableFeedback;
+    if (options.enableOffline !== undefined) config.enableOffline = options.enableOffline;
+    if (options.maxAlternatives !== undefined) config.maxAlternatives = options.maxAlternatives;
+    if (options.confidenceThreshold !== undefined) config.confidenceThreshold = options.confidenceThreshold;
+
+    service.updateConfig(config);
+    setStatus(service.getStatus());
+  }, [
+    service,
+    options.language,
+    options.continuous,
+    options.interimResults,
+    options.enableWakeWord,
+    options.enableFeedback,
+    options.enableOffline,
+    options.maxAlternatives,
+    options.confidenceThreshold,
+  ]);
+
+  const extractParsedItems = useCallback((command: VoiceCommand): ParsedIngredient[] | undefined => {
+    const entities = command.parameters?.entities;
+    const items = Array.isArray(entities?.ingredients)
+      ? entities.ingredients
+      : Array.isArray(command.parameters?.ingredients)
+        ? command.parameters.ingredients
+        : undefined;
+
+    return items && items.length > 0 ? (items as ParsedIngredient[]) : undefined;
+  }, []);
 
   // Event handlers
   const handleStart = useCallback(() => {
@@ -85,15 +131,28 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
     setTranscript(command.transcript);
     setLastCommand(command);
     optionsRef.current.onCommand?.(command);
+    optionsRef.current.onResult?.({
+      text: command.transcript,
+      transcript: command.transcript,
+      isComplete: true,
+      confidence: command.confidence,
+      parsedItems: extractParsedItems(command),
+      command,
+    });
   }, []);
 
   const handleInterim = useCallback((data: { transcript: string }) => {
     setInterimTranscript(data.transcript);
     optionsRef.current.onInterim?.(data.transcript);
+    optionsRef.current.onResult?.({
+      text: data.transcript,
+      transcript: data.transcript,
+      isComplete: false,
+    });
   }, []);
 
   const handleError = useCallback((err: Error) => {
-    setError(err);
+    setError(err.message || 'Unknown error');
     setIsListening(false);
     optionsRef.current.onError?.(err);
   }, []);
@@ -139,7 +198,7 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
       setError(null);
       await service.startListening(config || {});
     } catch (err: unknown) {
-      setError(err as Error);
+      setError(err instanceof Error ? err.message : String(err));
       throw err;
     }
   }, [service]);
@@ -153,7 +212,7 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
       setIsSpeaking(true);
       await service.speak(text, options);
     } catch (err: unknown) {
-      setError(err as Error);
+      setError(err instanceof Error ? err.message : String(err));
       throw err;
     } finally {
       setIsSpeaking(false);
@@ -165,7 +224,7 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
       setIsProcessing(true);
       await service.executeCommand(command);
     } catch (err: unknown) {
-      setError(err as Error);
+      setError(err instanceof Error ? err.message : String(err));
       throw err;
     } finally {
       setIsProcessing(false);
@@ -179,6 +238,11 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
     setLastCommand(null);
     setError(null);
   }, [service]);
+
+  const resetTranscript = useCallback(() => {
+    setTranscript('');
+    setInterimTranscript('');
+  }, []);
 
   const updateConfig = useCallback((config: Partial<VoiceServiceConfig>) => {
     service.updateConfig(config);
@@ -204,6 +268,7 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
 
   return {
     // State
+    state: status,
     isListening,
     isProcessing,
     isSpeaking,
@@ -213,6 +278,7 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
     error,
     status,
     analytics,
+    isSupported: status.isAvailable,
     
     // Actions
     startListening,
@@ -220,6 +286,10 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
     speak,
     executeCommand,
     reset,
+    resetTranscript,
+    start: startListening,
+    stop: stopListening,
+    clear: resetTranscript,
     
     // Configuration
     updateConfig,

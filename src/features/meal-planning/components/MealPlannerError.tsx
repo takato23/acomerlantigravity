@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
 import { KeButton } from '@/components/ui';
 
 interface MealPlannerErrorProps {
@@ -23,7 +23,7 @@ export function MealPlannerError({ error, onRetry }: MealPlannerErrorProps) {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <iOS26EnhancedCard
+        <IOS26EnhancedCard
           variant="glass"
           elevation="high"
           className="max-w-md w-full p-8 text-center"
@@ -68,7 +68,7 @@ export function MealPlannerError({ error, onRetry }: MealPlannerErrorProps) {
               Si el problema persiste, por favor contacta con soporte técnico.
             </p>
           </div>
-        </iOS26EnhancedCard>
+        </IOS26EnhancedCard>
       </motion.div>
     </div>
   );

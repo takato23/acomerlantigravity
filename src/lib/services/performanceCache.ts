@@ -4,7 +4,7 @@
  */
 
 interface CacheEntry<T> {
-  data: T;
+  data: T | string;
   timestamp: number;
   ttl: number;
   accessCount: number;

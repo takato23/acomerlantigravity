@@ -13,7 +13,7 @@ import { parseMultipleIngredients, categorizeIngredient } from '@/lib/pantry/par
 import { PantryItem, ParsedIngredientInput } from '@/types/pantry';
 import { logger } from '@/services/logger';
 import { uploadPantryPhoto, validateImageFile, compressImage } from '@/lib/supabase/storage';
-import { usePantry as usePantryStore } from '@/store';
+import { useAppStore } from '@/store';
 
 // Hook for pantry management with database integration
 export function usePantry(userId?: string) {
@@ -155,8 +155,10 @@ export function usePantry(userId?: string) {
 
       // Process each parsed item
       for (const parsedItem of parsedItems) {
-        const category = categorizeIngredient(parsedItem.normalized_name);
-        const ingredient = await getOrCreateIngredient(parsedItem.extracted_name, category);
+        const normalizedName = parsedItem.normalized_name || parsedItem.extracted_name || '';
+        const extractedName = parsedItem.extracted_name || parsedItem.name || normalizedName;
+        const category = categorizeIngredient(normalizedName || extractedName);
+        const ingredient = await getOrCreateIngredient(extractedName, category);
 
         itemsToAdd.push({
           ingredient_id: ingredient.id,
@@ -282,11 +284,9 @@ export function usePantry(userId?: string) {
 
 // Hook for pantry UI state management
 export function usePantryUI() {
-  const {
-    uiState,
-    setUIState,
-    resetFilters
-  } = usePantryStore();
+  const uiState = useAppStore((state) => state.uiState);
+  const setUIState = useAppStore((state) => state.setUIState);
+  const resetFilters = useAppStore((state) => state.resetFilters);
 
   const updateFilter = useCallback((key: keyof typeof uiState, value: any) => {
     setUIState({ [key]: value });
@@ -328,14 +328,14 @@ export function usePantryUI() {
 
 // Hook for filtered pantry items
 export function useFilteredPantryItems() {
-  return usePantryStore((state) => {
-    let filtered = state.items;
+  return useAppStore((state) => {
+    let filtered = state.pantry.items;
 
     // Apply search filter
     if (state.uiState.search_query) {
       const query = state.uiState.search_query.toLowerCase();
       filtered = filtered.filter(item => 
-        item.ingredient?.name.toLowerCase().includes(query) ||
+        item.name.toLowerCase().includes(query) ||
         item.notes?.toLowerCase().includes(query)
       );
     }
@@ -343,7 +343,7 @@ export function useFilteredPantryItems() {
     // Apply category filter
     if (state.uiState.filter_category) {
       filtered = filtered.filter(item => 
-        item.ingredient?.category === state.uiState.filter_category
+        item.category === state.uiState.filter_category
       );
     }
 
@@ -355,16 +355,16 @@ export function useFilteredPantryItems() {
     // Apply expired filter
     if (state.uiState.show_expired) {
       filtered = filtered.filter(item => {
-        if (!item.expiration_date) return false;
-        return new Date(item.expiration_date) < new Date();
+        if (!item.expirationDate) return false;
+        return new Date(item.expirationDate) < new Date();
       });
     }
 
     // Apply low stock filter
     if (state.uiState.show_low_stock) {
       filtered = filtered.filter(item => {
-        if (!item.low_stock_threshold) return false;
-        return item.quantity <= item.low_stock_threshold;
+        if (!item.minimumStock) return false;
+        return item.currentStock <= item.minimumStock;
       });
     }
 
@@ -374,28 +374,28 @@ export function useFilteredPantryItems() {
 
       switch (state.uiState.sort_by) {
         case 'name':
-          aValue = a.ingredient?.name || '';
-          bValue = b.ingredient?.name || '';
+          aValue = a.name || '';
+          bValue = b.name || '';
           break;
         case 'category':
-          aValue = a.ingredient?.category || '';
-          bValue = b.ingredient?.category || '';
+          aValue = a.category || '';
+          bValue = b.category || '';
           break;
         case 'expiration':
-          aValue = a.expiration_date ? new Date(a.expiration_date) : new Date('9999-12-31');
-          bValue = b.expiration_date ? new Date(b.expiration_date) : new Date('9999-12-31');
+          aValue = a.expirationDate ? new Date(a.expirationDate) : new Date('9999-12-31');
+          bValue = b.expirationDate ? new Date(b.expirationDate) : new Date('9999-12-31');
           break;
         case 'quantity':
-          aValue = a.quantity;
-          bValue = b.quantity;
+          aValue = a.currentStock;
+          bValue = b.currentStock;
           break;
         case 'created_at':
-          aValue = new Date(a.created_at);
-          bValue = new Date(b.created_at);
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
           break;
         default:
-          aValue = a.ingredient?.name || '';
-          bValue = b.ingredient?.name || '';
+          aValue = a.name || '';
+          bValue = b.name || '';
       }
 
       if (aValue < bValue) return state.uiState.sort_order === 'asc' ? -1 : 1;

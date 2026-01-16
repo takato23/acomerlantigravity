@@ -53,7 +53,7 @@ export default function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScann
       
       // Start scanning
       await readerRef.current.decodeFromVideoDevice(
-        undefined,
+        null,
         videoRef.current!,
         (result, error) => {
           if (result) {
@@ -72,10 +72,11 @@ export default function BarcodeScanner({ onScan, onClose, isOpen }: BarcodeScann
     } catch (err: unknown) {
       logger.error('Camera initialization error:', 'BarcodeScanner', err);
       setHasPermission(false);
-      
-      if (err.name === 'NotAllowedError') {
+
+      const errorName = err instanceof Error ? err.name : undefined;
+      if (errorName === 'NotAllowedError') {
         setError('Se requiere permiso para acceder a la cámara');
-      } else if (err.name === 'NotFoundError') {
+      } else if (errorName === 'NotFoundError') {
         setError('No se encontró una cámara disponible');
       } else {
         setError('Error al inicializar el escáner');

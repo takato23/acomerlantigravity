@@ -43,7 +43,9 @@ interface ProfileDataContextValue {
 // Household Members Context
 interface HouseholdContextValue {
   householdMembers: HouseholdMember[];
-  addHouseholdMember: (member: Omit<HouseholdMember, 'id' | 'userId'>) => Promise<void>;
+  addHouseholdMember: (
+    member: Omit<HouseholdMember, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ) => Promise<void>;
   updateHouseholdMember: (id: string, updates: Partial<HouseholdMember>) => Promise<void>;
   removeHouseholdMember: (id: string) => Promise<void>;
 }
@@ -80,6 +82,7 @@ const ProfileComputedContext = createContext<ProfileComputedContextValue | null>
 // Profile Data Provider with caching
 const ProfileDataProvider = memo<{ children: React.ReactNode }>(({ children }) => {
   const user = useUser();
+  const userId = user?.profile?.id;
   
   // Use the profile cache hook
   const {
@@ -88,7 +91,7 @@ const ProfileDataProvider = memo<{ children: React.ReactNode }>(({ children }) =
     error,
     stats: cacheStats,
   } = useProfileCache({
-    userId: user?.id,
+    userId,
     prefetch: true,
     subscribe: true,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -115,6 +118,7 @@ ProfileDataProvider.displayName = 'ProfileDataProvider';
 // Household Provider with caching
 const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => {
   const user = useUser();
+  const userId = user?.profile?.id;
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
   const [cacheKey, setCacheKey] = useState(0); // Force cache invalidation
 
@@ -123,9 +127,9 @@ const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => 
 
   // Memoized load function with caching
   const loadHouseholdMembers = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
     
-    const cacheKeyStr = `${user.id}_${cacheKey}`;
+    const cacheKeyStr = `${userId}_${cacheKey}`;
     
     // Check cache first
     if (householdCache.has(cacheKeyStr)) {
@@ -137,7 +141,7 @@ const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => 
       const { data, error } = await supabase
         .from('household_members')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -148,28 +152,28 @@ const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => 
     } catch (err: unknown) {
       logger.error('Error loading household members', 'ProfileContext', err);
     }
-  }, [user?.id, cacheKey, householdCache]);
+  }, [userId, cacheKey, householdCache]);
 
   // Load household members on user change
   useEffect(() => {
-    if (user?.id) {
+    if (userId) {
       loadHouseholdMembers();
     }
-  }, [user?.id, loadHouseholdMembers]);
+  }, [userId, loadHouseholdMembers]);
 
   // Subscribe to household member changes
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     const channel = supabase
-      .channel(`household_${user.id}`)
+      .channel(`household_${userId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'household_members',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           setCacheKey(prev => prev + 1); // Invalidate cache
@@ -181,21 +185,23 @@ const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, loadHouseholdMembers]);
+  }, [userId, loadHouseholdMembers]);
 
   // Memoized action functions with optimistic updates
-  const addHouseholdMember = useCallback(async (member: Omit<HouseholdMember, 'id' | 'userId'>) => {
-    if (!user?.id) return;
+  const addHouseholdMember = useCallback(async (
+    member: Omit<HouseholdMember, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ) => {
+    if (!userId) return;
 
     // Optimistic update
     const tempId = `temp_${Date.now()}`;
-    const tempMember = { ...member, id: tempId, userId: user.id } as HouseholdMember;
+    const tempMember = { ...member, id: tempId, userId } as HouseholdMember;
     setHouseholdMembers(prev => [...prev, tempMember]);
 
     try {
       const { data, error } = await supabase
         .from('household_members')
-        .insert({ ...member, user_id: user.id })
+        .insert({ ...member, user_id: userId })
         .select()
         .single();
 
@@ -215,7 +221,7 @@ const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => 
       logger.error('Error al agregar miembro del hogar', 'CachedProfileContext');
       throw err;
     }
-  }, [user?.id]);
+  }, [userId]);
 
   const updateHouseholdMember = useCallback(async (id: string, updates: Partial<HouseholdMember>) => {
     // Optimistic update
@@ -290,6 +296,7 @@ HouseholdProvider.displayName = 'HouseholdProvider';
 // Profile Actions Provider with cache integration
 const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }) => {
   const user = useUser();
+  const userId = user?.profile?.id;
   const { profile } = useProfileData();
   
   // Use the profile cache hook for actions
@@ -300,12 +307,12 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
     invalidate,
     prefetch,
   } = useProfileCache({
-    userId: user?.id,
+    userId,
   });
 
   // Memoized action functions
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    if (!user?.id || !profile) return;
+    if (!userId || !profile) return;
 
     try {
       await cacheUpdateProfile(updates);
@@ -314,10 +321,10 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al actualizar el perfil', 'CachedProfileContext');
       throw err;
     }
-  }, [user?.id, profile, cacheUpdateProfile]);
+  }, [userId, profile, cacheUpdateProfile]);
 
   const updatePreferences = useCallback(async (updates: Partial<UserPreferences>) => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     try {
       await cacheUpdatePreferences(updates);
@@ -326,14 +333,14 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al actualizar las preferencias', 'CachedProfileContext');
       throw err;
     }
-  }, [user?.id, cacheUpdatePreferences]);
+  }, [userId, cacheUpdatePreferences]);
 
   const uploadAvatar = useCallback(async (file: File): Promise<string> => {
-    if (!user?.id) throw new Error('Usuario no autenticado');
+    if (!userId) throw new Error('Usuario no autenticado');
 
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${userId}/avatar.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       // Upload to Supabase Storage
@@ -356,10 +363,10 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al subir la imagen', 'CachedProfileContext');
       throw err;
     }
-  }, [user?.id, updateProfile]);
+  }, [userId, updateProfile]);
 
   const refreshProfile = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     try {
       await refetch();
@@ -368,7 +375,7 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al actualizar el perfil', 'CachedProfileContext');
       throw err;
     }
-  }, [user?.id, refetch]);
+  }, [userId, refetch]);
 
   const invalidateCache = useCallback(() => {
     invalidate();

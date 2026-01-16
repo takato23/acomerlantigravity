@@ -59,7 +59,7 @@ export async function callWeeklyPlanAPI(
 ): Promise<ArgentineWeeklyPlan> {
   const requestId = Math.random().toString(36).substr(2, 9);
   
-  logger.info(`[API Client] Requesting weekly plan ${requestId}`, {
+  logger.info(`[API Client] Requesting weekly plan ${requestId}`, 'GeminiApiClient', {
     weekStart: params.weekStart,
     mode: params.mode,
     pantryItems: params.pantry.length,
@@ -93,7 +93,7 @@ export async function callWeeklyPlanAPI(
         throw new Error('API returned unsuccessful response');
       }
 
-      logger.info(`[API Client] Weekly plan received ${requestId}`, {
+      logger.info(`[API Client] Weekly plan received ${requestId}`, 'GeminiApiClient', {
         source: validated.meta?.source,
         cacheHit: validated.meta?.cacheHit,
         coalescerHit: validated.meta?.coalescerHit,
@@ -103,11 +103,10 @@ export async function callWeeklyPlanAPI(
       return validated.data as ArgentineWeeklyPlan;
     },
     {
-      retries: 2,
-      delays: [1000, 2000],
-      onRetry: (attempt) => {
-        logger.warn(`[API Client] Retrying weekly plan request ${requestId}, attempt ${attempt}`);
-      },
+      maxRetries: 2,
+      initialDelay: 1000,
+      maxDelay: 2000,
+      backoffFactor: 2,
     }
   );
 
@@ -130,7 +129,7 @@ export async function callRegenerateAPI(
 ): Promise<Recipe> {
   const requestId = Math.random().toString(36).substr(2, 9);
   
-  logger.info(`[API Client] Requesting meal regeneration ${requestId}`, {
+  logger.info(`[API Client] Requesting meal regeneration ${requestId}`, 'GeminiApiClient', {
     dayIndex: params.dayIndex,
     mealType: params.mealType,
     mode: params.mode,
@@ -164,18 +163,17 @@ export async function callRegenerateAPI(
         throw new Error('API returned unsuccessful response');
       }
 
-      logger.info(`[API Client] Recipe received ${requestId}`, {
+      logger.info(`[API Client] Recipe received ${requestId}`, 'GeminiApiClient', {
         meta: validated.meta,
       });
 
       return validated.recipe as Recipe;
     },
     {
-      retries: 2,
-      delays: [500, 1000],
-      onRetry: (attempt) => {
-        logger.warn(`[API Client] Retrying regenerate request ${requestId}, attempt ${attempt}`);
-      },
+      maxRetries: 2,
+      initialDelay: 500,
+      maxDelay: 1000,
+      backoffFactor: 2,
     }
   );
 
@@ -199,7 +197,7 @@ export async function callAlternativesAPI(
 ): Promise<Recipe[]> {
   const requestId = Math.random().toString(36).substr(2, 9);
   
-  logger.info(`[API Client] Requesting alternatives ${requestId}`, {
+  logger.info(`[API Client] Requesting alternatives ${requestId}`, 'GeminiApiClient', {
     dayIndex: params.dayIndex,
     mealType: params.mealType,
     count: params.count || 5,
@@ -234,7 +232,7 @@ export async function callAlternativesAPI(
         throw new Error('API returned unsuccessful response');
       }
 
-      logger.info(`[API Client] Alternatives received ${requestId}`, {
+      logger.info(`[API Client] Alternatives received ${requestId}`, 'GeminiApiClient', {
         count: validated.alternatives.length,
         meta: validated.meta,
       });
@@ -242,11 +240,10 @@ export async function callAlternativesAPI(
       return validated.alternatives as Recipe[];
     },
     {
-      retries: 1,
-      delays: [1000],
-      onRetry: (attempt) => {
-        logger.warn(`[API Client] Retrying alternatives request ${requestId}, attempt ${attempt}`);
-      },
+      maxRetries: 1,
+      initialDelay: 1000,
+      maxDelay: 1000,
+      backoffFactor: 2,
     }
   );
 
@@ -271,7 +268,7 @@ export async function checkAPIHealth(): Promise<{
     const data = await res.json();
     return data;
   } catch (error) {
-    logger.error('[API Client] Health check failed', error);
+    logger.error('[API Client] Health check failed', 'GeminiApiClient', error);
     return { healthy: false, geminiAvailable: false, cacheAvailable: false };
   }
 }

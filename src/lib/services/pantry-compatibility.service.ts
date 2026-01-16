@@ -68,7 +68,7 @@ class PantryCompatibilityService {
         const substitutes = this.findSubstitutes(recipeIngredient, pantryItems);
         if (substitutes.length > 0) {
           substitutionSuggestions.push({
-            missing_ingredient: recipeIngredient.ingredient_name,
+            missing_ingredient: this.getIngredientName(recipeIngredient),
             suggested_substitutes: substitutes
           });
         }
@@ -96,11 +96,11 @@ class PantryCompatibilityService {
     const shoppingListItems = missingIngredients
       .filter(ing => !ing.optional) // Only required ingredients
       .map(ing => ({
-        ingredient_name: ing.ingredient_name,
+        ingredient_name: this.getIngredientName(ing),
         quantity: ing.quantity,
         unit: ing.unit,
-        category: this.categorizeIngredient(ing.ingredient_name),
-        estimated_price: this.estimatePrice(ing.ingredient_name, ing.quantity, ing.unit)
+        category: this.categorizeIngredient(this.getIngredientName(ing)),
+        estimated_price: this.estimatePrice(this.getIngredientName(ing), ing.quantity, ing.unit)
       }));
 
     // Calculate additional metrics
@@ -111,7 +111,11 @@ class PantryCompatibilityService {
 
     return {
       can_make: canMake,
-      missing_ingredients: missingIngredients.length,
+      missing_ingredients: missingIngredients,
+      available_ingredients: ingredientMatches
+        .filter(match => match.match_type !== 'missing')
+        .map(match => match.recipe_ingredient),
+      substitutions: [],
       compatibility_score: compatibilityScore,
       ingredient_matches: ingredientMatches,
       substitution_suggestions: substitutionSuggestions,
@@ -126,11 +130,18 @@ class PantryCompatibilityService {
   /**
    * Find the best matching pantry item for a recipe ingredient
    */
+  private getIngredientName(recipeIngredient: RecipeIngredient): string {
+    return recipeIngredient.ingredient?.name || recipeIngredient.ingredient_id || 'ingrediente';
+  }
+
+  /**
+   * Find the best matching pantry item for a recipe ingredient
+   */
   private findBestMatch(
     recipeIngredient: RecipeIngredient, 
     pantryItems: PantryItem[]
   ): IngredientMatch {
-    const ingredientName = recipeIngredient.ingredient_name.toLowerCase().trim();
+    const ingredientName = this.getIngredientName(recipeIngredient).toLowerCase().trim();
     
     // First try exact matches
     const exactMatch = pantryItems.find(item => 
@@ -260,7 +271,7 @@ class PantryCompatibilityService {
       ]
     };
 
-    const ingredientName = missingIngredient.ingredient_name.toLowerCase();
+    const ingredientName = this.getIngredientName(missingIngredient).toLowerCase();
     const rules = substitutionRules[ingredientName] || [];
 
     rules.forEach(rule => {
@@ -406,7 +417,7 @@ class PantryCompatibilityService {
         if (a.compatibility.compatibility_score !== b.compatibility.compatibility_score) {
           return b.compatibility.compatibility_score - a.compatibility.compatibility_score;
         }
-        return a.compatibility.missing_ingredients - b.compatibility.missing_ingredients;
+        return a.compatibility.missing_ingredients.length - b.compatibility.missing_ingredients.length;
       });
   }
 
@@ -449,7 +460,7 @@ class PantryCompatibilityService {
     missingIngredients.forEach(ingredient => {
       if (!ingredient.optional) {
         // Common prep time additions based on ingredient type
-        const ingredientName = ingredient.ingredient_name.toLowerCase();
+        const ingredientName = this.getIngredientName(ingredient).toLowerCase();
         
         if (ingredientName.includes('carne') || ingredientName.includes('pollo')) {
           estimatedPrepDelay += 30; // Need to go buy and potentially marinate
@@ -464,7 +475,7 @@ class PantryCompatibilityService {
     // Check for essential cooking tools that might be missing
     const missingEssentialTools: string[] = [];
     missingIngredients.forEach(ingredient => {
-      const name = ingredient.ingredient_name.toLowerCase();
+      const name = this.getIngredientName(ingredient).toLowerCase();
       if (name.includes('horno') && !missingEssentialTools.includes('horno')) {
         missingEssentialTools.push('horno');
       }
@@ -506,8 +517,8 @@ class PantryCompatibilityService {
     missingIngredients.forEach(ingredient => {
       if (ingredient.optional) return; // Skip optional ingredients
       
-      const name = ingredient.ingredient_name.toLowerCase();
-      let nutritionalMatch = null;
+      const name = this.getIngredientName(ingredient).toLowerCase();
+      let nutritionalMatch: { calories: number; protein: number; carbs: number; fat: number } | null = null;
       
       // Find matching nutritional data
       Object.keys(nutritionalData).forEach(key => {
@@ -517,6 +528,12 @@ class PantryCompatibilityService {
       });
 
       if (nutritionalMatch) {
+        const match = nutritionalMatch as {
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+        };
         // Convert quantity to approximate grams (rough estimation)
         let estimatedGrams = 100; // default
         
@@ -530,10 +547,10 @@ class PantryCompatibilityService {
         
         const factor = estimatedGrams / 100;
         
-        caloriesMissing += nutritionalMatch.calories * factor;
-        proteinMissing += nutritionalMatch.protein * factor;
-        carbsMissing += nutritionalMatch.carbs * factor;
-        fatMissing += nutritionalMatch.fat * factor;
+        caloriesMissing += match.calories * factor;
+        proteinMissing += match.protein * factor;
+        carbsMissing += match.carbs * factor;
+        fatMissing += match.fat * factor;
       }
     });
 

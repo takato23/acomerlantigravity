@@ -18,7 +18,7 @@ export async function withAuth<T>(
     
     // Get auth session
     const { data: { session } } = await supabase.auth.getSession();
-    if (!user) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -33,8 +33,9 @@ export async function withAuth<T>(
 
     return NextResponse.json(result.data, { status: result.status });
   } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }

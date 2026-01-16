@@ -11,6 +11,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
+import { IOS26EnhancedButton } from '@/components/ios26';
 
 interface SidebarItem {
   href: string;
@@ -180,7 +181,7 @@ export function iOS26EnhancedSidebar() {
           "mb-6 space-y-2",
           isCollapsed && "mb-4"
         )}>
-          <iOS26EnhancedButton
+          <IOS26EnhancedButton
             variant="aurora"
             size={isCollapsed ? "sm" : "md"}
             className="w-full justify-center"
@@ -189,7 +190,7 @@ export function iOS26EnhancedSidebar() {
           >
             <Plus className="h-4 w-4" />
             {!isCollapsed && <span>New Recipe</span>}
-          </iOS26EnhancedButton>
+          </IOS26EnhancedButton>
         </div>
 
         {/* Navigation Sections */}

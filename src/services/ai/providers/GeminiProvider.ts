@@ -13,6 +13,8 @@ import {
   AIImageRequest,
   AITextResponse,
   AIStreamResponse,
+  AIImageGenerationRequest,
+  AIImageGenerationResponse,
   AIServiceError,
 } from '../types';
 
@@ -20,7 +22,7 @@ import { AIProviderInterface, AIProviderCapabilities } from './AIProviderInterfa
 
 export class GeminiProvider extends AIProviderInterface {
   name: AIProvider = 'gemini';
-  private genAI: GoogleGenerativeAI;
+  private genAI: GoogleGenerativeAI | null;
 
   constructor(config: { apiKey?: string; useProxy?: boolean }) {
     super(config);
@@ -145,6 +147,13 @@ export class GeminiProvider extends AIProviderInterface {
     config: AIServiceConfig
   ): Promise<AIStreamResponse> {
     try {
+      if (!this.genAI) {
+        if (this.config.useProxy) {
+          throw new Error('Gemini streaming is not available in proxy mode.');
+        }
+        throw new Error('Gemini client not initialized.');
+      }
+
       const model = this.genAI.getGenerativeModel({
         model: config.model || geminiConfig.default.model,
       });
@@ -210,6 +219,13 @@ export class GeminiProvider extends AIProviderInterface {
     config: AIServiceConfig
   ): Promise<AITextResponse> {
     try {
+      if (!this.genAI) {
+        if (this.config.useProxy) {
+          throw new Error('Gemini image analysis is not available in proxy mode.');
+        }
+        throw new Error('Gemini client not initialized.');
+      }
+
       const model = this.genAI.getGenerativeModel({
         model: geminiConfig.default.model,
       });
@@ -239,7 +255,7 @@ export class GeminiProvider extends AIProviderInterface {
             },
           };
         }
-      } else if (request.image instanceof Buffer) {
+      } else if (Buffer.isBuffer(request.image)) {
         imageData = {
           inlineData: {
             data: request.image.toString('base64'),
@@ -248,11 +264,11 @@ export class GeminiProvider extends AIProviderInterface {
         };
       } else {
         // Blob
-        const buffer = await request.image.arrayBuffer();
+        const buffer = await (request.image as Blob).arrayBuffer();
         imageData = {
           inlineData: {
             data: Buffer.from(buffer).toString('base64'),
-            mimeType: request.image.type,
+            mimeType: (request.image as Blob).type,
           },
         };
       }

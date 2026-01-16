@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSupabaseInstance } from '@/lib/supabase/singleton';
-import { logger } from '@/services/logger';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { getSupabaseInstance } from '../../../lib/supabase/singleton';
+import { logger } from '../../../services/logger';
 
-import { useAppStore } from '@/store';
+import { useAppStore } from '../../../store';
 
 interface UseAuthOptions {
   redirectTo?: string;
@@ -33,15 +34,6 @@ export function useAuth(options?: UseAuthOptions) {
         }
       } catch (error) {
         logger.error('Error checking auth:', 'useAuth', error);
-        // Fallback to mock user for development
-        console.warn('Authentication failed, using mock user');
-        setUser({
-          id: 'mock-user-123',
-          email: 'demo@kecarajocomer.com',
-          name: 'Usuario Demo',
-          createdAt: new Date(),
-          lastLogin: new Date()
-        });
       } finally {
         setAuthLoading(false);
       }
@@ -50,7 +42,7 @@ export function useAuth(options?: UseAuthOptions) {
     checkUser();
 
     // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session?.user) {
         setUser({
           id: session.user.id,

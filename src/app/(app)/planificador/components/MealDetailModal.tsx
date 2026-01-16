@@ -181,11 +181,11 @@ export function MealDetailModal({ isOpen, onClose, recipe, day, mealType }: Meal
             missingItems.map((item) =>
               addItem(
                 {
-                  name: item.ingredient_name,
+                  custom_name: item.ingredient_name,
                   quantity: item.missingQuantity > 0 ? Math.ceil(item.missingQuantity) : item.quantity,
                   unit: item.unit || 'unidad',
                   category: 'otros',
-                  checked: false
+                  is_purchased: false
                 },
                 targetListId
               )

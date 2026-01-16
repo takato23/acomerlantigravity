@@ -43,7 +43,9 @@ export class UnifiedStorageService extends EventEmitter {
     super();
 
     this.config = {
-      provider: 'local',
+      provider: config.provider ?? 'local',
+      supabaseUrl: config.supabaseUrl ?? '',
+      supabaseKey: config.supabaseKey ?? '',
       localStorage: {
         prefix: 'kcc_',
         encrypt: false,
@@ -56,7 +58,6 @@ export class UnifiedStorageService extends EventEmitter {
         strategy: 'lru',
         ...config.cache,
       },
-      ...config,
     };
 
     this.providers = new Map();

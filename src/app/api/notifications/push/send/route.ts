@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import webpush from 'web-push';
 
@@ -41,7 +42,8 @@ export async function POST(request: NextRequest) {
         const body: PushNotificationRequest = await request.json();
         const { title, body: message, url, type } = body;
 
-        const supabase = await createClient();
+        const cookieStore = await cookies();
+        const supabase = createClient(cookieStore);
 
         // Get current user if userId is not provided
         let targetUserId = body.userId;

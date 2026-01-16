@@ -173,24 +173,27 @@ export function GamificationWidget({ userId, className = '' }: GamificationWidge
         <div className="p-4">
           <h4 className="text-sm font-medium text-gray-900 mb-3">Today's Goals</h4>
           <div className="space-y-2">
-            {Object.entries(progressData.dailyProgress).slice(0, 3).map(([goalType, progress]) => (
-              <div key={goalType} className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">
-                  {goalType.replace(/_/g, ' ')}
-                </span>
-                <div className="flex items-center gap-2">
-                  <div className="w-16 bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-slate-700 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(progress, 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">
-                    {Math.round(progress)}%
+            {Object.entries(progressData.dailyProgress)
+              .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
+              .slice(0, 3)
+              .map(([goalType, progress]) => (
+                <div key={goalType} className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">
+                    {goalType.replace(/_/g, ' ')}
                   </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-slate-700 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.min(progress, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-500 w-8 text-right">
+                      {Math.round(progress)}%
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}

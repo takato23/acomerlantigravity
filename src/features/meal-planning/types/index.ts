@@ -5,7 +5,7 @@
 
 export type MealType = 'desayuno' | 'almuerzo' | 'merienda' | 'cena';
 export type MealSlotType = 'breakfast' | 'lunch' | 'snack' | 'dinner'; // API compatibility
-export type DietaryPreference = 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'keto' | 'paleo' | 'glutenFree' | 'dairyFree';
+export type DietaryPreference = 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'keto' | 'paleo' | 'glutenFree' | 'dairyFree' | 'gluten-free';
 export type DietProfile = 'balanced' | 'protein-rich' | 'low-carb' | 'mediterranean' | 'low-fat';
 export type BudgetLevel = 'low' | 'medium' | 'high';
 export type Difficulty = 'easy' | 'medium' | 'hard';
@@ -66,9 +66,50 @@ export interface Recipe {
     perServing: number;
     currency: string;
   };
+  meal_types?: string[]; // Compatibility
 }
 
-// ... existing Ingredient and NutritionInfo ...
+export interface Ingredient {
+  id: string;
+  name: string;
+  category: IngredientCategory | string;
+  quantity?: number;
+  amount?: number; // Compatibility
+  totalAmount?: number; // Compatibility
+  unit?: string;
+  notes?: string;
+}
+
+export interface NutritionInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+}
+
+export type NutritionalInfo = NutritionInfo;
+
+export type IngredientCategory =
+  | 'verduleria'
+  | 'carniceria'
+  | 'almacen'
+  | 'panaderia'
+  | 'fiambreria'
+  | 'pescaderia'
+  | 'lacteos'
+  | 'bebidas'
+  | 'congelados'
+  | 'limpieza'
+  | 'otros'
+  | 'produce' // English alias
+  | 'meat' // English alias
+  | 'grains' // English alias
+  | 'pantry' // English alias
+  | 'dairy'; // English alias
+
 
 export interface MealSlot {
   id: string;
@@ -85,6 +126,8 @@ export interface MealSlot {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  alternatives?: Recipe[];
+  cost?: number;
 }
 
 // Legacy compatibility types (System A/B)
@@ -116,6 +159,17 @@ export interface WeekPlan {
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
+  planId?: string;
+  days?: Array<{
+    date: string;
+    label: string;
+    meals: {
+      breakfast: PlannedMeal;
+      lunch: PlannedMeal;
+      snack: PlannedMeal;
+      dinner: PlannedMeal;
+    };
+  }>;
 
   // Argentine-specific extensions
   weeklyNutrition?: NutritionInfo;
@@ -280,15 +334,19 @@ export interface ShoppingListItem {
   totalAmount: number;
   quantity?: number; // Compatibility
   unit: string;
+  name?: string; // Compatibility
+  ingredient_name?: string; // Compatibility
   category: IngredientCategory | string;
   recipeNames: string[]; // Recipes that use this ingredient
   recipes?: string[]; // Compatibility
   isPurchased: boolean;
   is_purchased?: boolean; // Compatibility
   checked?: boolean; // Compatibility
+  isChecked?: boolean; // Compatibility
   estimatedPrice?: number;
   estimated_cost?: number; // Compatibility
   price?: number; // Compatibility
+  amount?: number; // Compatibility
   notes?: string;
   source?: string; // Compatibility
   position?: number; // Compatibility

@@ -12,7 +12,7 @@ import { Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { useIOS26 } from './iOS26Provider';
-import { iOS26LiquidButton } from './iOS26LiquidButton';
+import { IOS26LiquidButton } from './iOS26LiquidButton';
 
 export interface FloatingMenuItem {
   id: string;
@@ -30,7 +30,7 @@ export interface iOS26FloatingActionMenuProps {
   mainButtonLabel?: string;
 }
 
-export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = ({
+export const IOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = ({
   items,
   position = 'bottom-right',
   direction = 'up',
@@ -39,6 +39,8 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
 }) => {
   const { reduceMotion, theme } = useIOS26();
   const [isOpen, setIsOpen] = useState(false);
+
+  // ... (keeping implementation)
 
   const positionClasses = {
     'bottom-right': 'bottom-6 right-6',
@@ -93,7 +95,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
       opacity: 1,
       scale: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 20
       }
@@ -104,7 +106,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
       opacity: 0,
       scale: 0.5,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 300,
         damping: 20
       }
@@ -157,7 +159,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <iOS26LiquidButton
+                    <IOS26LiquidButton
                       variant="secondary"
                       size="lg"
                       onClick={() => {
@@ -169,7 +171,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
                       aria-label={item.label}
                     >
                       <span className="sr-only md:not-sr-only">{item.label}</span>
-                    </iOS26LiquidButton>
+                    </IOS26LiquidButton>
                   </motion.div>
                 </motion.div>
               );
@@ -181,7 +183,7 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
             animate={{ rotate: isOpen ? 45 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            <iOS26LiquidButton
+            <IOS26LiquidButton
               variant="primary"
               size="lg"
               onClick={() => setIsOpen(!isOpen)}
@@ -196,10 +198,13 @@ export const iOS26FloatingActionMenu: React.FC<iOS26FloatingActionMenuProps> = (
               >
                 {isOpen ? <X className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
               </motion.div>
-            </iOS26LiquidButton>
+            </IOS26LiquidButton>
           </motion.div>
         </motion.div>
       </div>
     </>
   );
 };
+
+export const iOS26FloatingActionMenu = IOS26FloatingActionMenu;
+export type IOS26FloatingActionMenuProps = iOS26FloatingActionMenuProps;

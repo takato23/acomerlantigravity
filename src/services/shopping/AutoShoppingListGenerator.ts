@@ -588,25 +588,25 @@ export class AutoShoppingListGenerator {
 
   private categorizeIngredient(name: string): IngredientCategory {
     const categories: Record<string, IngredientCategory> = {
-      'carne': 'meat',
-      'pollo': 'meat',
-      'pescado': 'meat',
-      'huevo': 'dairy',
-      'leche': 'dairy',
-      'queso': 'dairy',
-      'yogur': 'dairy',
-      'tomate': 'produce',
-      'cebolla': 'produce',
-      'ajo': 'produce',
-      'zanahoria': 'produce',
-      'papa': 'produce',
-      'arroz': 'grains',
-      'pasta': 'grains',
-      'harina': 'grains',
-      'pan': 'grains',
-      'aceite': 'pantry',
-      'sal': 'spices',
-      'pimienta': 'spices'
+      'carne': 'carniceria',
+      'pollo': 'carniceria',
+      'pescado': 'pescaderia',
+      'huevo': 'lacteos',
+      'leche': 'lacteos',
+      'queso': 'lacteos',
+      'yogur': 'lacteos',
+      'tomate': 'verduleria',
+      'cebolla': 'verduleria',
+      'ajo': 'verduleria',
+      'zanahoria': 'verduleria',
+      'papa': 'verduleria',
+      'arroz': 'almacen',
+      'pasta': 'almacen',
+      'harina': 'almacen',
+      'pan': 'panaderia',
+      'aceite': 'almacen',
+      'sal': 'almacen',
+      'pimienta': 'almacen'
     };
 
     const normalizedName = this.normalizeIngredientName(name);
@@ -616,17 +616,31 @@ export class AutoShoppingListGenerator {
       }
     }
 
-    return 'other';
+    return 'otros';
   }
 
   private groupItemsByCategory(items: ShoppingListItem[]): ShoppingListItem[] {
     const categoryOrder: IngredientCategory[] = [
-      'produce', 'meat', 'dairy', 'grains', 'pantry', 'spices', 'frozen', 'beverages', 'other'
+      'verduleria',
+      'carniceria',
+      'pescaderia',
+      'lacteos',
+      'panaderia',
+      'fiambreria',
+      'almacen',
+      'congelados',
+      'bebidas',
+      'limpieza',
+      'otros'
     ];
+    const normalizeCategory = (category: IngredientCategory | string): IngredientCategory =>
+      categoryOrder.includes(category as IngredientCategory)
+        ? (category as IngredientCategory)
+        : 'otros';
 
     return items.sort((a, b) => {
-      const aIndex = categoryOrder.indexOf(a.category);
-      const bIndex = categoryOrder.indexOf(b.category);
+      const aIndex = categoryOrder.indexOf(normalizeCategory(a.category));
+      const bIndex = categoryOrder.indexOf(normalizeCategory(b.category));
       return aIndex - bIndex;
     });
   }
@@ -638,12 +652,30 @@ export class AutoShoppingListGenerator {
 
   private createCategoriesFromItems(items: ShoppingListItem[]): ShoppingList['categories'] {
     const categoryMap = new Map<IngredientCategory, ShoppingListItem[]>();
+    const validCategories: IngredientCategory[] = [
+      'verduleria',
+      'carniceria',
+      'pescaderia',
+      'lacteos',
+      'panaderia',
+      'fiambreria',
+      'almacen',
+      'congelados',
+      'bebidas',
+      'limpieza',
+      'otros'
+    ];
+    const normalizeCategory = (category: IngredientCategory | string): IngredientCategory =>
+      validCategories.includes(category as IngredientCategory)
+        ? (category as IngredientCategory)
+        : 'otros';
 
     items.forEach(item => {
-      if (!categoryMap.has(item.category)) {
-        categoryMap.set(item.category, []);
+      const category = normalizeCategory(item.category);
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, []);
       }
-      categoryMap.get(item.category)!.push(item);
+      categoryMap.get(category)!.push(item);
     });
 
     return Array.from(categoryMap.entries()).map(([category, categoryItems]) => ({

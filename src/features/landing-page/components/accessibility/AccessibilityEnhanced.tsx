@@ -412,20 +412,23 @@ export const AccessibleHeading = ({ level, children, className, id }: Accessible
   const { fontSize, highContrast } = useAccessibility();
   
   const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const headingSizeClass = (() => {
+    if (level === 1) {
+      return fontSize === 'small' ? 'text-xl' : fontSize === 'medium' ? 'text-2xl' : 'text-3xl';
+    }
+    if (level === 2) {
+      return fontSize === 'small' ? 'text-lg' : fontSize === 'medium' ? 'text-xl' : 'text-2xl';
+    }
+    return '';
+  })();
   
   const headingClasses = cn(
     'font-bold leading-tight',
     {
       // High contrast mode
       'text-black': highContrast,
-      // Font size adjustments
-      'text-xl': level === 1 && fontSize === 'small',
-      'text-2xl': level === 1 && fontSize === 'medium',
-      'text-3xl': level === 1 && fontSize === 'large',
-      'text-lg': level === 2 && fontSize === 'small',
-      'text-xl': level === 2 && fontSize === 'medium',
-      'text-2xl': level === 2 && fontSize === 'large',
     },
+    headingSizeClass,
     className
   );
 

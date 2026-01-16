@@ -11,6 +11,7 @@ interface GlassCardProps extends GlassVariantsProps {
   className?: string;
   as?: keyof JSX.IntrinsicElements;
   onClick?: () => void;
+  spotlight?: boolean;
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({
@@ -20,17 +21,22 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   glow = false,
   className,
   as: Component = 'div',
-  onClick
+  onClick,
+  spotlight = false
 }) => {
   return (
     <Component
       className={cn(
         'rounded-2xl',
         glassVariants({ variant, interactive, glow }),
+        spotlight && 'relative overflow-hidden',
         className
       )}
       onClick={onClick}
     >
+      {spotlight && (
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent" />
+      )}
       <div className="relative z-10">
         {children}
       </div>

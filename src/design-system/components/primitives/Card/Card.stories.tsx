@@ -3,12 +3,13 @@ import {
   ClockIcon,
   FireIcon,
   HeartIcon,
+  ShoppingCartIcon,
   StarIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/solid';
 
-import { Button } from '../Button';
-import { Input } from '../Input';
+import { Button } from '../Button/Button';
+import { Input } from '../Input/Input';
 
 import {
   Card,

@@ -2,7 +2,7 @@ import { MeasurementConversion } from '../types';
 import { logger } from '@/services/logger';
 
 // Conversion factors to grams/milliliters
-const VOLUME_CONVERSIONS = {
+const VOLUME_CONVERSIONS: Record<string, number> = {
   // Metric
   'ml': 1,
   'milliliter': 1,
@@ -40,7 +40,7 @@ const VOLUME_CONVERSIONS = {
   'uk gallon': 4546.09,
 };
 
-const WEIGHT_CONVERSIONS = {
+const WEIGHT_CONVERSIONS: Record<string, number> = {
   // Metric
   'g': 1,
   'gram': 1,
@@ -61,14 +61,14 @@ const WEIGHT_CONVERSIONS = {
   'stones': 6350.29,
 };
 
-const TEMPERATURE_CONVERSIONS = {
+const TEMPERATURE_CONVERSIONS: Record<string, (temp: number) => number> = {
   'celsius': (temp: number) => temp,
   'fahrenheit': (temp: number) => (temp - 32) * 5/9,
   'kelvin': (temp: number) => temp - 273.15,
 };
 
 // Common ingredient density approximations (grams per ml)
-const INGREDIENT_DENSITIES = {
+const INGREDIENT_DENSITIES: Record<string, number> = {
   'flour': 0.593,
   'sugar': 0.845,
   'brown sugar': 0.901,
@@ -88,7 +88,6 @@ const INGREDIENT_DENSITIES = {
   'yeast': 0.8,
   'cornstarch': 0.61,
   'breadcrumbs': 0.24,
-  'coconut oil': 0.92,
   'cream cheese': 1.04,
   'sour cream': 0.96,
   'yogurt': 1.04,
@@ -155,7 +154,6 @@ const INGREDIENT_DENSITIES = {
   'kidney beans': 0.78,
   'white beans': 0.75,
   'pasta': 0.68,
-  'rice': 0.75,
   'wild rice': 0.77,
   'brown rice': 0.74,
   'white rice': 0.75,
@@ -301,12 +299,6 @@ const INGREDIENT_DENSITIES = {
   'calrose rice starch': 0.67,
   'koshihikari rice starch': 0.67,
   'forbidden rice starch': 0.67,
-  'bhutanese rice starch': 0.67,
-  'thai rice starch': 0.67,
-  'cambodian rice starch': 0.67,
-  'vietnamese rice starch': 0.67,
-  'laotian rice starch': 0.67,
-  'burmese rice starch': 0.67,
   'indian rice starch': 0.67,
   'pakistani rice starch': 0.67,
   'bangladeshi rice starch': 0.67,

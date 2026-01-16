@@ -37,12 +37,12 @@ export function ProductComparisonModal({ product, variations }: ProductCompariso
         try {
             await addItem({
                 custom_name: item.name,
-                price: item.price,
-                store: item.store,
+                estimated_cost: item.price,
+                source: item.store,
                 quantity: 1,
                 unit: 'un',
-                checked: false,
-                category: 'Otros'
+                is_purchased: false,
+                category: 'otros'
             });
             // Toast is handled by useShoppingList
         } catch (error) {

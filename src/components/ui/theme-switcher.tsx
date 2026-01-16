@@ -59,7 +59,7 @@ export function ThemeSwitcher({
     { value: 'system' as Theme, label: 'System', icon: Monitor },
   ];
 
-  const currentIcon = themes.find(t => t.value === theme)?.icon || Sun;
+  const CurrentIcon = themes.find(t => t.value === theme)?.icon || Sun;
 
   if (!mounted) return null;
 
@@ -87,7 +87,7 @@ export function ThemeSwitcher({
           exit={{ scale: 0.8, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {currentIcon && <currentIcon className="h-5 w-5 text-slate-700" />}
+          <CurrentIcon className="h-5 w-5 text-slate-700" />
         </motion.div>
         {showLabel && (
           <span className="ml-2 text-sm font-medium text-slate-700">

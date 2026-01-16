@@ -4,10 +4,60 @@
  */
 
 import { Redis } from '@upstash/redis';
-import { Ratelimit } from '@upstash/ratelimit';
 import { logger } from '@/services/logger';
 
 import { performanceMonitor } from '../analytics/performance';
+
+type RatelimitResult = {
+  success: boolean;
+  reset: number;
+  remaining: number;
+};
+
+type RatelimitConfig = {
+  redis?: Redis;
+  limiter: { max: number; window: string };
+  prefix?: string;
+};
+
+const parseWindowToMs = (window: string): number => {
+  const match = window.trim().match(/^(\d+)\s*(ms|s|m|h)$/i);
+  if (!match) return 60_000;
+  const value = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  if (unit === 'ms') return value;
+  if (unit === 's') return value * 1000;
+  if (unit === 'm') return value * 60_000;
+  if (unit === 'h') return value * 3_600_000;
+  return 60_000;
+};
+
+class Ratelimit {
+  private max: number;
+  private windowMs: number;
+  private hits = new Map<string, { count: number; reset: number }>();
+
+  constructor(config: RatelimitConfig) {
+    this.max = config.limiter.max;
+    this.windowMs = parseWindowToMs(config.limiter.window);
+  }
+
+  static slidingWindow(max: number, window: string) {
+    return { max, window };
+  }
+
+  async limit(key: string): Promise<RatelimitResult> {
+    const now = Date.now();
+    const existing = this.hits.get(key);
+    const reset = existing && existing.reset > now ? existing.reset : now + this.windowMs;
+    const count = existing && existing.reset > now ? existing.count + 1 : 1;
+
+    this.hits.set(key, { count, reset });
+
+    const remaining = Math.max(this.max - count, 0);
+    return { success: count <= this.max, reset, remaining };
+  }
+}
 
 export interface AIRequest {
   model: string;
@@ -87,7 +137,7 @@ class AICache {
     return `ai_cache:${model}:${Buffer.from(prompt + paramStr).toString('base64')}`;
   }
 
-  private async checkRateLimit(userId: string): Promise<boolean> {
+  async checkRateLimit(userId: string): Promise<boolean> {
     const { success, reset, remaining } = await this.ratelimit.limit(userId);
     
     if (!success) {
@@ -296,7 +346,7 @@ class AIRequestOptimizer {
 
     try {
       // Check rate limit
-      if (request.userId && !(await this.cache.ratelimit.limit(request.userId)).success) {
+      if (request.userId && !(await this.cache.checkRateLimit(request.userId))) {
         throw new Error('Rate limit exceeded');
       }
 

@@ -21,7 +21,7 @@ export function withErrorHandler(handler: RouteHandler) {
       const supabase = createRouteHandlerClient<Database>({ cookies });
       const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         throw new AuthenticationError();
       }
 
@@ -70,7 +70,8 @@ export function withRateLimit(
   const requests = new Map<string, number[]>();
 
   return async (request: NextRequest, context: any) => {
-    const ip = request.ip || 'anonymous';
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const ip = forwardedFor?.split(',')[0]?.trim() || 'anonymous';
     const now = Date.now();
     const windowStart = now - windowMs;
 

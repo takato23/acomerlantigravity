@@ -43,15 +43,27 @@ export async function parseWithGemini(transcript: string): Promise<GeminiParseRe
 }
 
 // Convert Gemini commands to our internal format
+export type ShoppingVoiceCommandType = 'add' | 'complete' | 'remove' | 'quantity';
+
 export function convertToShoppingCommands(geminiCommands: VoiceCommand[]) {
-  return geminiCommands.map(cmd => ({
-    type: cmd.action === 'add' ? 'add' : 
-          cmd.action === 'complete' ? 'complete' :
-          cmd.action === 'remove' ? 'remove' :
-          cmd.action === 'update_quantity' ? 'quantity' : 'add',
-    item: cmd.item,
-    quantity: cmd.quantity,
-    unit: cmd.unit,
-    action: cmd.action
-  }));
+  return geminiCommands.map(cmd => {
+    const type: ShoppingVoiceCommandType =
+      cmd.action === 'add'
+        ? 'add'
+        : cmd.action === 'complete'
+          ? 'complete'
+          : cmd.action === 'remove'
+            ? 'remove'
+            : cmd.action === 'update_quantity'
+              ? 'quantity'
+              : 'add';
+
+    return {
+      type,
+      item: cmd.item,
+      quantity: cmd.quantity,
+      unit: cmd.unit,
+      action: cmd.action
+    };
+  });
 }

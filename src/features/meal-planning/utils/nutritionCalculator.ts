@@ -173,7 +173,11 @@ export function analyzeNutritionBalance(
     fat: { min: 20, max: 35 }
   };
   
-  const macroBalance = {
+  const macroBalance: {
+    protein: 'low' | 'balanced' | 'high';
+    carbs: 'low' | 'balanced' | 'high';
+    fat: 'low' | 'balanced' | 'high';
+  } = {
     protein: macroPercentages.protein < macroRanges.protein.min ? 'low' :
              macroPercentages.protein > macroRanges.protein.max ? 'high' : 'balanced',
     carbs: macroPercentages.carbs < macroRanges.carbs.min ? 'low' :

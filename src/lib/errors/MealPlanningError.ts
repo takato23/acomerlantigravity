@@ -8,7 +8,7 @@ import { logger } from '@/services/logger';
 export class MealPlanningError extends Error {
   constructor(
     message: string,
-    public readonly code: string,
+    public readonly code: MealPlanningErrorCode,
     public readonly context?: Record<string, any>,
     public readonly userMessage?: string,
     public readonly retryable: boolean = false,
@@ -56,8 +56,14 @@ export class MealPlanningError extends Error {
         return 'Hubo un problema generando tu lista de compras. Puedes crearla manualmente desde el plan.';
       case MealPlanningErrorCodes.MEAL_PLAN_SAVE_FAILED:
         return 'No pudimos guardar tu plan de comidas. Intenta nuevamente.';
+      case MealPlanningErrorCodes.NOT_FOUND:
+        return 'No encontramos el recurso solicitado.';
       case MealPlanningErrorCodes.VALIDATION_FAILED:
         return 'Algunos datos no son válidos. Revisa tu información e intenta nuevamente.';
+      case MealPlanningErrorCodes.AUTHENTICATION_REQUIRED:
+        return 'Necesitás iniciar sesión para continuar.';
+      case MealPlanningErrorCodes.FORBIDDEN:
+        return 'No tenés permisos para realizar esta acción.';
       default:
         return 'Ocurrió un error inesperado. Nuestro equipo ha sido notificado.';
     }
@@ -75,11 +81,14 @@ export const MealPlanningErrorCodes = {
   AI_TIMEOUT: 'AI_TIMEOUT',
   
   // Validation Errors
+  AUTHENTICATION_REQUIRED: 'AUTHENTICATION_REQUIRED',
+  FORBIDDEN: 'FORBIDDEN',
   INVALID_PREFERENCES: 'INVALID_PREFERENCES',
   INVALID_CONSTRAINTS: 'INVALID_CONSTRAINTS',
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   
   // Data Errors
+  NOT_FOUND: 'NOT_FOUND',
   RECIPE_NOT_FOUND: 'RECIPE_NOT_FOUND',
   INGREDIENT_NOT_FOUND: 'INGREDIENT_NOT_FOUND',
   PANTRY_ITEM_NOT_FOUND: 'PANTRY_ITEM_NOT_FOUND',

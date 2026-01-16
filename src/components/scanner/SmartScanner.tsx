@@ -8,7 +8,7 @@ import { logger } from '@/services/logger';
 import { useHolisticSystem } from '@/hooks/useHolisticSystem';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store';
-import { iOS26LiquidButton, iOS26LiquidCard } from '@/components/ui/ios26-components';
+import { IOS26LiquidButton, IOS26LiquidCard } from '@/components/ios26';
 
 type ScanMode = 'camera' | 'upload' | 'voice';
 
@@ -110,7 +110,7 @@ export function SmartScanner() {
           { id: 'upload' as ScanMode, icon: Upload, label: 'Subir' },
           { id: 'voice' as ScanMode, icon: Mic, label: 'Voz' }
         ].map((option) => (
-          <iOS26LiquidButton
+          <IOS26LiquidButton
             key={option.id}
             variant={mode === option.id ? 'primary' : 'secondary'}
             onClick={() => setMode(option.id)}
@@ -122,12 +122,12 @@ export function SmartScanner() {
           >
             <option.icon className="w-5 h-5 mr-2" />
             {option.label}
-          </iOS26LiquidButton>
+          </IOS26LiquidButton>
         ))}
       </div>
       
       {/* Scanner Interface */}
-      <iOS26LiquidCard variant="medium" glow>
+      <IOS26LiquidCard variant="medium" glow>
         <div className="p-6">
           <AnimatePresence mode="wait">
             {!scanResult ? (
@@ -174,7 +174,7 @@ export function SmartScanner() {
                           </button>
                         </div>
                         
-                        <iOS26LiquidButton
+                        <IOS26LiquidButton
                           variant="primary"
                           onClick={handleScan}
                           disabled={isProcessing}
@@ -191,7 +191,7 @@ export function SmartScanner() {
                               Escanear Ticket
                             </>
                           )}
-                        </iOS26LiquidButton>
+                        </IOS26LiquidButton>
                       </div>
                     )}
                   </>
@@ -273,20 +273,20 @@ export function SmartScanner() {
                 
                 {/* Acciones */}
                 <div className="flex gap-3 pt-4">
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="secondary"
                     onClick={handleReset}
                     className="flex-1"
                   >
                     Escanear Otro
-                  </iOS26LiquidButton>
-                  <iOS26LiquidButton
+                  </IOS26LiquidButton>
+                  <IOS26LiquidButton
                     variant="primary"
                     className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white"
                   >
                     <Check className="w-5 h-5 mr-2" />
                     Agregar a Despensa
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
                 </div>
               </motion.div>
             )}
@@ -314,7 +314,7 @@ export function SmartScanner() {
             </motion.div>
           )}
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
       
       {/* Tip */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">

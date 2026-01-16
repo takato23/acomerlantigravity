@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: 'Datos de solicitud inválidos', 
-          details: validationResult.error.errors 
+          details: validationResult.error.issues
         },
         { status: 400 }
       );

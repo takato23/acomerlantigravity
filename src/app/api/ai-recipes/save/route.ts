@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
-    
+
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -15,9 +15,9 @@ export async function POST(request: NextRequest) {
 
     // Obtener datos del request
     const body = await request.json();
-    const { 
+    const {
       recipeData,
-      makePublic = false 
+      makePublic = false
     } = body;
 
     // Validar que se proporcione la receta
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (saveError) {
-      logger.error('Error saving AI recipe:', saveError);
+      logger.error('Error saving AI recipe:', 'API:save', saveError);
       return NextResponse.json(
         { error: 'Failed to save recipe' },
         { status: 500 }
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (publicError) {
-        logger.error('Error creating public recipe:', publicError);
+        logger.error('Error creating public recipe:', 'API:save:public', publicError);
         // No fallar la operación completa si esto falla
       } else {
         // Actualizar la receta AI con el ID de la receta pública
@@ -114,13 +114,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       recipe: savedRecipe,
-      message: makePublic 
-        ? 'Receta guardada y compartida con la comunidad' 
+      message: makePublic
+        ? 'Receta guardada y compartida con la comunidad'
         : 'Receta guardada en tu colección privada'
     });
 
-  } catch (error) {
-    logger.error('Error in save AI recipe:', error);
+  } catch (error: any) {
+    logger.error('Error in save AI recipe:', 'API:save', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
-    
+
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -166,7 +166,7 @@ export async function GET(request: NextRequest) {
     const { data: recipes, count, error } = await query;
 
     if (error) {
-      logger.error('Error fetching AI recipes:', error);
+      logger.error('Error fetching AI recipes:', 'API:get', error);
       return NextResponse.json(
         { error: 'Failed to fetch recipes' },
         { status: 500 }
@@ -184,8 +184,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    logger.error('Error fetching AI recipes:', error);
+  } catch (error: any) {
+    logger.error('Error fetching AI recipes:', 'API:get', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

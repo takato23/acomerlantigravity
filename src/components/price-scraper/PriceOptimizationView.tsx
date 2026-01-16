@@ -175,7 +175,7 @@ export function PriceOptimizationView({
             )}
           </div>
 
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion className="w-full">
             {optimization.itemsWithPrices.map((item, index) => (
               <AccordionItem key={index} value={`item-${index}`}>
                 <AccordionTrigger className="hover:no-underline">

@@ -186,10 +186,13 @@ export class UnifiedVoiceService extends EventEmitter {
       this.once('error', handleError);
 
       // Handle abort
-      this.abortController.signal.addEventListener('abort', () => {
-        cleanup();
-        reject(new VoiceServiceError('Aborted', 'ABORTED'));
-      });
+      const abortController = this.abortController;
+      if (abortController) {
+        abortController.signal.addEventListener('abort', () => {
+          cleanup();
+          reject(new VoiceServiceError('Aborted', 'ABORTED'));
+        });
+      }
 
       try {
         this.recognition!.start();
@@ -416,7 +419,7 @@ export class UnifiedVoiceService extends EventEmitter {
   /**
    * Handle recognition error
    */
-  private handleRecognitionError(event: SpeechRecognitionError): void {
+  private handleRecognitionError(event: SpeechRecognitionErrorEvent): void {
     const errorMap: Record<string, VoiceErrorCode> = {
       'not-allowed': 'PERMISSION_DENIED',
       'network': 'NETWORK_ERROR',

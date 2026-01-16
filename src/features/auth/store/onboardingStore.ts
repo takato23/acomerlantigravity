@@ -129,7 +129,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
           // Update auth store
           // User data updated through centralized store
         } catch (error: unknown) {
-          set({ error: error.message || 'Failed to save profile' });
+          set({ error: error instanceof Error ? error.message : 'Failed to save profile' });
           throw error;
         } finally {
           set({ isLoading: false });
@@ -159,7 +159,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
           // Update auth store
           // User data updated through centralized store
         } catch (error: unknown) {
-          set({ error: error.message || 'Failed to save preferences' });
+          set({ error: error instanceof Error ? error.message : 'Failed to save preferences' });
           throw error;
         } finally {
           set({ isLoading: false });
@@ -206,7 +206,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
             if (error) throw error;
           }
         } catch (error: unknown) {
-          set({ error: error.message || 'Failed to save pantry items' });
+          set({ error: error instanceof Error ? error.message : 'Failed to save pantry items' });
           throw error;
         } finally {
           set({ isLoading: false });
@@ -252,7 +252,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
             }
           });
         } catch (error: unknown) {
-          set({ error: error.message || 'Failed to generate meal plan' });
+          set({ error: error instanceof Error ? error.message : 'Failed to generate meal plan' });
           throw error;
         } finally {
           set({ isLoading: false });
@@ -282,7 +282,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
             currentStep: OnboardingStep.COMPLETION
           });
         } catch (error: unknown) {
-          set({ error: error.message || 'Failed to complete onboarding' });
+          set({ error: error instanceof Error ? error.message : 'Failed to complete onboarding' });
           throw error;
         } finally {
           set({ isLoading: false });

@@ -498,7 +498,7 @@ export function validateParsedInput(input: ParsedIngredientInput): {
     errors.push('El nombre del ingrediente es muy corto');
   }
   
-  if (input.quantity <= 0) {
+  if (input.quantity !== undefined && input.quantity <= 0) {
     errors.push('La cantidad debe ser mayor a cero');
   }
   

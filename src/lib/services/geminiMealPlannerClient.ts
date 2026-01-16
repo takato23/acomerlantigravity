@@ -10,14 +10,14 @@
  */
 
 import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from '@google/generative-ai'
-import geminiConfig from '@/lib/config/gemini.config';
+import { defaultGeminiConfig, getGeminiApiKey, isMockMode } from '@/lib/config/gemini.config';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import type { ArgentineMealContext } from '@/lib/prompts/argentineMealPrompts';
 
 // Configuration interfaces
 interface GeminiMealPlannerConfig {
-  model: geminiConfig.default.model | geminiConfig.default.model | 'gemini-2.0-flash-exp';
+  model: typeof defaultGeminiConfig.model | 'gemini-2.0-flash-exp';
   temperature: number;
   maxOutputTokens: number;
   topP: number;
@@ -38,7 +38,7 @@ interface RetryConfig {
 // Performance and reliability configurations
 const PERFORMANCE_CONFIGS = {
   fast: {
-    model: geminiConfig.default.model as const,
+    model: defaultGeminiConfig.model,
     temperature: 0.7,
     maxOutputTokens: 2048,
     topP: 0.9,
@@ -48,7 +48,7 @@ const PERFORMANCE_CONFIGS = {
     timeoutMs: 20000,
   },
   balanced: {
-    model: geminiConfig.default.model as const,
+    model: defaultGeminiConfig.model,
     temperature: 0.7,
     maxOutputTokens: 2048,
     topP: 0.95,
@@ -58,7 +58,7 @@ const PERFORMANCE_CONFIGS = {
     timeoutMs: 35000,
   },
   quality: {
-    model: geminiConfig.default.model as const,
+    model: defaultGeminiConfig.model,
     temperature: 0.65,
     maxOutputTokens: 2048,
     topP: 0.95,
@@ -217,16 +217,13 @@ export class GeminiMealPlannerClient {
     profileType: keyof typeof PERFORMANCE_CONFIGS = 'balanced',
     customConfig?: Partial<GeminiMealPlannerConfig>
   ) {
-    const key = apiKey || geminiConfig.getApiKey() || geminiConfig.getApiKey();
+    const key = apiKey || getGeminiApiKey();
+    const mockMode = isMockMode();
 
-    if (!key) {
-      // If getGeminiApiKey returns fallback, we are good. If it returned undefined (shouldn't with new config), catch it here.
-      const mockMode = geminiConfig.isMockMode ? geminiConfig.isMockMode() : false;
-      if (!mockMode) {
-        throw new Error(
-          'Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.'
-        );
-      }
+    if (!key && !mockMode) {
+      throw new Error(
+        'Gemini API key is required. Set GOOGLE_AI_API_KEY or GOOGLE_GEMINI_API_KEY environment variable.'
+      );
     }
 
     // Merge configuration
@@ -238,8 +235,8 @@ export class GeminiMealPlannerClient {
     this.metrics = new PerformanceMetrics();
 
     // Initialize services
-    if (!geminiConfig.isMockMode || !geminiConfig.isMockMode()) {
-      this.genAI = new GoogleGenerativeAI(key);
+    if (!mockMode) {
+      this.genAI = new GoogleGenerativeAI(key as string);
       this.model = this.genAI.getGenerativeModel({
         model: this.config.model,
         generationConfig: this.createGenerationConfig(),
@@ -384,10 +381,10 @@ export class GeminiMealPlannerClient {
     } catch (error) {
       if (error instanceof z.ZodError) {
         logger.error('Response validation error:', 'geminiMealPlannerClient', {
-          errors: error.errors,
+          errors: error.issues,
           sample: text.substring(0, 200),
         });
-        throw new Error(`Invalid response format: ${error.errors.map(e => e.message).join(', ')}`);
+        throw new Error(`Invalid response format: ${error.issues.map(e => e.message).join(', ')}`);
       }
 
       logger.error('JSON parsing error:', 'geminiMealPlannerClient', {
@@ -416,7 +413,7 @@ export class GeminiMealPlannerClient {
 
     try {
       // Check mock mode
-      if (geminiConfig.isMockMode && geminiConfig.isMockMode()) {
+      if (isMockMode()) {
         logger.info('Returning MOCK weekly meal plan', 'geminiMealPlannerClient');
         const { MOCK_MEAL_PLAN } = require('@/lib/services/mockData');
         return MOCK_MEAL_PLAN as T;
@@ -502,7 +499,7 @@ export class GeminiMealPlannerClient {
     try {
       // Use fast configuration for single meals
       const fastModel = this.genAI.getGenerativeModel({
-        model: geminiConfig.default.model,
+        model: defaultGeminiConfig.model,
         generationConfig: {
           temperature: 0.8,
           maxOutputTokens: 2048,
@@ -533,7 +530,7 @@ export class GeminiMealPlannerClient {
       logger.info('Single meal generated successfully', 'geminiMealPlannerClient', {
         processingTimeMs: Date.now() - startTime,
         mealType: options?.mealType || 'unknown',
-        model: geminiConfig.default.model,
+        model: defaultGeminiConfig.model,
       });
 
       return parsedResponse;

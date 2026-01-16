@@ -15,6 +15,7 @@ import { Heading, Text } from '@/components/design-system/Typography';
 import { Badge } from '@/components/design-system/Badge';
 import { VoiceRecorder } from '@/components/voice/VoiceRecorder';
 import type { ParsedIngredientInput } from '@/types/pantry';
+import type { ParsedIngredient } from '@/services/voice/types';
 
 import type { AddPantryItemForm, UpdatePantryItemForm, PantryItem } from '../types';
 import { usePantryStore } from '../store/pantryStore';
@@ -123,11 +124,19 @@ export function PantryItemFormWithVoice({ item, onClose, onSuccess }: PantryItem
     }
   }, [item]);
 
-  const handleVoiceItemsParsed = (items: ParsedIngredientInput[]) => {
-    setParsedItems(items);
-    if (items.length > 0) {
+  const handleVoiceItemsParsed = (items: ParsedIngredient[]) => {
+    const mappedItems: ParsedIngredientInput[] = items.map(item => ({
+      name: item.name,
+      extracted_name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      confidence: item.confidence ?? 1,
+    }));
+
+    setParsedItems(mappedItems);
+    if (mappedItems.length > 0) {
       // Auto-select first item if only one
-      if (items.length === 1) {
+      if (mappedItems.length === 1) {
         selectParsedItem(0);
       }
       setInputMode('selection');
@@ -138,17 +147,19 @@ export function PantryItemFormWithVoice({ item, onClose, onSuccess }: PantryItem
     const parsedItem = parsedItems[index];
     if (!parsedItem) return;
 
+    const extractedName = parsedItem.extracted_name ?? '';
+
     setSelectedItemIndex(index);
     setFormData(prev => ({
       ...prev,
-      ingredient_name: parsedItem.extracted_name,
+      ingredient_name: extractedName,
       quantity: parsedItem.quantity || 1,
       unit: parsedItem.unit || 'pcs',
-      category: determineCategory(parsedItem.extracted_name),
+      category: determineCategory(extractedName),
     }));
 
     // Auto-fill location based on category
-    const categoryLocation = suggestLocationByCategory(parsedItem.extracted_name);
+    const categoryLocation = suggestLocationByCategory(extractedName);
     if (categoryLocation) {
       setFormData(prev => ({ ...prev, location: categoryLocation }));
     }
@@ -265,12 +276,13 @@ export function PantryItemFormWithVoice({ item, onClose, onSuccess }: PantryItem
     const addedNames: string[] = [];
 
     for (const parsedItem of parsedItems) {
+      const extractedName = parsedItem.extracted_name ?? '';
       const itemData: AddPantryItemForm = {
-        ingredient_name: parsedItem.extracted_name,
+        ingredient_name: extractedName,
         quantity: parsedItem.quantity || 1,
         unit: parsedItem.unit || 'pcs',
-        category: determineCategory(parsedItem.extracted_name),
-        location: suggestLocationByCategory(parsedItem.extracted_name),
+        category: determineCategory(extractedName),
+        location: suggestLocationByCategory(extractedName),
         expiration_date: undefined,
         cost: undefined,
         notes: '',
@@ -278,9 +290,9 @@ export function PantryItemFormWithVoice({ item, onClose, onSuccess }: PantryItem
 
       try {
         await addItem(itemData);
-        addedNames.push(parsedItem.extracted_name);
+        addedNames.push(extractedName);
       } catch (error: unknown) {
-        logger.error('Error adding item:', 'PantryItemFormWithVoice', parsedItem.extracted_name, error);
+        logger.error(`Error adding item: ${extractedName}`, 'PantryItemFormWithVoice', error);
       }
     }
 

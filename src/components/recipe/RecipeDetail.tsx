@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ArrowLeft, CheckCircle, Edit, Minus, Package, Play, Thermometer, Trash2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -10,7 +11,7 @@ import { Heading, Text } from '../design-system/Typography';
 import { Button } from '../design-system/Button';
 import { Icons } from '../design-system/icons';
 import { NutritionDisplay } from '../design-system/NutritionDisplay';
-import type { Recipe, RecipeIngredient, RecipeInstruction } from '../../types/recipes';
+import type { PantryCompatibility, Recipe, RecipeIngredient, RecipeInstruction } from '../../types/recipes';
 
 export interface RecipeDetailProps {
   recipe: Recipe;
@@ -77,7 +78,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
   const scalingFactor = servings / recipe.servings;
   const difficulty = difficultyConfig[recipe.difficulty];
   const categoryIcon = categoryIcons[recipe.category];
-  const isFavorite = recipe.favorited_by?.length > 0;
+  const isFavorite = (recipe.favorited_by?.length ?? 0) > 0;
   const totalTime = recipe.cook_time + recipe.prep_time;
 
   const handleServingsChange = (newServings: number) => {
@@ -128,7 +129,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
         )}
       >
         <div className="flex items-center gap-3">
-          {isAvailable && <Icons.CheckCircle size="sm" className="text-food-fresh-500" />}
+          {isAvailable && <CheckCircle className="w-4 h-4 text-food-fresh-500" />}
           {isMissing && <Icons.ShoppingCart size="sm" className="text-warm-500" />}
           
           <div>
@@ -140,7 +141,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
                 {ingredient.ingredient?.name || 'Ingrediente personalizado'}
               </Text>
               {ingredient.optional && (
-                <Badge size="xs" variant="neutral">opcional</Badge>
+                <Badge size="sm" variant="neutral">opcional</Badge>
               )}
             </div>
             {ingredient.preparation && (
@@ -157,12 +158,12 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
         </div>
 
         {isAvailable && (
-          <Badge size="xs" variant="fresh">
+          <Badge size="sm" variant="fresh">
             Disponible
           </Badge>
         )}
         {isMissing && (
-          <Badge size="xs" variant="warm">
+          <Badge size="sm" variant="warm">
             Falta
           </Badge>
         )}
@@ -202,11 +203,6 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
         <div className="flex-1">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              {instruction.title && (
-                <Heading size="sm" weight="semibold" className="mb-2">
-                  {instruction.title}
-                </Heading>
-              )}
               <Text className={cn(isChecked && 'line-through opacity-75')}>
                 {instruction.instruction}
               </Text>
@@ -227,7 +223,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
               )}
               {instruction.temperature && (
                 <div className="flex items-center gap-1">
-                  <Icons.Thermometer size="xs" className="text-warm-500" />
+                  <Thermometer className="w-3 h-3 text-warm-500" />
                   <Text size="xs" color="muted">{instruction.temperature}°C</Text>
                 </div>
               )}
@@ -257,7 +253,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Icons.Package size="sm" className="text-food-fresh-500" />
+            <Package className="w-4 h-4 text-food-fresh-500" />
             <Heading size="md">Compatibilidad con tu Despensa</Heading>
           </div>
         </CardHeader>
@@ -267,7 +263,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
               'flex items-center gap-2 px-3 py-2 rounded-lg',
               can_make ? 'bg-food-fresh-100 text-food-fresh-800' : 'bg-warm-100 text-warm-800'
             )}>
-              {can_make ? <Icons.CheckCircle size="sm" /> : <Icons.Clock size="sm" />}
+              {can_make ? <CheckCircle className="w-4 h-4" /> : <Icons.Clock size="sm" />}
               <Text weight="medium">
                 {can_make ? 'Puedes cocinar esta receta' : `Faltan ${missing_ingredients.length} ingredientes`}
               </Text>
@@ -311,7 +307,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
             onClick={onBack}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
           >
-            <Icons.ArrowLeft size="sm" />
+            <ArrowLeft className="w-4 h-4" />
             <span>Volver a recetas</span>
           </button>
         </div>
@@ -357,7 +353,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
                   className="p-3 rounded-full glass-interactive backdrop-blur-md text-white hover:text-blue-300 transition-all duration-200"
                   title="Editar receta"
                 >
-                  <Icons.Edit size="md" />
+                <Edit className="w-5 h-5" />
                 </button>
               )}
 
@@ -368,7 +364,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
                   className="p-3 rounded-full glass-interactive backdrop-blur-md text-white hover:text-red-300 transition-all duration-200"
                   title="Eliminar receta"
                 >
-                  <Icons.Trash size="md" />
+                <Trash2 className="w-5 h-5" />
                 </button>
               )}
             </div>
@@ -425,7 +421,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
                   onClick={() => handleServingsChange(servings - 1)}
                   className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"
                 >
-                  <Icons.Minus size="xs" />
+                  <Minus className="w-3 h-3" />
                 </button>
                 <Text weight="semibold">{servings}</Text>
                 <button
@@ -472,7 +468,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
             variant="warm"
             size="lg"
             onClick={() => onStartCooking(recipe.id)}
-            leftIcon={<Icons.Play />}
+            leftIcon={<Play className="w-4 h-4" />}
             className="flex-1"
           >
             Empezar a Cocinar
@@ -492,7 +488,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
         )}
 
         <Button
-          variant="neutral"
+          variant="secondary"
           size="lg"
           onClick={() => setShowRatingModal(true)}
           leftIcon={<Icons.Star />}
@@ -505,10 +501,10 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
       <div className="mb-6">
         <div className="flex border-b border-slate-200">
           {[
-            { id: 'overview', label: 'Resumen', icon: Icons.Info },
-            { id: 'ingredients', label: 'Ingredientes', icon: Icons.List },
+            { id: 'overview', label: 'Resumen', icon: Icons.InformationCircle },
+            { id: 'ingredients', label: 'Ingredientes', icon: Icons.Knife },
             { id: 'instructions', label: 'Preparación', icon: Icons.ChefHat },
-            { id: 'nutrition', label: 'Nutrición', icon: Icons.Activity }
+            { id: 'nutrition', label: 'Nutrición', icon: Icons.Flame }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -593,7 +589,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
               {checkedSteps.size} de {recipe.instructions.length} pasos completados
             </Text>
             <Button
-              variant="neutral"
+              variant="secondary"
               size="sm"
               onClick={() => setCheckedSteps(new Set())}
               disabled={checkedSteps.size === 0}
@@ -663,7 +659,7 @@ const RecipeDetail: React.FC<RecipeDetailProps> = ({
 
               <div className="flex gap-3">
                 <Button
-                  variant="neutral"
+                  variant="secondary"
                   onClick={() => setShowRatingModal(false)}
                   className="flex-1"
                 >

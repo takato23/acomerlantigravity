@@ -13,7 +13,7 @@ export { FloatingVoiceAssistant } from './FloatingVoiceAssistant';
 
 // Legacy components (for backward compatibility)
 export { VoiceInput } from './VoiceInput';
-export { VoiceButton } from './VoiceButton';
+export { UnifiedVoiceButton as VoiceButton } from './UnifiedVoiceButton';
 
 // Unified hook (NEW)
 export { useVoiceService as useUnifiedVoice } from '@/services/voice';
@@ -33,4 +33,5 @@ export {
 
 // Types
 export type { ParsedIngredientInput, VoiceParseResult } from '@/types/pantry';
-export type { ParsedIngredient, ParsedCommand } from '@/services/voice/smartParser';
+export type { ParsedIngredient } from '@/services/voice/smartParser';
+export type { ParsedCommand } from '@/services/voice';

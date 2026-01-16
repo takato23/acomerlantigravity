@@ -2,18 +2,18 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ShoppingCart, 
-  Check, 
-  X, 
-  ArrowLeft, 
-  Volume2, 
+import {
+  ShoppingCart,
+  Check,
+  X,
+  ArrowLeft,
+  Volume2,
   VolumeX,
   Search,
   Star
 } from 'lucide-react';
 
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '../../hooks/use-toast';
 
 import { ShoppingVoiceButton } from './ShoppingVoiceButton';
 import { CategoryBadge } from './CategoryBadge';
@@ -26,12 +26,12 @@ interface SupermarketModeProps {
   onExit: () => void;
 }
 
-export function SupermarketMode({ 
-  items, 
-  onToggleItem, 
-  onAddItem, 
-  onRemoveItem, 
-  onExit 
+export function SupermarketMode({
+  items,
+  onToggleItem,
+  onAddItem,
+  onRemoveItem,
+  onExit
 }: SupermarketModeProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompleted, setShowCompleted] = useState(false);
@@ -48,7 +48,7 @@ export function SupermarketMode({
 
   // Filter items based on search and category
   const filteredPendingItems = pendingItems.filter(item => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       (item.custom_name || item.ingredient?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
@@ -59,7 +59,7 @@ export function SupermarketMode({
       try {
         const audio = new Audio('/sounds/check.mp3');
         audio.volume = 0.3;
-        audio.play().catch(() => {}); // Ignore errors
+        audio.play().catch(() => { }); // Ignore errors
       } catch (error: unknown) {
         // Ignore audio errors
       }
@@ -70,7 +70,7 @@ export function SupermarketMode({
   const handleCompleteItem = (itemId: string) => {
     onToggleItem(itemId);
     playCheckSound();
-    
+
     const item = items.find(i => i.id === itemId);
     if (item) {
       toast({
@@ -95,7 +95,7 @@ export function SupermarketMode({
       const name = (item.custom_name || item.ingredient?.name || '').toLowerCase();
       return name.includes(itemName.toLowerCase()) || itemName.toLowerCase().includes(name);
     });
-    
+
     if (foundItem) {
       handleCompleteItem(foundItem.id);
     } else {
@@ -111,7 +111,7 @@ export function SupermarketMode({
       const name = (item.custom_name || item.ingredient?.name || '').toLowerCase();
       return name.includes(itemName.toLowerCase()) || itemName.toLowerCase().includes(name);
     });
-    
+
     if (foundItem) {
       onRemoveItem(foundItem.id);
       toast({
@@ -148,9 +148,8 @@ export function SupermarketMode({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`p-2 rounded-lg transition-colors ${
-                  soundEnabled ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
-                }`}
+                className={`p-2 rounded-lg transition-colors ${soundEnabled ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
+                  }`}
               >
                 {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </button>
@@ -202,11 +201,10 @@ export function SupermarketMode({
 
             <button
               onClick={() => setShowCompleted(!showCompleted)}
-              className={`px-3 py-2 rounded-lg font-medium transition-colors ${
-                showCompleted 
-                  ? 'bg-green-100 text-green-700' 
+              className={`px-3 py-2 rounded-lg font-medium transition-colors ${showCompleted
+                  ? 'bg-green-100 text-green-700'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               {showCompleted ? 'Ocultar' : 'Ver'} completados
             </button>
@@ -239,9 +237,9 @@ export function SupermarketMode({
                     <h3 className="font-semibold text-gray-900 text-lg">
                       {item.custom_name || item.ingredient?.name}
                     </h3>
-                    <CategoryBadge 
-                      category={item.category || item.ingredient?.category} 
-                      size="sm" 
+                    <CategoryBadge
+                      category={item.category || item.ingredient?.category}
+                      size="sm"
                       showIcon={true}
                       showLabel={false}
                     />
@@ -283,7 +281,7 @@ export function SupermarketMode({
                 <Check className="w-5 h-5 text-green-600" />
                 Productos Conseguidos ({completedItems.length})
               </h2>
-              
+
               <div className="space-y-2">
                 {completedItems.map((item) => (
                   <motion.div
@@ -296,15 +294,15 @@ export function SupermarketMode({
                       <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                         <Check className="w-5 h-5 text-white" />
                       </div>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-medium text-gray-700 line-through">
                             {item.custom_name || item.ingredient?.name}
                           </h3>
-                          <CategoryBadge 
-                            category={item.category || item.ingredient?.category} 
-                            size="sm" 
+                          <CategoryBadge
+                            category={item.category || item.ingredient?.category}
+                            size="sm"
                             showIcon={true}
                             showLabel={false}
                           />

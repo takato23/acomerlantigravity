@@ -1,6 +1,6 @@
-import { forwardRef, HTMLAttributes } from 'react';
+import { forwardRef, type ReactNode, type HTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
 
@@ -35,15 +35,14 @@ const cardVariants = cva(
 );
 
 export interface CardProps
-  extends HTMLAttributes<HTMLDivElement>,
+  extends Omit<HTMLMotionProps<'div'>, 'children'>,
     VariantProps<typeof cardVariants> {
   asChild?: boolean;
+  children?: ReactNode;
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant, padding, interactive, children, onClick, ...props }, ref) => {
-    const Component = interactive && onClick ? motion.div : 'div';
-    
     const cardProps = interactive && onClick
       ? {
           whileHover: { y: -2 },
@@ -53,7 +52,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       : {};
     
     return (
-      <Component
+      <motion.div
         ref={ref}
         className={cn(cardVariants({ variant, padding, interactive, className }))}
         onClick={onClick}
@@ -61,7 +60,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         {...props}
       >
         {children}
-      </Component>
+      </motion.div>
     );
   }
 );

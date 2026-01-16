@@ -322,7 +322,7 @@ export class PostHogProvider {
     if (!this.initialized) return false;
 
     try {
-      return posthog.isSessionRecordingEnabled();
+      return posthog.sessionRecordingStarted();
     } catch (error: unknown) {
       logger.error('PostHog session recording check error:', 'PostHogProvider', error);
       return false;
@@ -337,7 +337,7 @@ export class PostHogProvider {
 
     try {
       Object.entries(flags).forEach(([key, value]) => {
-        posthog.feature_flags.override({ [key]: value });
+        posthog.featureFlags?.override({ [key]: value });
       });
     } catch (error: unknown) {
       logger.error('PostHog feature flags error:', 'PostHogProvider', error);
@@ -365,7 +365,7 @@ export class PostHogProvider {
     if (!this.initialized) return false;
 
     try {
-      return posthog.isFeatureEnabled(key);
+      return !!posthog.isFeatureEnabled(key);
     } catch (error: unknown) {
       logger.error('PostHog feature check error:', 'PostHogProvider', error);
       return false;

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Create pantry availability map
     const pantryMap = new Map<string, { quantity: number; unit: string }>();
-    pantryItems.forEach(item => {
+    pantryItems.forEach((item: any) => {
       const ingredientName = item.ingredient?.name?.toLowerCase();
       if (ingredientName) {
         const existing = pantryMap.get(ingredientName);
@@ -83,11 +83,11 @@ export async function POST(request: NextRequest) {
               const requiredQuantity = recipeIngredient.quantity * servings;
               const available = pantryMap.get(ingredientName);
               const availableQuantity = available?.quantity || 0;
-              
-              const availabilityPercentage = requiredQuantity > 0 
+
+              const availabilityPercentage = requiredQuantity > 0
                 ? Math.min(100, (availableQuantity / requiredQuantity) * 100)
                 : 100;
-              
+
               const sufficient = availableQuantity >= requiredQuantity;
               const shortage = Math.max(0, requiredQuantity - availableQuantity);
 
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const overallAvailability = ingredientAvailabilities.length > 0 
+        const overallAvailability = ingredientAvailabilities.length > 0
           ? Math.round(totalAvailabilityScore / ingredientAvailabilities.length)
           : 0;
 
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error checking pantry availability:', 'meal-planning/check-availability', error);
     return NextResponse.json(
       { error: 'Failed to check pantry availability' },
@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
     });
 
     const data = await response.json();
-    
+
     // Return just the single recipe availability
     if (data.availabilities && data.availabilities.length > 0) {
       return NextResponse.json(data.availabilities[0]);

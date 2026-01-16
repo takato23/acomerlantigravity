@@ -92,8 +92,10 @@ class AnalyticsService {
 
       // Track initialization
       this.track('analytics_initialized', {
-        session_id: this.sessionId,
-        device_info: this.deviceInfo
+        properties: {
+          session_id: this.sessionId,
+          device_info: this.deviceInfo
+        }
       });
 
       if (this.config.enableDebug) {
@@ -119,8 +121,10 @@ class AnalyticsService {
 
     // Track identify event
     this.track('user_identified', {
-      user_id: userId,
-      traits: traits || {}
+      properties: {
+        user_id: userId,
+        traits: traits || {}
+      }
     });
 
     if (this.config.enableDebug) {

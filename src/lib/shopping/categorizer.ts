@@ -173,11 +173,11 @@ const PRODUCT_CATEGORIES: Record<string, IngredientCategory> = {
   'atún': 'enlatados',
   'atun': 'enlatados',
   'sardinas': 'enlatados',
-  'tomates': 'enlatados',
+  'tomates en lata': 'enlatados',
   'arvejas': 'enlatados',
   'choclo': 'enlatados',
-  'duraznos': 'enlatados',
-  'pera': 'enlatados',
+  'duraznos en lata': 'enlatados',
+  'peras en lata': 'enlatados',
   
   // Congelados
   'helado': 'congelados',

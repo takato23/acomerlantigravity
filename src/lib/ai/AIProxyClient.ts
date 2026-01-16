@@ -72,7 +72,7 @@ export class AIProxyClient {
 
       return await response.json();
     } catch (error) {
-      logger.error('AI Proxy Error:', error);
+      logger.error('AI Proxy Error', 'AIProxyClient', error);
       throw new Error(error instanceof Error ? error.message : 'Failed to call AI service');
     }
   }
@@ -97,7 +97,7 @@ export class AIProxyClient {
 
       return await response.json();
     } catch (error) {
-      logger.error('Recipe Generation Error:', error);
+      logger.error('Recipe Generation Error', 'AIProxyClient', error);
       throw new Error(error instanceof Error ? error.message : 'Failed to generate recipe');
     }
   }
@@ -143,7 +143,7 @@ export class AIProxyClient {
       }
       throw new Error('No JSON found in response');
     } catch (error) {
-      logger.warn('Failed to parse JSON response:', error);
+      logger.warn('Failed to parse JSON response', 'AIProxyClient', error);
       return { content: text, raw: true };
     }
   }
@@ -302,4 +302,3 @@ export class AIProxyClient {
 export const aiProxy = AIProxyClient.getInstance();
 
 // Export types for convenience
-export type { AIProxyRequest, AIProxyResponse, RecipeRequest };

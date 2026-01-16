@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { getProfileCache, type ProfileCache } from '@/services/profile/ProfileCache';
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/lib/supabase/types';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type ProfilePreferences = Database['public']['Tables']['profile_preferences']['Row'];
-type ProfileStats = Database['public']['Tables']['profile_stats']['Row'];
+type Profile = Database['public']['Tables']['user_profiles']['Row'];
+type ProfilePreferences = Database['public']['Tables']['user_preferences']['Row'];
+type ProfileStats = Record<string, any> | null;
 
 interface ProfileCacheData {
   profile: Profile | null;

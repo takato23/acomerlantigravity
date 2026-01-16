@@ -69,8 +69,8 @@ export function PantryAddForm({ onClose, onSubmit }: PantryAddFormProps) {
     if (formData.ingredient_name.length >= 2) {
       const parsed = parseIngredient(formData.ingredient_name);
       setParsedIngredient(parsed);
-      setSuggestions(parsed.suggestions);
-      setShowSuggestions(parsed.suggestions.length > 0);
+      setSuggestions(parsed.suggestions || []);
+      setShowSuggestions((parsed.suggestions?.length || 0) > 0);
 
       // Auto-fill quantity and unit if detected
       if (parsed.quantity && !formData.quantity) {
@@ -82,7 +82,9 @@ export function PantryAddForm({ onClose, onSubmit }: PantryAddFormProps) {
       }
 
       // Auto-categorize
-      const category = categorizeIngredient(parsed.normalized_name);
+      const category = categorizeIngredient(
+        parsed.normalized_name || parsed.extracted_name || parsed.name || formData.ingredient_name
+      );
       setAutoCategory(category);
     } else {
       setParsedIngredient(null);

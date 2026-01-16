@@ -6,7 +6,6 @@
 import { logger } from '@/lib/logger';
 import { db } from '@/lib/supabase/database.service';
 import { UnifiedAIService } from '@/services/ai/UnifiedAIService';
-import { WeeklyPantryPlan, PantryAwareMealPlan } from '../types/mealPlanning';
 
 interface PantryIngredient {
   name: string;
@@ -86,13 +85,13 @@ export class PantryMealPlanningService {
       const pantryItems = await db.getPantryItems(userId);
 
       // Transform pantry items for AI processing
-      const pantryInventory: PantryIngredient[] = pantryItems.map(item => ({
+      const pantryInventory: PantryIngredient[] = pantryItems.map((item: any) => ({
         name: item.ingredient?.name || '',
         quantity: item.quantity,
         unit: item.unit,
         expiration_date: item.expiration_date,
         category: item.ingredient?.category || 'otros'
-      })).filter(item => item.name);
+      })).filter((item: PantryIngredient) => item.name);
 
       // Identify expiring items (within 7 days)
       const now = new Date();
@@ -148,7 +147,7 @@ export class PantryMealPlanningService {
       const now = new Date();
       const targetDate = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
 
-      const expiringItems = pantryItems.filter(item =>
+      const expiringItems = pantryItems.filter((item: any) =>
         item.expiration_date &&
         new Date(item.expiration_date) <= targetDate &&
         new Date(item.expiration_date) >= now
@@ -158,20 +157,20 @@ export class PantryMealPlanningService {
         return [];
       }
 
-      const expiringIngredients = expiringItems.map(item => ({
+      const expiringIngredients = expiringItems.map((item: any) => ({
         name: item.ingredient?.name || '',
         quantity: item.quantity,
         unit: item.unit,
         days_until_expiry: Math.ceil(
           (new Date(item.expiration_date!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         )
-      })).filter(item => item.name);
+      })).filter((item: { name: string }) => item.name);
 
       const prompt = `
 Based on these expiring pantry ingredients, suggest 3-5 recipes that use them effectively:
 
 Expiring Ingredients:
-${expiringIngredients.map(ing =>
+${expiringIngredients.map((ing: { name: string; quantity: number; unit: string; days_until_expiry: number }) =>
         `- ${ing.name} (${ing.quantity} ${ing.unit}) - expires in ${ing.days_until_expiry} days`
       ).join('\n')}
 
@@ -250,7 +249,7 @@ Return as JSON array of recipe objects with this structure:
     try {
       // Get pantry items
       const pantryItems = await db.getPantryItems(userId);
-      const availableIngredients = pantryItems.map(item =>
+      const availableIngredients = pantryItems.map((item: any) =>
         item.ingredient?.name?.toLowerCase() || ''
       ).filter(Boolean);
 
@@ -259,7 +258,7 @@ Return as JSON array of recipe objects with this structure:
       for (const planId of existingMealPlanIds) {
         const plan = await db.getMealPlans(userId);
         // Find the specific plan by ID - this would need enhancement in db service
-        mealPlans.push(...plan.filter(p => p.id === planId));
+        mealPlans.push(...plan.filter((p: any) => p.id === planId));
       }
 
       if (mealPlans.length === 0) {

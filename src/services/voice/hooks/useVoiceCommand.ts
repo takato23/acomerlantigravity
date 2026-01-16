@@ -24,7 +24,7 @@ export interface UseVoiceCommandReturn {
   isListening: boolean;
   transcript: string;
   lastCommand: VoiceCommand | null;
-  error: Error | null;
+  error: string | null;
   
   startListening: () => Promise<void>;
   stopListening: () => void;

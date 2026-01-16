@@ -19,7 +19,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRecipeAvailability } from '@/features/recipes/hooks/useRecipeAvailability';
 
-interface Recipe {
+export interface RecipeCardRecipe {
   id: string;
   name: string;
   description: string;
@@ -55,14 +55,14 @@ interface Recipe {
 }
 
 interface RecipeCardProps {
-  recipe: Recipe;
+  recipe: RecipeCardRecipe;
   variant?: 'default' | 'compact' | 'detailed';
-  onToggleFavorite?: (recipe: Recipe) => void;
-  onToggleBookmark?: (recipe: Recipe) => void;
-  onView?: (recipe: Recipe) => void;
-  onCook?: (recipe: Recipe) => void;
-  onAddToPlan?: (recipe: Recipe) => void;
-  onShare?: (recipe: Recipe) => void;
+  onToggleFavorite?: (recipe: RecipeCardRecipe) => void;
+  onToggleBookmark?: (recipe: RecipeCardRecipe) => void;
+  onView?: (recipe: RecipeCardRecipe) => void;
+  onCook?: (recipe: RecipeCardRecipe) => void;
+  onAddToPlan?: (recipe: RecipeCardRecipe) => void;
+  onShare?: (recipe: RecipeCardRecipe) => void;
 }
 
 const getDifficultyColor = (difficulty: string) => {

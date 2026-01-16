@@ -238,7 +238,7 @@ export class PreciosService {
             const preciarData = await scrapeProductoPreciar(producto);
 
             if (preciarData && preciarData.esReal && preciarData.precios.length > 0) {
-                logger.info('[PreciosService] ✅ Precios reales obtenidos:', preciarData.precios.length);
+                logger.info('[PreciosService] ✅ Precios reales obtenidos:', 'PreciosService', { count: preciarData.precios.length });
 
                 return preciarData.precios.map(p => ({
                     nombre: producto,
@@ -255,8 +255,8 @@ export class PreciosService {
                     _tendencia: preciarData.tendenciaMes,
                 } as PrecioProducto));
             }
-        } catch (error) {
-            logger.warn('[PreciosService] Scraping falló, usando fallback:', error);
+        } catch (error: unknown) {
+            logger.warn('[PreciosService] Scraping falló, usando fallback:', 'PreciosService', error);
         }
 
         // 2. Fallback a datos mock

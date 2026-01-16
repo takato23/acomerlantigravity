@@ -264,9 +264,10 @@ export class NotificationManager {
     if (!this.config.channels.audio) return;
 
     try {
+      const soundKey = (type in this.config.sounds ? type : 'default') as keyof typeof this.config.sounds;
       const soundFile = typeof sound === 'string' 
         ? sound 
-        : this.config.sounds[type] || this.config.sounds.default;
+        : this.config.sounds[soundKey] || this.config.sounds.default;
 
       // Get or create audio element
       let audio = this.audioCache.get(soundFile);

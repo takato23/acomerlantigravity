@@ -34,7 +34,7 @@ interface Setting {
   description: string;
   type: 'switch' | 'select' | 'input' | 'slider' | 'multiselect' | 'color';
   value?: any;
-  options?: Array<{ value: string; label: string; icon?: React.ComponentType<any> }>;
+  options?: Array<{ value: string; label: string; icon?: React.ReactNode }>;
   min?: number;
   max?: number;
   step?: number;
@@ -435,7 +435,7 @@ export const EnhancedProfileSettings: React.FC = () => {
             placeholder={setting.description}
             value={setting.value}
             onChange={(e) => updateSetting(setting.key, e.target.value)}
-            error={setting.validation?.(setting.value)}
+            error={setting.validation?.(setting.value) ?? undefined}
           />
         );
 

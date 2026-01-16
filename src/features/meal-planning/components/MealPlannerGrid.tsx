@@ -98,7 +98,6 @@ function adaptMealDataForGrid(currentWeekPlan: any, getSlotForDay: any, rangeDay
         slotId: slot.id, // Include slotId for DnD
         title: slot.recipe.name || 'Receta sin nombre',
         ingredients: slot.recipe.ingredients || [],
-        ingredients: slot.recipe.ingredients || [],
         macros: {
           kcal: slot.recipe.nutrition?.calories || 0,
           protein_g: slot.recipe.nutrition?.protein || 0,
@@ -138,7 +137,6 @@ export default function MealPlannerGrid({
     getWeekSummary,
     setActiveModal,
     setSelectedMeal,
-    updateMealSlot,
     removeMealFromSlot,
     moveMealSlot,
     clearWeek,
@@ -181,13 +179,29 @@ export default function MealPlannerGrid({
     [currentWeekPlan, getSlotForDay, rangeDays]
   );
 
+  const handleRecipeSelect = useCallback(
+    (slot: { dayOfWeek: number; mealType: MealType }) => {
+      onRecipeSelect?.(slot);
+    },
+    [onRecipeSelect]
+  );
+
+  const handleAddToShoppingList = useCallback(
+    (meal: any) => {
+      if (meal) {
+        onShoppingList?.();
+      }
+    },
+    [onShoppingList]
+  );
+
   // AI Generate Week handler
   const handleAIGenerate = useCallback(async () => {
     setIsGenerating(true);
     try {
       const result = await generateWeeklyPlan();
 
-      if (result.success && result.data) {
+      if (result.success) {
         await applyGeneratedPlan(result.data);
         toast.success('Plan de comidas generado con IA', {
           description: `Confianza: ${Math.round(confidence * 100)}%`
@@ -225,7 +239,7 @@ export default function MealPlannerGrid({
       const fullSlot = getSlotForDay(slot.dayOfWeek, slot.mealType);
       if (fullSlot) {
         setSelectedMeal(fullSlot);
-        setActiveModal('recipe-select');
+        setActiveModal('edit-slot');
       } else {
         logger.error('Slot not found for edit', 'MealPlannerGrid');
       }
@@ -462,7 +476,7 @@ export default function MealPlannerGrid({
           currentDate={currentDate}
           rangeDays={rangeDays}
           weekPlan={adaptedWeekPlan}
-          onRecipeSelect={onRecipeSelect}
+          onRecipeSelect={handleRecipeSelect}
           onMealEdit={handleMealEdit}
           onMealDuplicate={handleMealDuplicate}
           isLoading={isGenerating || isGeminiGenerating}
@@ -473,7 +487,7 @@ export default function MealPlannerGrid({
           currentDate={currentDate}
           rangeDays={rangeDays}
           weekPlan={adaptedWeekPlan}
-          onRecipeSelect={onRecipeSelect}
+          onRecipeSelect={handleRecipeSelect}
           onMealEdit={handleMealEdit}
           onMealDuplicate={handleMealDuplicate}
           onMealMove={handleMealMove}

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 import { logger } from '@/services/logger';
-import { createClient } from '@/lib/supabase/server';
 
 // Specific proxy for recipe generation
 interface RecipeRequest {
@@ -17,7 +19,7 @@ interface RecipeRequest {
 export async function POST(req: NextRequest) {
   try {
     // Verify authentication
-    const supabase = createClient();
+    const supabase = createRouteHandlerClient({ cookies });
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Log recipe generation for analytics
-    await logRecipeGeneration(user.id, provider, {
+    await logRecipeGeneration(supabase, user.id, provider, {
       ingredients: ingredients.length,
       dietary_restrictions: dietaryRestrictions.length,
       cuisine,
@@ -94,8 +96,8 @@ export async function POST(req: NextRequest) {
       }
     });
 
-  } catch (error) {
-    logger.error('Recipe Generation Error:', error);
+  } catch (error: unknown) {
+    logger.error('Recipe Generation Error', 'API:route', error);
     return NextResponse.json(
       { success: false, error: 'Failed to generate recipe' },
       { status: 500 }
@@ -327,9 +329,13 @@ async function generateRecipeWithAnthropic(prompt: string) {
   }
 }
 
-async function logRecipeGeneration(userId: string, provider: string, metadata: any) {
+async function logRecipeGeneration(
+  supabase: SupabaseClient,
+  userId: string,
+  provider: string,
+  metadata: any
+) {
   try {
-    const supabase = createClient();
     await supabase.from('ai_usage_logs').insert({
       user_id: userId,
       service: 'recipe_generation',
@@ -337,8 +343,8 @@ async function logRecipeGeneration(userId: string, provider: string, metadata: a
       metadata,
       created_at: new Date().toISOString()
     });
-  } catch (error) {
-    logger.error('Failed to log recipe generation:', error);
+  } catch (error: unknown) {
+    logger.error('Failed to log recipe generation', 'API:route', error);
     // Don't throw - logging failure shouldn't break recipe generation
   }
 }

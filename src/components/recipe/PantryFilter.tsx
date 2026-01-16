@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { CheckCircle, DollarSign, Filter, Package, Target } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -113,7 +114,7 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
                 {/* Enhanced information */}
                 {averageCompatibilityScore !== undefined && (
                   <div className="flex items-center gap-1">
-                    <Icons.Target size="xs" className="text-food-golden-500" />
+                    <Target className="w-3 h-3 text-food-golden-500" />
                     <Text size="sm" color="muted">
                       {Math.round(averageCompatibilityScore * 100)}% compatibilidad
                     </Text>
@@ -122,7 +123,7 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
 
                 {totalEstimatedCost && totalEstimatedCost > 0 && (
                   <div className="flex items-center gap-1">
-                    <Icons.DollarSign size="xs" className="text-food-warm-500" />
+                    <DollarSign className="w-3 h-3 text-food-warm-500" />
                     <Text size="sm" color="muted">
                       ~${Math.round(totalEstimatedCost / 1000)}k faltantes
                     </Text>
@@ -135,23 +136,23 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
           <div className="flex items-center gap-2">
             {onViewPantry && (
               <Button
-                variant="neutral"
+                variant="secondary"
                 size="sm"
                 onClick={onViewPantry}
-                leftIcon={<Icons.Package />}
+                leftIcon={<Package className="w-4 h-4" />}
               >
                 Ver Despensa
               </Button>
             )}
             
             <Button
-              variant={showOnlyCanMake ? "fresh" : "neutral"}
+              variant={showOnlyCanMake ? "fresh" : "secondary"}
               size="sm"
               onClick={onToggleCanMake}
               leftIcon={
                 showOnlyCanMake ? 
-                  <Icons.CheckCircle className="text-food-fresh-600" /> : 
-                  <Icons.Filter />
+                  <CheckCircle className="w-4 h-4 text-food-fresh-600" /> : 
+                  <Filter className="w-4 h-4" />
               }
               className={cn(
                 "transition-all duration-200",
@@ -180,25 +181,25 @@ export const PantryFilter: React.FC<PantryFilterProps> = ({
           <div className="flex gap-2">
             {onViewPantry && (
               <Button
-                variant="neutral"
+                variant="secondary"
                 size="sm"
                 fullWidth
                 onClick={onViewPantry}
-                leftIcon={<Icons.Package />}
+                leftIcon={<Package className="w-4 h-4" />}
               >
                 Gestionar Despensa
               </Button>
             )}
             
             <Button
-              variant={showOnlyCanMake ? "fresh" : "neutral"}
+              variant={showOnlyCanMake ? "fresh" : "secondary"}
               size="sm"
               fullWidth
               onClick={onToggleCanMake}
               leftIcon={
                 showOnlyCanMake ? 
-                  <Icons.CheckCircle /> : 
-                  <Icons.Filter />
+                  <CheckCircle className="w-4 h-4" /> : 
+                  <Filter className="w-4 h-4" />
               }
             >
               {showOnlyCanMake ? 'Mostrando disponibles' : 'Mostrar solo disponibles'}
@@ -248,7 +249,7 @@ export const PantryFilterCompact: React.FC<PantryFilterProps> = ({
           Despensa vacía
         </Text>
         {onViewPantry && (
-          <Button variant="neutral" size="xs" onClick={onViewPantry}>
+          <Button variant="secondary" size="sm" onClick={onViewPantry}>
             Agregar
           </Button>
         )}
@@ -268,13 +269,13 @@ export const PantryFilterCompact: React.FC<PantryFilterProps> = ({
       </Badge>
       
       <Button
-        variant={showOnlyCanMake ? "fresh" : "neutral"}
+        variant={showOnlyCanMake ? "fresh" : "secondary"}
         size="sm"
         onClick={onToggleCanMake}
         leftIcon={
           showOnlyCanMake ? 
-            <Icons.CheckCircle size="xs" /> : 
-            <Icons.Filter size="xs" />
+            <CheckCircle className="w-3 h-3" /> : 
+            <Filter className="w-3 h-3" />
         }
       >
         {showOnlyCanMake ? `${canMakeCount} disponibles` : 'Filtrar disponibles'}

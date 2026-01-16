@@ -358,7 +358,7 @@ export class ProfileCompletionService {
   ): number {
     if (!profile && !preferences) return 0;
 
-    const hasBudget = profile?.budget?.monthly > 0 || preferences?.budget?.monthly > 0;
+    const hasBudget = (profile?.budget?.monthly ?? 0) > 0 || (preferences?.budget?.monthly ?? 0) > 0;
     const hasCurrency = profile?.budget?.currency || preferences?.budget?.currency;
 
     const fields = [hasBudget, hasCurrency];
@@ -742,7 +742,7 @@ export class ProfileCompletionService {
     try {
       // In a real implementation, this would update a database table
       // tracking user achievement progress
-      logger.info('Tracking achievement progress', { userId, achievementId, progress });
+      logger.info('Tracking achievement progress', 'ProfileCompletionService', { userId, achievementId, progress });
     } catch (error) {
       logger.error('Error tracking achievement progress', 'ProfileCompletionService', error);
     }
@@ -760,7 +760,7 @@ export class ProfileCompletionService {
       // 1. Update user_achievements table
       // 2. Send notification
       // 3. Update user points/level
-      logger.info('Awarding achievement', { userId, achievementId });
+      logger.info('Awarding achievement', 'ProfileCompletionService', { userId, achievementId });
     } catch (error) {
       logger.error('Error awarding achievement', 'ProfileCompletionService', error);
     }

@@ -144,7 +144,7 @@ export class PantryManager {
 
       // Procesar y enriquecer items
       const enrichedItems = await Promise.all(
-        data.map(async (item) => {
+        data.map(async (item: any) => {
           const status = await this.calculateItemStatus(item);
           return {
             ...item,

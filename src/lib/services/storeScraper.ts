@@ -158,7 +158,7 @@ export class StoreScraper {
       price: 100 + (index * 20),
       store,
       url: '#',
-      image: null
+      image: undefined
     }));
   }
 

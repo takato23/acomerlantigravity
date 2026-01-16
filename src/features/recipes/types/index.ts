@@ -1,12 +1,11 @@
-// Re-export shared types from planner
-export type { 
-  NutritionalInfo, 
-  Ingredient, 
-  IngredientCategory 
-} from '../../planner/types';
+export type {
+  NutritionalInfo,
+  Ingredient,
+  IngredientCategory
+} from '../../meal-planning/types';
 
 // Recipe-specific types
-export type CuisineType = 
+export type CuisineType =
   | 'mexican'
   | 'italian'
   | 'chinese'
@@ -19,7 +18,7 @@ export type CuisineType =
   | 'spanish'
   | 'other';
 
-export type DietaryTag = 
+export type DietaryTag =
   | 'vegetarian'
   | 'vegan'
   | 'gluten-free'

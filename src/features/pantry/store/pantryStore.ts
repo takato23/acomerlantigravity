@@ -15,6 +15,7 @@ import type {
   BatchOperationResult,
   PantryAnalysis,
 } from '../types';
+import type { PantryItem as CorePantryItem } from '@/types/pantry';
 import { samplePantryItems } from '../../../../lib/data/sample-data';
 
 interface PantryState {
@@ -109,11 +110,31 @@ const initialStats: PantryStats = {
   categories: {},
 };
 
+const mapSamplePantryItems = (items: CorePantryItem[]): PantryItem[] =>
+  items.map((item) => ({
+    id: item.id,
+    user_id: item.user_id,
+    ingredient_id: item.ingredient_id,
+    ingredient_name: item.ingredient?.name ?? item.ingredient_id,
+    quantity: item.quantity,
+    unit: item.unit,
+    expiration_date: item.expiration_date ? new Date(item.expiration_date) : undefined,
+    location: item.location,
+    category: item.ingredient?.category,
+    purchase_date: item.purchase_date ? new Date(item.purchase_date) : undefined,
+    cost: undefined,
+    notes: item.notes,
+    created_at: new Date(item.created_at),
+    updated_at: new Date(item.updated_at),
+  }));
+
+const sampleItems = mapSamplePantryItems(samplePantryItems);
+
 export const usePantryStore = create<PantryState>()(
   persist(
     immer((set, get) => ({
       // Initial State
-      items: samplePantryItems,
+      items: sampleItems,
       locations: [],
       expirationAlerts: [],
       stats: null,
@@ -136,7 +157,7 @@ export const usePantryStore = create<PantryState>()(
           // Use sample data temporarily for demo purposes
 
           set((state) => {
-            state.items = samplePantryItems;
+            state.items = sampleItems;
             state.isLoading = false;
             state.lastSyncTimestamp = Date.now();
             state.isDirty = false;

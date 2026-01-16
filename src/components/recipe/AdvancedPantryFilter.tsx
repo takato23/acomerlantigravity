@@ -1,6 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
+import {
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  DollarSign,
+  Filter,
+  Package,
+  RotateCcw,
+  Settings,
+  Target,
+  TrendingUp
+} from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -125,7 +137,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                 {/* Enhanced information */}
                 {averageCompatibilityScore !== undefined && (
                   <div className="flex items-center gap-1">
-                    <Icons.Target size="xs" className="text-food-golden-500" />
+                    <Icons.Star size="xs" className="text-food-golden-500" />
                     <Text size="sm" color="muted">
                       {Math.round(averageCompatibilityScore * 100)}% compatibilidad promedio
                     </Text>
@@ -134,7 +146,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
 
                 {totalEstimatedCost && totalEstimatedCost > 0 && (
                   <div className="flex items-center gap-1">
-                    <Icons.DollarSign size="xs" className="text-food-warm-500" />
+                    <Icons.ShoppingCart size="xs" className="text-food-warm-500" />
                     <Text size="sm" color="muted">
                       ~${Math.round(totalEstimatedCost / 1000)}k costo total faltante
                     </Text>
@@ -146,11 +158,11 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
 
           <div className="flex items-center gap-2">
             <Button
-              variant="neutral"
+              variant="secondary"
               size="sm"
               onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-              leftIcon={<Icons.Settings size="xs" />}
-              rightIcon={showAdvancedOptions ? <Icons.ChevronUp size="xs" /> : <Icons.ChevronDown size="xs" />}
+              leftIcon={<Settings className="w-3 h-3" />}
+              rightIcon={showAdvancedOptions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             >
               Avanzado
             </Button>
@@ -163,23 +175,23 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
         <div className="flex gap-2 flex-wrap">
           {onViewPantry && (
             <Button
-              variant="neutral"
+              variant="secondary"
               size="sm"
               onClick={onViewPantry}
-              leftIcon={<Icons.Package />}
+              leftIcon={<Package className="w-4 h-4" />}
             >
               Ver Despensa
             </Button>
           )}
           
           <Button
-            variant={showOnlyCanMake ? "fresh" : "neutral"}
+            variant={showOnlyCanMake ? "fresh" : "secondary"}
             size="sm"
             onClick={onToggleCanMake}
             leftIcon={
               showOnlyCanMake ? 
-                <Icons.CheckCircle className="text-food-fresh-600" /> : 
-                <Icons.Filter />
+                <CheckCircle className="w-4 h-4 text-food-fresh-600" /> : 
+                <Filter className="w-4 h-4" />
             }
             className={cn(
               "transition-all duration-200",
@@ -192,10 +204,10 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
           {/* Quick filter buttons */}
           {onFilterByCompatibility && (
             <Button
-              variant="neutral"
+              variant="secondary"
               size="sm"
               onClick={() => onFilterByCompatibility(0.8)}
-              leftIcon={<Icons.Target size="xs" />}
+              leftIcon={<Target className="w-3 h-3" />}
             >
               80%+ Compatible
             </Button>
@@ -203,10 +215,10 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
 
           {onFilterByMaxCost && totalEstimatedCost && totalEstimatedCost > 0 && (
             <Button
-              variant="neutral"
+              variant="secondary"
               size="sm"
               onClick={() => onFilterByMaxCost(25000)}
-              leftIcon={<Icons.DollarSign size="xs" />}
+              leftIcon={<DollarSign className="w-3 h-3" />}
             >
               Bajo Costo
             </Button>
@@ -216,7 +228,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
         {/* Advanced Options */}
         {showAdvancedOptions && (
           <div className="space-y-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
-            <Heading size="xs" className="text-slate-600">
+            <Heading size="sm" className="text-slate-600">
               Filtros Avanzados
             </Heading>
 
@@ -238,7 +250,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                   />
                   <Button
                     variant="fresh"
-                    size="xs"
+                    size="sm"
                     onClick={() => onFilterByCompatibility(compatibilityThreshold / 100)}
                   >
                     Aplicar
@@ -266,7 +278,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                   />
                   <Button
                     variant="warm"
-                    size="xs"
+                    size="sm"
                     onClick={() => onFilterByMaxCost(maxCostThreshold)}
                   >
                     Aplicar
@@ -293,7 +305,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
                   />
                   <Button
                     variant="golden"
-                    size="xs"
+                    size="sm"
                     onClick={() => onFilterByMaxMissingIngredients(maxMissingIngredients)}
                   >
                     Aplicar
@@ -305,14 +317,14 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
             {/* Quick Reset */}
             <div className="flex justify-end pt-2 border-t border-slate-200">
               <Button
-                variant="neutral"
-                size="xs"
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setCompatibilityThreshold(70);
                   setMaxCostThreshold(50000);
                   setMaxMissingIngredients(3);
                 }}
-                leftIcon={<Icons.RotateCcw size="xs" />}
+                leftIcon={<RotateCcw className="w-3 h-3" />}
               >
                 Resetear Filtros
               </Button>
@@ -343,7 +355,7 @@ export const AdvancedPantryFilter: React.FC<AdvancedPantryFilterProps> = ({
         {/* Insights */}
         {mostMissingIngredient && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-food-warm-50">
-            <Icons.TrendingUp size="sm" className="text-food-warm-600" />
+            <TrendingUp className="w-4 h-4 text-food-warm-600" />
             <div>
               <Text size="sm" weight="medium">Ingrediente más solicitado</Text>
               <Text size="xs" color="muted">

@@ -4,10 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2, Mail, Lock, User, Check } from 'lucide-react';
 
-import { useAppStore } from '@/store';
+import { useAppStore } from '../../../store';
 import { SignUpFormData } from '../types';
 
-export function SignUpForm() {
+interface SignUpFormProps {
+  onSuccess?: () => void;
+}
+
+export function SignUpForm({ onSuccess }: SignUpFormProps) {
   const router = useRouter();
   const isLoading = useAppStore((state) => state.user.isLoading);
   const setAuthLoading = useAppStore((state) => state.setAuthLoading);
@@ -67,33 +71,39 @@ export function SignUpForm() {
 
     try {
       setAuthLoading(true);
-      
-      // Here you would typically call your auth service
-      // For now, simulating a signup with mock user data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      // Mock successful authentication
-      const mockUser = {
-        id: Date.now().toString(),
+
+      const { AuthService } = await import('../services/authService');
+      const authUser = await AuthService.getInstance().signUp({
         email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
         name: formData.name,
-        avatar: '',
-        createdAt: new Date(),
+        acceptTerms: formData.acceptTerms
+      });
+
+      // Map AuthUser to UserProfile store type
+      const profileUser = {
+        id: authUser.id,
+        email: authUser.email,
+        name: authUser.name || authUser.email.split('@')[0] || 'Usuario',
+        avatar: authUser.avatar_url,
+        createdAt: authUser.created_at,
         lastLogin: new Date()
       };
-      
-      setUser(mockUser);
+
+      setUser(profileUser);
+      onSuccess?.();
       router.push('/onboarding');
-    } catch (error: unknown) {
+    } catch (error: any) {
       setError(error instanceof Error ? error.message : 'Sign up failed');
     } finally {
       setAuthLoading(false);
     }
   };
 
-  const passwordsMatch = formData.password && formData.confirmPassword && 
+  const passwordsMatch = formData.password && formData.confirmPassword &&
     formData.password === formData.confirmPassword;
-  const passwordsDontMatch = formData.confirmPassword && 
+  const passwordsDontMatch = formData.confirmPassword &&
     formData.password !== formData.confirmPassword;
 
   return (
@@ -190,21 +200,19 @@ export function SignUpForm() {
               <div className="mt-2">
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-600">Strength:</span>
-                  <span className={`font-medium ${
-                    passwordStrength.score <= 1 ? 'text-red-600' :
+                  <span className={`font-medium ${passwordStrength.score <= 1 ? 'text-red-600' :
                     passwordStrength.score <= 3 ? 'text-yellow-600' :
-                    'text-green-600'
-                  }`}>
+                      'text-green-600'
+                    }`}>
                     {passwordStrength.feedback}
                   </span>
                 </div>
                 <div className="mt-1 h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full transition-all duration-300 ${
-                      passwordStrength.score <= 1 ? 'bg-red-500' :
+                  <div
+                    className={`h-full transition-all duration-300 ${passwordStrength.score <= 1 ? 'bg-red-500' :
                       passwordStrength.score <= 3 ? 'bg-yellow-500' :
-                      'bg-green-500'
-                    }`}
+                        'bg-green-500'
+                      }`}
                     style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
                   />
                 </div>
@@ -226,13 +234,12 @@ export function SignUpForm() {
                 required
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className={`block w-full appearance-none rounded-lg border px-3 py-2 pl-10 pr-10 placeholder-gray-400 shadow-sm focus:outline-none sm:text-sm ${
-                  passwordsDontMatch 
-                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                    : passwordsMatch
+                className={`block w-full appearance-none rounded-lg border px-3 py-2 pl-10 pr-10 placeholder-gray-400 shadow-sm focus:outline-none sm:text-sm ${passwordsDontMatch
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                  : passwordsMatch
                     ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
                     : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'
-                }`}
+                  }`}
                 placeholder="••••••••"
               />
               <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />

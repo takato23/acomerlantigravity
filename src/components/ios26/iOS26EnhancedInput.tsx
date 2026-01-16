@@ -19,8 +19,8 @@ export interface iOS26EnhancedInputProps extends InputHTMLAttributes<HTMLInputEl
   floatingLabel?: boolean;
 }
 
-const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>(
-  ({ 
+const IOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>(
+  ({
     className,
     label,
     error,
@@ -37,12 +37,12 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
     onChange,
     onFocus,
     onBlur,
-    ...props 
+    ...props
   }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [internalValue, setInternalValue] = useState(value || '');
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
@@ -87,11 +87,11 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
       "relative group overflow-hidden rounded-xl transition-all duration-300",
       "ios26-liquid-glass border",
       liquidEffect && "ios26-liquid-transform",
-      error 
-        ? "border-red-500/50 bg-red-50/5" 
-        : success 
-        ? "border-green-500/50 bg-green-50/5"
-        : "border-white/20 hover:border-white/30",
+      error
+        ? "border-red-500/50 bg-red-50/5"
+        : success
+          ? "border-green-500/50 bg-green-50/5"
+          : "border-white/20 hover:border-white/30",
       isFocused && !error && !success && "border-food-fresh/50 shadow-lg shadow-food-fresh/10",
       glowOnFocus && isFocused && "ios26-liquid-glow"
     );
@@ -108,7 +108,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
           {icon && (
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
               <motion.div
-                animate={{ 
+                animate={{
                   scale: isFocused ? 1.1 : 1,
                   color: isFocused ? 'var(--food-fresh)' : undefined
                 }}
@@ -145,7 +145,7 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
             ref={(node) => {
               if (ref) {
                 if (typeof ref === 'function') ref(node);
-                else ref.current = node;
+                else (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
               }
               if (node) inputRef.current = node;
             }}
@@ -245,6 +245,8 @@ const iOS26EnhancedInput = forwardRef<HTMLInputElement, iOS26EnhancedInputProps>
   }
 );
 
-iOS26EnhancedInput.displayName = 'iOS26EnhancedInput';
+IOS26EnhancedInput.displayName = 'IOS26EnhancedInput';
 
-export { iOS26EnhancedInput };
+export { IOS26EnhancedInput };
+export const iOS26EnhancedInput = IOS26EnhancedInput;
+export type IOS26EnhancedInputProps = iOS26EnhancedInputProps;

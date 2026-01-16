@@ -37,25 +37,14 @@ export function PolishedLandingPage({
   usePerformanceMonitor();
 
   const [isLoading, setIsLoading] = React.useState(showLoadingStates);
-  const [sectionsLoaded, setSectionsLoaded] = React.useState({
-    hero: false,
-    features: false,
-    pricing: false
-  });
-
   React.useEffect(() => {
     // Simulate initial loading
     const timer = setTimeout(() => {
       setIsLoading(false);
-      setSectionsLoaded(prev => ({ ...prev, hero: true }));
     }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
-
-  const handleSectionLoad = (section: keyof typeof sectionsLoaded) => {
-    setSectionsLoaded(prev => ({ ...prev, [section]: true }));
-  };
 
   const heroProps = {
     title: "Transform Your Kitchen Into a Smart Culinary Assistant",
@@ -88,11 +77,12 @@ export function PolishedLandingPage({
       }
     ],
     stats: [
-      { label: 'Happy Users', value: '50K+' },
-      { label: 'Recipes Created', value: '1M+' },
-      { label: 'Time Saved', value: '2hrs', suffix: '/week' },
-      { label: 'Food Waste', value: '40%', suffix: ' less' }
+      { label: 'Happy Users', value: '50K+', gradient: 'from-orange-400 to-orange-600' },
+      { label: 'Recipes Created', value: '1M+', gradient: 'from-slate-200 to-slate-400' },
+      { label: 'Time Saved', value: '2hrs', suffix: '/week', gradient: 'from-sky-300 to-sky-500' },
+      { label: 'Food Waste', value: '40%', suffix: ' less', gradient: 'from-emerald-300 to-emerald-500' }
     ],
+    illustration: null,
     background: {
       gradient: 'bg-slate-800/50',
       overlay: 'bg-black/10'
@@ -189,7 +179,6 @@ export function PolishedLandingPage({
                 <Suspense fallback={<HeroSkeleton />}>
                   <ResponsiveHero 
                     {...heroProps}
-                    onLoad={() => handleSectionLoad('hero')}
                   />
                 </Suspense>
               </SectionErrorBoundary>
@@ -209,10 +198,8 @@ export function PolishedLandingPage({
                         </div>
                       </div>
                     }
-                  >
-                    <ProductFeatures 
-                      onLoad={() => handleSectionLoad('features')}
-                    />
+                    >
+                    <ProductFeatures />
                   </Suspense>
                 </section>
               </SectionErrorBoundary>
@@ -232,13 +219,11 @@ export function PolishedLandingPage({
                         </div>
                       </div>
                     }
-                  >
-                    <ProductPricing 
-                      onLoad={() => handleSectionLoad('pricing')}
-                    />
-                  </Suspense>
-                </section>
-              </SectionErrorBoundary>
+                >
+                  <ProductPricing />
+                </Suspense>
+              </section>
+            </SectionErrorBoundary>
             </main>
 
             {/* Footer */}

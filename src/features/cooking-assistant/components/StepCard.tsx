@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 
 import { CookingStep } from '../types';
 
-import { GlassCard } from '@/components/dashboard/DashboardLayout';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface StepCardProps {
   step: CookingStep;

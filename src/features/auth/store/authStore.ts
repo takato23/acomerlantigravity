@@ -139,7 +139,7 @@ export const useAuthStore = create<AuthState>()(
             // Load user data
             await get().loadUserData(user.id);
           } catch (error: unknown) {
-            set({ error: error.message || 'Failed to sign in' });
+            set({ error: error instanceof Error ? error.message : 'Failed to sign in' });
             throw error;
           } finally {
             set({ isLoading: false });
@@ -156,7 +156,7 @@ export const useAuthStore = create<AuthState>()(
 
             set({ user, session });
           } catch (error: unknown) {
-            set({ error: error.message || 'Failed to sign up' });
+            set({ error: error instanceof Error ? error.message : 'Failed to sign up' });
             throw error;
           } finally {
             set({ isLoading: false });
@@ -177,7 +177,7 @@ export const useAuthStore = create<AuthState>()(
               preferences: null 
             });
           } catch (error: unknown) {
-            set({ error: error.message || 'Failed to sign out' });
+            set({ error: error instanceof Error ? error.message : 'Failed to sign out' });
             throw error;
           } finally {
             set({ isLoading: false });
@@ -226,7 +226,7 @@ export const useAuthStore = create<AuthState>()(
             const updatedProfile = await authService.updateUserProfile(user.id, updates);
             set({ profile: updatedProfile });
           } catch (error: unknown) {
-            set({ error: error.message || 'Failed to update profile' });
+            set({ error: error instanceof Error ? error.message : 'Failed to update profile' });
             throw error;
           } finally {
             set({ isLoading: false });
@@ -244,7 +244,7 @@ export const useAuthStore = create<AuthState>()(
             const updatedPreferences = await authService.saveUserPreferences(user.id, updates);
             set({ preferences: updatedPreferences });
           } catch (error: unknown) {
-            set({ error: error.message || 'Failed to update preferences' });
+            set({ error: error instanceof Error ? error.message : 'Failed to update preferences' });
             throw error;
           } finally {
             set({ isLoading: false });

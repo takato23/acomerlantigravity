@@ -161,7 +161,7 @@ export class RecipeIndex {
     }
     
     // Index by dietary labels
-    recipe.dietaryLabels.forEach(label => {
+    (recipe.dietaryLabels || []).forEach(label => {
       if (!this.byDietary.has(label)) {
         this.byDietary.set(label, new Set());
       }

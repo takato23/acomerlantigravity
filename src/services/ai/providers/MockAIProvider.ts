@@ -5,12 +5,19 @@ import {
     AITextRequest,
     AITextResponse,
     AIImageRequest,
+    AIImageGenerationRequest,
+    AIImageGenerationResponse,
     AIStreamResponse,
-    AIServiceConfig
+    AIServiceConfig,
+    AIProvider
 } from '../types';
 
-export class MockAIProvider implements AIProviderInterface {
-    name = 'mock';
+export class MockAIProvider extends AIProviderInterface {
+    name: AIProvider = 'mock';
+
+    constructor(config: any = {}) {
+        super(config);
+    }
 
     async generateText(request: AITextRequest, _config: AIServiceConfig): Promise<AITextResponse> {
         console.log('[MockAIProvider] Generating text for prompt:', request.prompt);
@@ -57,8 +64,9 @@ export class MockAIProvider implements AIProviderInterface {
         return {
             data,
             provider: 'mock',
-            model: 'mock-model',
-            usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+            model: 'gemini-pro',
+            usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+            format: 'text'
         };
     }
 
@@ -75,7 +83,15 @@ export class MockAIProvider implements AIProviderInterface {
         return {
             stream,
             provider: 'mock',
-            model: 'mock-model'
+            model: 'gemini-pro'
+        };
+    }
+
+    async generateImage(_request: AIImageGenerationRequest, _config: AIServiceConfig): Promise<AIImageGenerationResponse> {
+        return {
+            data: [],
+            provider: 'mock',
+            model: 'gemini-pro'
         };
     }
 
@@ -83,7 +99,8 @@ export class MockAIProvider implements AIProviderInterface {
         return {
             data: 'En la imagen se ve un ticket de compra con varios artículos de supermercado.',
             provider: 'mock',
-            model: 'mock-model'
+            model: 'gemini-pro',
+            format: 'text'
         };
     }
 

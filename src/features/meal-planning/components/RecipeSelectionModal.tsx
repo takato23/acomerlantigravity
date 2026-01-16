@@ -40,6 +40,47 @@ interface RecipeSelectionModalProps {
   onSelect?: (recipe: Recipe) => void;
 }
 
+type PrepTimeFilter = 'all' | 'quick' | 'medium' | 'elaborate';
+type SortOption = 'name' | 'prepTime' | 'calories' | 'rating';
+type ViewMode = 'grid' | 'list';
+
+const prepTimeOptions: Array<{
+  value: PrepTimeFilter;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { value: 'all', label: 'Todos', icon: Clock },
+  { value: 'quick', label: 'Rapido (<=15m)', icon: Zap },
+  { value: 'medium', label: 'Medio (<=30m)', icon: Timer },
+  { value: 'elaborate', label: 'Elaborado (>30m)', icon: ChefHat }
+];
+
+const sortOptions: Array<{ value: SortOption; label: string }> = [
+  { value: 'name', label: 'Nombre' },
+  { value: 'prepTime', label: 'Tiempo' },
+  { value: 'calories', label: 'Calorias' },
+  { value: 'rating', label: 'Rating' }
+];
+
+const DAILY_GOALS = {
+  calories: 2000,
+  protein: 100,
+  carbs: 250,
+  fat: 70
+};
+
+const dietaryIcons: Record<DietaryPreference, React.ComponentType<{ className?: string }>> = {
+  omnivore: Utensils,
+  vegetarian: Leaf,
+  vegan: Leaf,
+  pescatarian: Utensils,
+  glutenFree: Heart,
+  'gluten-free': Heart,
+  dairyFree: Heart,
+  keto: Flame,
+  paleo: ChefHat
+};
+
 // ... existing icons and filters ...
 
 export function RecipeSelectionModal({ slot, onClose, onSelect }: RecipeSelectionModalProps) {
@@ -52,7 +93,7 @@ export function RecipeSelectionModal({ slot, onClose, onSelect }: RecipeSelectio
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const { recipes: mealPlanningRecipes, addMealToSlot, currentWeekPlan } = useMealPlanningStore();
+  const { addMealToSlot, currentWeekPlan } = useMealPlanningStore();
   const mealSlots = currentWeekPlan?.slots || [];
   const {
     recipes: recipeStoreRecipes,
@@ -65,11 +106,6 @@ export function RecipeSelectionModal({ slot, onClose, onSelect }: RecipeSelectio
   // Combine recipes from both stores using unified format
   const allRecipes = useMemo(() => {
     const combinedMap = new Map<string, Recipe>();
-
-    // Add meal planning recipes
-    Object.values(mealPlanningRecipes || {}).forEach(recipe => {
-      combinedMap.set(recipe.id, recipe);
-    });
 
     // Add recipe store recipes (convert to meal planning format)
     recipeStoreRecipes.forEach(storeRecipe => {
@@ -124,7 +160,7 @@ export function RecipeSelectionModal({ slot, onClose, onSelect }: RecipeSelectio
     });
 
     return Array.from(combinedMap.values());
-  }, [mealPlanningRecipes, recipeStoreRecipes, favoriteRecipes]);
+  }, [recipeStoreRecipes, favoriteRecipes]);
 
   // Calculate daily nutrition from meals already planned for this day
   const dailyNutrition = useMemo(() => {
@@ -176,7 +212,7 @@ export function RecipeSelectionModal({ slot, onClose, onSelect }: RecipeSelectio
     // Filter by dietary preferences
     if (selectedFilters.length > 0) {
       filtered = filtered.filter(recipe =>
-        selectedFilters.every(filter => recipe.dietaryLabels.includes(filter))
+        selectedFilters.every(filter => (recipe.dietaryLabels || []).includes(filter))
       );
     }
 
@@ -633,7 +669,7 @@ export function RecipeSelectionModal({ slot, onClose, onSelect }: RecipeSelectio
                               IA
                             </span>
                           )}
-                          {recipe.dietaryLabels.slice(0, 2).map(label => {
+                          {(recipe.dietaryLabels || []).slice(0, 2).map(label => {
                             const Icon = dietaryIcons[label];
                             return (
                               <span key={label} className="px-2 py-1 bg-green-500/90 backdrop-blur-sm text-white text-xs rounded-lg flex items-center gap-1">

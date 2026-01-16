@@ -109,7 +109,7 @@ export class ReceiptProcessor {
       // Enhance and process items
       const processedItems = await this.processReceiptItems(
         receipt.items,
-        receipt.store,
+        receipt.storeName,
         options
       );
 
@@ -322,7 +322,7 @@ export class ReceiptProcessor {
       .map(item => ({
         item: item.name,
         newPrice: item.price!,
-        store: receipt.store || 'Desconocido'
+        store: receipt.storeName || 'Desconocido'
       }));
 
     return {

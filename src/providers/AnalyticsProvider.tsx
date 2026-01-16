@@ -143,7 +143,7 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
         analytics.trackFeatureUsage({
             feature,
             action,
-            timestamp: Date.now(),
+            metadata: { timestamp: Date.now() },
         });
     }, [analytics]);
 

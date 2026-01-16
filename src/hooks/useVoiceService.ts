@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { logger } from '@/services/logger';
 
-import { getVoiceService, VoiceCommand, VoiceServiceOptions } from '@/services/voice';
+import { getVoiceService, VoiceCommand, VoiceServiceConfig } from '@/services/voice';
 
-export interface UseVoiceServiceOptions extends VoiceServiceOptions {
+export interface UseVoiceServiceOptions extends VoiceServiceConfig {
   onCommand?: (command: VoiceCommand) => void;
   onInterim?: (transcript: string) => void;
   onError?: (error: Error) => void;
@@ -18,7 +18,7 @@ export interface UseVoiceServiceReturn {
   interimTranscript: string;
   lastCommand: VoiceCommand | null;
   error: Error | null;
-  startListening: (options?: VoiceServiceOptions) => Promise<void>;
+  startListening: (options?: VoiceServiceConfig) => Promise<void>;
   stopListening: () => void;
   speak: (text: string) => Promise<void>;
   clearTranscript: () => void;
@@ -93,7 +93,7 @@ export function useVoiceService(options: UseVoiceServiceOptions = {}): UseVoiceS
     };
   }, []);
 
-  const startListening = useCallback(async (customOptions?: VoiceServiceOptions) => {
+  const startListening = useCallback(async (customOptions?: VoiceServiceConfig) => {
     try {
       setError(null);
       const command = await voiceService.current.startListening({

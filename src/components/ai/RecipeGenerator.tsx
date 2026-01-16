@@ -184,14 +184,17 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
 
               <h4 className="font-semibold text-slate-900 mb-3">Nutrition per serving</h4>
               <div className="grid grid-cols-2 gap-3">
-                {Object.entries(generatedRecipe.nutrition).map(([key, value]) => (
+                {Object.entries(generatedRecipe.nutrition).map(([key, value]) => {
+                  const displayValue = typeof value === 'number' ? value : Number(value) || 0;
+                  return (
                   <div key={key} className="glass rounded-lg p-3">
                     <div className="text-sm text-slate-500 capitalize">{key}</div>
                     <div className="text-lg font-semibold text-slate-900">
-                      {value}{key === 'calories' ? '' : 'g'}
+                      {displayValue}{key === 'calories' ? '' : 'g'}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -253,7 +256,7 @@ export function RecipeGenerator({ onRecipeGenerated }: RecipeGeneratorProps) {
             {ingredients.map((ingredient) => (
               <Badge
                 key={ingredient}
-                variant="secondary"
+                variant="neutral"
                 className="pl-3 pr-1 py-1 flex items-center gap-1"
               >
                 {ingredient}

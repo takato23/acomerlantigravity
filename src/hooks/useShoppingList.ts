@@ -5,16 +5,13 @@ import { shoppingService } from '@/lib/supabase/shopping';
 import { offlineShoppingService } from '@/services/shopping/offlineShoppingService';
 import { useAppStore } from '@/store';
 import { usePantryStore } from '@/features/pantry/store/pantryStore';
-import {
-  ShoppingList as UnifiedShoppingList,
-  ShoppingListItem
-} from '@/features/meal-planning/types';
 import type { Database } from '@/lib/supabase/database.types';
 
+type ShoppingItem = Database['public']['Tables']['shopping_list_items']['Row'];
+type ShoppingItemInsert = Database['public']['Tables']['shopping_list_items']['Insert'];
 type ShoppingList = Database['public']['Tables']['shopping_lists']['Row'] & {
-  shopping_list_items?: ShoppingListItem[];
+  shopping_list_items?: ShoppingItem[];
 };
-type ShoppingItem = Database['public']['Tables']['shopping_items']['Row'];
 
 export function useShoppingList() {
   const user = useAppStore((state) => state.user.profile);
@@ -114,7 +111,7 @@ export function useShoppingList() {
 
   // Add item to active list
   const addItem = useCallback(async (
-    item: Omit<ShoppingItem, 'id' | 'list_id' | 'created_at' | 'updated_at' | 'position'>,
+    item: Omit<ShoppingItemInsert, 'shopping_list_id'>,
     listId?: string
   ) => {
     const targetListId = listId || activeList?.id;
@@ -140,7 +137,7 @@ export function useShoppingList() {
 
   // Add multiple items
   const addItems = useCallback(async (
-    items: Omit<ShoppingItem, 'id' | 'list_id' | 'created_at' | 'updated_at' | 'position'>[]
+    items: Omit<ShoppingItemInsert, 'shopping_list_id'>[]
   ) => {
     try {
       // Loop sequentially to maintain order/priority if needed, or use Promise.all for speed
@@ -245,7 +242,7 @@ export function useShoppingList() {
         return {
           ...prev,
           shopping_list_items: prev.shopping_list_items?.map(item =>
-            itemIds.includes(item.id) ? { ...item, checked } : item
+            itemIds.includes(item.id) ? { ...item, is_purchased: checked } : item
           )
         };
       });
@@ -269,7 +266,7 @@ export function useShoppingList() {
         const itemMap = new Map(prev.shopping_list_items.map(item => [item.id, item]));
         const reorderedItems = itemIds.map((id, index) => {
           const item = itemMap.get(id);
-          return item ? { ...item, position: index } : null;
+          return item ? { ...item, priority: index } : null;
         }).filter(Boolean) as ShoppingItem[];
         return { ...prev, shopping_list_items: reorderedItems };
       });

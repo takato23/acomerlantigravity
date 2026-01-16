@@ -57,7 +57,7 @@ interface ServiceStatus {
   responseTimes: number[];
 }
 
-interface ProductGroup {
+export interface ProductGroup {
   baseProduct: StoreProduct;
   variations: StoreProduct[];
   priceRange: { min: number; max: number; avg: number };
@@ -242,7 +242,7 @@ export class EnhancedStoreScraper {
       return [];
     }
 
-    return data.products
+    const normalizedProducts = data.products
       .filter(item => {
         const hasValidName = item.name || item.title;
         const hasValidPrice = item.price !== undefined && item.price !== null;

@@ -14,6 +14,30 @@ export interface VoiceServiceConfig {
   confidenceThreshold?: number;
 }
 
+export interface ParsedIngredient {
+  name: string;
+  quantity?: number;
+  unit?: string;
+  confidence?: number;
+}
+
+export interface VoiceResult {
+  text: string;
+  transcript: string;
+  isComplete: boolean;
+  confidence?: number;
+  parsedItems?: ParsedIngredient[];
+  command?: VoiceCommand;
+}
+
+export interface VoiceOptions extends VoiceServiceConfig {
+  mode?: 'simple' | 'advanced' | 'ingredient_detection';
+  context?: string;
+  autoParse?: boolean;
+  enableSmartParsing?: boolean;
+  onResult?: (result: VoiceResult) => void;
+}
+
 export interface VoiceCommand {
   intent: VoiceIntent;
   entity: string;
@@ -120,6 +144,8 @@ export interface VoiceServiceStatus {
   wakeWordEnabled: boolean;
   offlineModeEnabled: boolean;
 }
+
+export type VoiceState = VoiceServiceStatus;
 
 export interface VoiceAnalytics {
   totalCommands: number;

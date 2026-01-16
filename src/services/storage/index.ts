@@ -3,6 +3,8 @@
  * Centralized export point for all storage-related services
  */
 
+import { getStorageService } from './UnifiedStorageService';
+
 // Main service
 export { UnifiedStorageService, getStorageService } from './UnifiedStorageService';
 

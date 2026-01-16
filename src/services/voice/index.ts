@@ -25,23 +25,9 @@ export { useVoiceFeedback } from './hooks/useVoiceFeedback';
 // export { VoiceService } from './VoiceService';
 // export type { VoiceCommand as LegacyVoiceCommand, VoiceServiceOptions } from './VoiceService';
 // export { VoiceFeedback } from './voiceFeedback';
-// export { SmartParser } from './smartParser';
+export { SmartParser } from './smartParser';
 // export { ConversationContext } from './conversationContext';
 // export { WakeWordDetector } from './wakeWordDetector';
-
-// Temporary exports to fix build
-export class SmartParser {
-  parse(input: string): ParsedIngredient[] {
-    // TODO: Implement smart parsing
-    return [];
-  }
-}
-
-export interface ParsedIngredient {
-  name: string;
-  quantity?: number;
-  unit?: string;
-}
 
 // Constants
 export const SUPPORTED_LANGUAGES = [

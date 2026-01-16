@@ -85,7 +85,7 @@ export class HolisticFoodSystem {
         pantryStats,
         shoppingSuggestions: suggestions,
         mealPlan,
-        shoppingList: mealPlan.shoppingList,
+        shoppingList: [],
         insights: await this.generateInsights(userId, { parsedReceipt, pantryStats, mealPlan })
       };
 

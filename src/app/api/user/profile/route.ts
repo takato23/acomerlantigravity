@@ -4,8 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { logger } from '@/lib/logger';
+import { z } from 'zod';
+import { getUser } from '@/lib/auth/supabase-auth';
 
 // authOptions removed - using Supabase Auth;
 import { db } from '@/lib/supabase/database.service';
@@ -21,8 +22,8 @@ import { enhancedCache, CacheKeyGenerator } from '@/lib/services/enhancedCacheSe
 export async function GET(request: NextRequest) {
   try {
     const user = await getUser();
-    
-    if (!session?.user?.id) {
+
+    if (!user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -37,34 +38,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    const userProfile = await db.getUserProfile(user.id, {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        bio: true,
-        location: true,
-        dateOfBirth: true,
-        gender: true,
-        occupation: true,
-        dietaryRestrictions: true,
-        allergies: true,
-        favoriteCuisines: true,
-        cookingSkillLevel: true,
-        householdSize: true,
-        weeklyBudget: true,
-        nutritionalGoals: true,
-        notifications: true,
-        profileVisibility: true,
-        shareRecipes: true,
-        dataSharing: true,
-        analytics: true,
-        thirdPartyIntegrations: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const userProfile = await db.getUserProfile(user.id);
 
     if (!userProfile) {
       return NextResponse.json(
@@ -98,8 +72,8 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const user = await getUser();
-    
-    if (!session?.user?.id) {
+
+    if (!user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -116,7 +90,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate and update based on section
-    let updateData: any = {};
+    let updateData: Record<string, any> = {};
     
     switch (section) {
       case 'general':
@@ -124,6 +98,13 @@ export async function PUT(request: NextRequest) {
         break;
       case 'preferences':
         updateData = await validateAndPreparePreferencesData(data, user.id);
+        await db.updateUserPreferences(user.id, updateData);
+        updateData = {
+          dietary_restrictions: updateData.dietary_restrictions,
+          cuisine_preferences: updateData.cuisine_preferences,
+          cooking_skill_level: updateData.cooking_skill_level,
+          household_size: updateData.household_size,
+        };
         break;
       case 'notifications':
         updateData = await validateAndPrepareNotificationsData(data);
@@ -143,33 +124,7 @@ export async function PUT(request: NextRequest) {
     // Update user in database
     const updatedUser = await db.updateUserProfile(user.id, {
       ...updateData,
-      updatedAt: new Date()
-    }, {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        bio: true,
-        location: true,
-        dateOfBirth: true,
-        gender: true,
-        occupation: true,
-        dietaryRestrictions: true,
-        allergies: true,
-        favoriteCuisines: true,
-        cookingSkillLevel: true,
-        householdSize: true,
-        weeklyBudget: true,
-        nutritionalGoals: true,
-        notifications: true,
-        profileVisibility: true,
-        shareRecipes: true,
-        dataSharing: true,
-        analytics: true,
-        thirdPartyIntegrations: true,
-        updatedAt: true
-      }
+      updated_at: new Date().toISOString()
     });
 
     // Invalidate related caches
@@ -238,14 +193,11 @@ async function validateAndPrepareGeneralData(data: any) {
   }
 
   return {
-    name: data.name.trim(),
-    email: data.email.trim(),
+    full_name: data.name.trim(),
     phone: data.phone?.trim() || null,
     bio: data.bio?.trim() || null,
     location: data.location?.trim() || null,
-    dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
-    gender: data.gender || null,
-    occupation: data.occupation?.trim() || null
+    date_of_birth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null
   };
 }
 
@@ -275,23 +227,30 @@ async function validateAndPreparePreferencesData(data: any, userId: string) {
       throw new Error('El tamaño del hogar debe estar entre 1 y 10 personas');
     }
 
-    if (validatedData.weeklyBudget < 500 || validatedData.weeklyBudget > 10000) {
+    if (
+      validatedData.weeklyBudget !== undefined &&
+      (validatedData.weeklyBudget < 500 || validatedData.weeklyBudget > 10000)
+    ) {
       throw new Error('El presupuesto semanal debe estar entre $500 y $10,000');
     }
 
     return {
-      dietaryRestrictions: validatedData.dietaryRestrictions,
+      dietary_restrictions: validatedData.dietaryRestrictions,
       allergies: validatedData.allergies,
-      favoriteCuisines: validatedData.favoriteCuisines,
-      cookingSkillLevel: validatedData.cookingSkillLevel,
-      householdSize: validatedData.householdSize,
-      weeklyBudget: validatedData.weeklyBudget,
-      nutritionalGoals: validatedData.nutritionalGoals
+      cuisine_preferences: validatedData.favoriteCuisines,
+      cooking_skill_level: validatedData.cookingSkillLevel,
+      household_size: validatedData.householdSize,
+      preferred_meal_types: validatedData.preferredMealTypes,
+      avoid_ingredients: validatedData.avoidIngredients,
+      calorie_target: validatedData.nutritionalGoals?.calories,
+      protein_target: validatedData.nutritionalGoals?.protein,
+      carb_target: validatedData.nutritionalGoals?.carbs,
+      fat_target: validatedData.nutritionalGoals?.fat
     };
 
   } catch (error: unknown) {
-    if (error.errors) {
-      const errorMessages = error.errors.map((err: any) => err.message);
+    if (error instanceof z.ZodError) {
+      const errorMessages = error.issues.map((err) => err.message);
       throw new MealPlanningError(
         'Preferences validation failed',
         MealPlanningErrorCodes.VALIDATION_FAILED,
@@ -300,11 +259,20 @@ async function validateAndPreparePreferencesData(data: any, userId: string) {
       );
     }
 
+    if (error instanceof Error) {
+      throw new MealPlanningError(
+        'Preferences validation failed',
+        MealPlanningErrorCodes.VALIDATION_FAILED,
+        { error: error.message },
+        error.message
+      );
+    }
+
     throw new MealPlanningError(
       'Preferences validation failed',
       MealPlanningErrorCodes.VALIDATION_FAILED,
-      { error: error.message },
-      error.message
+      { error: 'Unknown error' },
+      'Unknown error'
     );
   }
 }
@@ -324,7 +292,7 @@ async function validateAndPrepareNotificationsData(data: any) {
   };
 
   return {
-    notifications: validatedNotifications
+    notification_settings: validatedNotifications
   };
 }
 
@@ -343,10 +311,10 @@ async function validateAndPreparePrivacyData(data: any) {
   }
 
   return {
-    profileVisibility: privacy.profileVisibility || 'private',
-    shareRecipes: Boolean(privacy.shareRecipes),
-    dataSharing: Boolean(privacy.dataSharing),
+    profile_visibility: privacy.profileVisibility || 'private',
+    share_recipes: Boolean(privacy.shareRecipes),
+    data_sharing: Boolean(privacy.dataSharing),
     analytics: Boolean(privacy.analytics),
-    thirdPartyIntegrations: Boolean(privacy.thirdPartyIntegrations)
+    third_party_integrations: Boolean(privacy.thirdPartyIntegrations)
   };
 }

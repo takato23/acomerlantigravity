@@ -2,11 +2,11 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/services/logger';
+import { logger } from '../../../services/logger';
 
 export async function authMiddleware(request: NextRequest) {
   const res = NextResponse.next();
-  
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -16,7 +16,7 @@ export async function authMiddleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => 
+          cookiesToSet.forEach(({ name, value, options }) =>
             res.cookies.set(name, value, options)
           );
         },
@@ -66,15 +66,15 @@ export async function authMiddleware(request: NextRequest) {
     '/settings'
   ];
 
-  const isPublicRoute = publicRoutes.some(route => 
+  const isPublicRoute = publicRoutes.some(route =>
     pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  const isAuthRoute = authRoutes.some(route => 
+  const isAuthRoute = authRoutes.some(route =>
     pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     pathname === route || pathname.startsWith(`${route}/`)
   );
 
@@ -161,11 +161,11 @@ export async function getAuthenticatedUser(request: NextRequest) {
 // Helper function to require authentication
 export async function requireAuth(request: NextRequest) {
   const user = await getAuthenticatedUser(request);
-  
+
   if (!user) {
     throw new Error('Authentication required');
   }
-  
+
   return user;
 }
 
@@ -175,9 +175,9 @@ export async function checkPermission(
   permission: string
 ): Promise<boolean> {
   const user = await getAuthenticatedUser(request);
-  
+
   if (!user) return false;
-  
+
   // Add permission checking logic here
   // For now, all authenticated users have all permissions
   return true;
@@ -193,17 +193,17 @@ export function rateLimit(
 ): boolean {
   const now = Date.now();
   const windowStart = now - windowMs;
-  
+
   const requests = rateLimitMap.get(identifier) || [];
   const requestsInWindow = requests.filter((time: number) => time > windowStart);
-  
+
   if (requestsInWindow.length >= limit) {
     return false;
   }
-  
+
   requestsInWindow.push(now);
   rateLimitMap.set(identifier, requestsInWindow);
-  
+
   return true;
 }
 

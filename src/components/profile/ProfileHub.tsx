@@ -124,8 +124,8 @@ export const ProfileHub = React.memo(() => {
     setActiveTab(value);
   }, []);
 
-  const handleDietaryUpdate = useCallback((updates: any) => {
-    updatePreferences(updates);
+  const handleDietaryUpdate = useCallback(async (updates: any) => {
+    await updatePreferences(updates);
   }, [updatePreferences]);
 
   const handleSectionClick = useCallback((section: string) => {

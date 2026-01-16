@@ -3,8 +3,7 @@
  * Export all shopping-related components
  */
 
-export { ShoppingListManager } from './ShoppingListManager';
-export { ShoppingListOptimizer } from './ShoppingListOptimizer';
-
-// Export types
-export type { ShoppingItem, ShoppingList } from './ShoppingListManager';
+export { CategoryBadge } from './CategoryBadge';
+export { ShoppingVoiceButton } from './ShoppingVoiceButton';
+export { SupermarketMode } from './SupermarketMode';
+export { default as EnhancedShoppingList } from './EnhancedShoppingList';

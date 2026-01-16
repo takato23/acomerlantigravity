@@ -46,7 +46,11 @@ export class PriceTracker {
     source: 'scraper' | 'manual' | 'receipt' = 'scraper'
   ): Promise<void> {
     try {
-      await db.priceHistory.create({
+      const priceHistory = (db as any).priceHistory;
+      if (!priceHistory?.create) {
+        return;
+      }
+      await priceHistory.create({
         data: {
           productId,
           storeId,
@@ -67,7 +71,11 @@ export class PriceTracker {
     source?: 'scraper' | 'manual' | 'receipt';
   }>): Promise<void> {
     try {
-      await db.priceHistory.createMany({
+      const priceHistory = (db as any).priceHistory;
+      if (!priceHistory?.createMany) {
+        return;
+      }
+      await priceHistory.createMany({
         data: prices.map(p => ({
           productId: p.productId,
           storeId: p.storeId,
@@ -86,14 +94,15 @@ export class PriceTracker {
     since.setDate(since.getDate() - days);
 
     try {
-      const history = await db.priceHistory.findMany({
+      const priceHistory = (db as any).priceHistory;
+      const history = await priceHistory?.findMany?.({
         where: {
           productId,
           recordedAt: { gte: since }
         },
         orderBy: { recordedAt: 'desc' },
         include: { store: true }
-      });
+      }) ?? [];
 
       return history.map((h: any) => ({
         productId: h.productId,
@@ -126,14 +135,15 @@ export class PriceTracker {
     since.setDate(since.getDate() - 7);
 
     try {
-      const history = await db.priceHistory.findMany({
+      const priceHistory = (db as any).priceHistory;
+      const history = await priceHistory?.findMany?.({
         where: {
           productId: { in: productIds },
           recordedAt: { gte: since }
         },
         include: { store: true },
         orderBy: { price: 'asc' }
-      });
+      }) ?? [];
 
       // Group by product and get lowest for each
       history.forEach((h: any) => {

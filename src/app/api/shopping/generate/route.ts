@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Get the week plan
-    const weekPlanResult = await MealPlanService.getWeekPlanById(weekPlanId);
+    const weekPlanResult = await MealPlanService.getWeekPlanById(weekPlanId, userId);
     if (!weekPlanResult.data) {
       return NextResponse.json(
         { error: 'Week plan not found' },

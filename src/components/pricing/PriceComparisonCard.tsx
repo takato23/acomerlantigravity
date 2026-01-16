@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 import { PriceComparison, PriceTrend } from '@/services/pricing';
-import { iOS26LiquidCard, iOS26LiquidButton } from '@/components/ios26';
+import { IOS26LiquidCard, IOS26LiquidButton } from '@/components/ios26';
 import { cn } from '@/lib/utils';
 
 interface PriceComparisonCardProps {
@@ -62,7 +62,7 @@ export const PriceComparisonCard: React.FC<PriceComparisonCardProps> = ({
   };
 
   return (
-    <iOS26LiquidCard
+    <IOS26LiquidCard
       variant="medium"
       className={cn("p-6 hover:shadow-lg transition-all", className)}
       morph
@@ -200,13 +200,13 @@ export const PriceComparisonCard: React.FC<PriceComparisonCardProps> = ({
                   </p>
                 </div>
                 {showActions && onSelectStore && (
-                  <iOS26LiquidButton
+                  <IOS26LiquidButton
                     variant="ghost"
                     size="sm"
                     onClick={() => onSelectStore(price.store.id)}
                   >
                     Seleccionar
-                  </iOS26LiquidButton>
+                  </IOS26LiquidButton>
                 )}
               </motion.div>
             ))}
@@ -235,7 +235,7 @@ export const PriceComparisonCard: React.FC<PriceComparisonCardProps> = ({
         {showActions && (
           <div className="flex gap-2 pt-2">
             {onSetAlert && (
-              <iOS26LiquidButton
+              <IOS26LiquidButton
                 variant="secondary"
                 size="sm"
                 onClick={() => onSetAlert(product.id)}
@@ -243,11 +243,11 @@ export const PriceComparisonCard: React.FC<PriceComparisonCardProps> = ({
                 fluid
               >
                 Crear Alerta de Precio
-              </iOS26LiquidButton>
+              </IOS26LiquidButton>
             )}
           </div>
         )}
       </div>
-    </iOS26LiquidCard>
+    </IOS26LiquidCard>
   );
 };

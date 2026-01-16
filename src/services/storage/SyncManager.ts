@@ -132,7 +132,8 @@ export class SyncManager {
       this.storage.emit('sync:complete', { synced, conflicts: conflicts.length });
     } catch (error: unknown) {
       this.syncStatus.syncing = false;
-      this.syncStatus.errors.push(error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      this.syncStatus.errors.push(message);
       this.storage.emit('sync:error', error);
       throw error;
     }

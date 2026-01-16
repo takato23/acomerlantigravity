@@ -86,16 +86,16 @@ export function VoiceModal({
       setIsProcessing(true);
       
       // Parse the transcript
-      const parsed = parseSpanishVoiceInput(transcript);
+      const parsedItems = parseSpanishVoiceInput(transcript);
       
-      if (parsed && parsed.items && parsed.items.length > 0) {
-        setEditableItems(parsed.items.map(item => ({
+      if (parsedItems.length > 0) {
+        setEditableItems(parsedItems.map(item => ({
           ...item,
-          name: item.name,
-          quantity: item.quantity,
-          unit: item.unit,
-          category: item.category,
-          location: item.location || 'despensa',
+          name: item.name || item.extracted_name || 'Ingrediente',
+          quantity: item.quantity ?? 1,
+          unit: item.unit ?? 'un',
+          category: item.category ?? 'otros',
+          location: 'despensa',
           confidence: item.confidence
         })));
         setShowEditScreen(true);
@@ -306,15 +306,15 @@ export function VoiceModal({
                     <button
                       onClick={() => {
                         if (manualInput.trim()) {
-                          const parsed = parseSpanishVoiceInput(manualInput);
-                          if (parsed.items.length > 0) {
-                            setEditableItems(parsed.items.map(item => ({
+                          const parsedItems = parseSpanishVoiceInput(manualInput);
+                          if (parsedItems.length > 0) {
+                            setEditableItems(parsedItems.map(item => ({
                               ...item,
-                              name: item.name,
-                              quantity: item.quantity,
-                              unit: item.unit,
-                              category: item.category,
-                              location: item.location || 'despensa',
+                              name: item.name || item.extracted_name || 'Ingrediente',
+                              quantity: item.quantity ?? 1,
+                              unit: item.unit ?? 'un',
+                              category: item.category ?? 'otros',
+                              location: 'despensa',
                               confidence: item.confidence
                             })));
                             setShowEditScreen(true);

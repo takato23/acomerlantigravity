@@ -136,11 +136,11 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
       if (ingredient) {
         try {
           await addShoppingItem({
-            name: ingredient.name,
+            custom_name: ingredient.name,
             quantity: ingredient.quantity * servingsMultiplier,
             unit: ingredient.unit,
             category: 'otros',
-            checked: false,
+            is_purchased: false,
           });
           addedCount++;
         } catch (error) {

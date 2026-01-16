@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       setError('Please enter your email');
       return;
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
     try {
       await resetPassword(email);
       setIsSuccess(true);
-    } catch (err: unknown) {
+    } catch (err: any) {
       setError(err.message || 'Failed to send reset email');
     } finally {
       setIsLoading(false);
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
         <p className="text-gray-600 mb-6">
           No worries! Enter your email and we&apos;ll send you reset instructions.
         </p>
-        
+
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
             <p className="text-sm text-red-600">{error}</p>

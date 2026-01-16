@@ -47,7 +47,9 @@ export class RecipePhotoScanService {
     try {
       await this.notificationService.notify('Escaneando Receta', {
         type: 'info',
-        message: 'Procesando imagen y extrayendo texto...',
+        metadata: {
+          message: 'Procesando imagen y extrayendo texto...',
+        },
         priority: 'medium'
       });
 
@@ -77,7 +79,9 @@ export class RecipePhotoScanService {
 
       await this.notificationService.notify('Escaneo Completado', {
         type: 'success',
-        message: `Receta "${recipeData.recipe?.title || 'Sin título'}" extraída con ${Math.round(recipeData.confidence * 100)}% de confianza`,
+        metadata: {
+          message: `Receta "${recipeData.recipe?.title || 'Sin título'}" extraída con ${Math.round(recipeData.confidence * 100)}% de confianza`,
+        },
         priority: 'high'
       });
 
@@ -88,7 +92,9 @@ export class RecipePhotoScanService {
 
       await this.notificationService.notify('Error en Escaneo', {
         type: 'error',
-        message: 'No se pudo extraer la receta de la imagen',
+        metadata: {
+          message: 'No se pudo extraer la receta de la imagen',
+        },
         priority: 'high'
       });
 
@@ -154,7 +160,9 @@ export class RecipePhotoScanService {
 
       await this.notificationService.notify('Error de Cámara', {
         type: 'error',
-        message: 'No se pudo acceder a la cámara o capturar la imagen',
+        metadata: {
+          message: 'No se pudo acceder a la cámara o capturar la imagen',
+        },
         priority: 'high'
       });
 
@@ -263,12 +271,14 @@ export class RecipePhotoScanService {
   ): Promise<string> {
     try {
       // Use the unified AI service for image analysis
-      const extractedText = await this.aiService.analyzeImage(base64Image, {
-        task: 'ocr',
-        language: options.language || 'es',
-        context: 'recipe_extraction'
+      const response = await this.aiService.analyzeImage({
+        image: base64Image,
+        mimeType: 'image/jpeg',
+        analysisType: 'ocr',
+        context: options.language ? `recipe_extraction:${options.language}` : 'recipe_extraction',
       });
 
+      const extractedText = response.data;
       if (!extractedText || extractedText.trim().length === 0) {
         throw new Error('No se pudo extraer texto de la imagen');
       }
@@ -334,24 +344,16 @@ Responde en formato JSON con esta estructura:
 Si el texto no parece ser una receta, indica confidence: 0.0
 `;
 
-      const aiResponse = await this.aiService.generateCompletion(parsePrompt, {
-        provider: 'openai', // Use OpenAI for better text analysis
-        temperature: 0.3, // Low temperature for more consistent parsing
-        maxTokens: 2000
-      });
-
-      let parsedData;
-      try {
-        parsedData = JSON.parse(aiResponse);
-      } catch (parseError: unknown) {
-        // Try to extract JSON from response if it's wrapped in text
-        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsedData = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('No se pudo parsear la respuesta de IA');
+      const response = await this.aiService.generateJSON<any>(
+        { prompt: parsePrompt },
+        undefined,
+        {
+          provider: 'openai', // Use OpenAI for better text analysis
+          temperature: 0.3, // Low temperature for more consistent parsing
+          maxTokens: 2000,
         }
-      }
+      );
+      const parsedData = response.data;
 
       // Validate minimum confidence
       if (parsedData.confidence < 0.3) {
@@ -359,27 +361,46 @@ Si el texto no parece ser una receta, indica confidence: 0.0
       }
 
       // Create recipe object
+      const instructionTexts = Array.isArray(parsedData.instructions)
+        ? parsedData.instructions
+        : [parsedData.instructions || 'Instrucciones no detectadas'];
+
       const recipe: Recipe = {
         id: crypto.randomUUID(),
         user_id: options.userId,
         title: parsedData.title || 'Receta Escaneada',
         description: parsedData.description || 'Receta extraída desde imagen',
-        instructions: Array.isArray(parsedData.instructions)
-          ? parsedData.instructions
-          : [parsedData.instructions || 'Instrucciones no detectadas'],
-        ingredients: parsedData.ingredients || [],
+        instructions: instructionTexts.map((text: string, index: number) => ({
+          step_number: index + 1,
+          text,
+        })),
+        ingredients: Array.isArray(parsedData.ingredients)
+          ? parsedData.ingredients.map((ing: any) => ({
+              ingredient_id: crypto.randomUUID(),
+              name: ing.name || '',
+              quantity: ing.quantity || ing.amount || 1,
+              unit: ing.unit || 'u',
+              notes: ing.notes,
+              optional: false,
+            }))
+          : [],
         prep_time: parsedData.prep_time || 15,
         cook_time: parsedData.cook_time || 20,
         total_time: (parsedData.prep_time || 15) + (parsedData.cook_time || 20),
         servings: parsedData.servings || 4,
         difficulty: parsedData.difficulty || 'medium',
-        cuisine: 'scanned',
-        tags: ['escaneada', 'ocr'],
-        nutritional_info: parsedData.nutritional_info,
+        cuisine_type: 'other',
+        meal_types: ['dinner'],
+        dietary_tags: [],
+        nutritional_info: parsedData.nutritional_info || {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
         ai_generated: false,
         is_public: false,
         times_cooked: 0,
-        source: 'photo_scan',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

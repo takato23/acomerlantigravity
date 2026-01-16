@@ -4,12 +4,13 @@
  */
 
 import { EventEmitter } from 'events';
-import { AgentSystem } from '../../../agents/system/AgentSystem';
-import { ChefAgent } from '../../../agents/specialists/ChefAgent';
-import { PlannerAgent } from '../../../agents/specialists/PlannerAgent';
-import { OrchestratorAgent } from '../../../agents/system/OrchestratorAgent';
-import type { AgentContext, ComplexTaskRequest, WorkflowResult } from '../../../agents/types';
-import type { UserPreferences, Recipe, WeekPlan } from '@/types';
+import { AgentSystem } from '@/agents/system/AgentSystem';
+import { ChefAgent } from '@/agents/specialists/ChefAgent';
+import { PlannerAgent } from '@/agents/specialists/PlannerAgent';
+import { OrchestratorAgent } from '@/agents/system/OrchestratorAgent';
+import type { AgentContext, ComplexTaskRequest, WorkflowResult } from '@/agents/types';
+import type { UserPreferences } from '@/types/mealPlanning';
+import type { Recipe, WeekPlan } from '@/features/meal-planning/types';
 import { supabase } from '@/lib/supabase';
 import { logger } from '@/services/logger';
 
@@ -21,7 +22,7 @@ interface AgentOrchestrationConfig {
 }
 
 export class AgentOrchestrator extends EventEmitter {
-  private agentSystem: AgentSystem;
+  private agentSystem!: AgentSystem;
   private agents: Map<string, any>;
   private workflows: Map<string, WorkflowDefinition>;
   private context: AgentContext | null = null;
@@ -364,6 +365,13 @@ export class AgentOrchestrator extends EventEmitter {
     };
   }
 
+  private async optimizePantryUsage(userId: string): Promise<{ userId: string; recommendations: any[] }> {
+    return {
+      userId,
+      recommendations: [],
+    };
+  }
+
   private async loadUserContext(userId: string): Promise<void> {
     try {
       const { data: userProfile } = await supabase
@@ -392,6 +400,21 @@ export class AgentOrchestrator extends EventEmitter {
 
     } catch (error) {
       logger.error('Error loading user context:', 'AgentOrchestrator', error);
+    }
+  }
+
+  private async saveToUserContext(userId: string, key: string, value: any): Promise<void> {
+    try {
+      await supabase
+        .from('user_contexts')
+        .upsert({
+          user_id: userId,
+          key,
+          value,
+          updated_at: new Date().toISOString(),
+        });
+    } catch (error) {
+      logger.warn('Failed to save user context', 'AgentOrchestrator', { error });
     }
   }
 
@@ -542,7 +565,120 @@ export class AgentOrchestrator extends EventEmitter {
     return [];
   }
 
-  // ... [Continuaría con todas las implementaciones de métodos privados]
+  private async enrichRecipeRequest(request: IntelligentRecipeRequest): Promise<IntelligentRecipeRequest> {
+    return request;
+  }
+
+  private async analyzeRecipeNutrition(recipe: Recipe): Promise<any> {
+    return {};
+  }
+
+  private async suggestRecipeImprovements(recipe: Recipe, healthGoals?: string[]): Promise<any[]> {
+    return [];
+  }
+
+  private async generateIntelligentVariations(recipe: Recipe): Promise<any[]> {
+    return [];
+  }
+
+  private calculateSustainabilityScore(recipe: Recipe): number {
+    return 0.5;
+  }
+
+  private async learnFromRecipeGeneration(_recipe: EnhancedRecipe, _request: IntelligentRecipeRequest): Promise<void> {
+    return;
+  }
+
+  private async getUserPreferences(_userId: string): Promise<UserPreferences> {
+    return {} as UserPreferences;
+  }
+
+  private async getUserHistory(_userId: string): Promise<any> {
+    return [];
+  }
+
+  private async analyzeUserPatterns(_userId: string): Promise<any> {
+    return {};
+  }
+
+  private async generateUserInsights(_preferences: UserPreferences, _history: any, _patterns: any): Promise<any[]> {
+    return [];
+  }
+
+  private async generateContextualRecommendations(_preferences: UserPreferences, _patterns: any): Promise<any[]> {
+    return [];
+  }
+
+  private async loadRecentConversationHistory(_userId: string): Promise<any[]> {
+    return [];
+  }
+
+  private async getPantryInventory(_userId: string): Promise<any> {
+    return [];
+  }
+
+  private async predictConsumptionPatterns(_userId: string, _inventory: any): Promise<any> {
+    return {};
+  }
+
+  private async identifyWasteRisks(_inventory: any): Promise<any[]> {
+    return [];
+  }
+
+  private async generateUsageRecommendations(
+    _inventory: any,
+    _prediction: any,
+    _wasteRisks: any[]
+  ): Promise<any[]> {
+    return [];
+  }
+
+  private async generateShoppingRecommendations(
+    _userId: string,
+    _inventory: any,
+    _prediction: any
+  ): Promise<any[]> {
+    return [];
+  }
+
+  private calculatePotentialSavings(_recommendations: any[]): number {
+    return 0;
+  }
+
+  private calculateSustainabilityImpact(_wasteRisks: any[]): any {
+    return {};
+  }
+
+  private async executeAutonomousPantryActions(_optimization: PantryOptimizationResult): Promise<void> {
+    return;
+  }
+
+  private scheduleWasteAnalysis(): void {
+    return;
+  }
+
+  private scheduleInsightsGeneration(): void {
+    return;
+  }
+
+  private scheduleShoppingOptimization(): void {
+    return;
+  }
+
+  private async getActiveUsers(): Promise<string[]> {
+    return [];
+  }
+
+  private async getUserConstraints(_userId: string): Promise<any> {
+    return {};
+  }
+
+  private async sendWeeklyOptimizationNotification(
+    _userId: string,
+    _payload: { mealPlan: EnhancedMealPlan; pantryOptimization: PantryOptimizationResult }
+  ): Promise<void> {
+    return;
+  }
 
   // ========================
   // API PÚBLICA

@@ -112,7 +112,6 @@ export function ResponsiveHero({
                         href={button.href}
                         onClick={button.onClick}
                         className="group relative overflow-hidden w-full sm:w-auto"
-                        size="lg"
                       >
                         <span className="relative z-10 flex items-center justify-center gap-2">
                           {button.icon}
@@ -268,10 +267,10 @@ export function MobileOptimizedHero({
       description={description}
       cta={cta}
       stats={[
-        { label: 'Users', value: '50K+' },
-        { label: 'Recipes', value: '1M+' },
-        { label: 'Time Saved', value: '2hrs', suffix: '/week' },
-        { label: 'Less Waste', value: '40%', suffix: '' }
+        { label: 'Users', value: '50K+', gradient: 'from-orange-400 to-orange-600' },
+        { label: 'Recipes', value: '1M+', gradient: 'from-slate-200 to-slate-400' },
+        { label: 'Time Saved', value: '2hrs', suffix: '/week', gradient: 'from-sky-300 to-sky-500' },
+        { label: 'Less Waste', value: '40%', suffix: '', gradient: 'from-emerald-300 to-emerald-500' }
       ]}
       illustration={
         <HeroIllustration

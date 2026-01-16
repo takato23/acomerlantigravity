@@ -5,8 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getServerSession } from 'next-auth/next';
 import { logger } from '@/services/logger';
+import { getUser } from '@/lib/auth/supabase-auth';
 
 // authOptions removed - using Supabase Auth;
 import { MealPlanningError, MealPlanningErrorCodes } from '@/lib/errors/MealPlanningError';
@@ -62,7 +62,7 @@ export function withValidation<TBody = any, TQuery = any>(
       // Authentication check
       if (options.requireAuth) {
         const user = await getUser();
-        if (!session?.user?.id) {
+        if (!user?.id) {
           return createErrorResponse(
             'Authentication required',
             401,
@@ -72,8 +72,8 @@ export function withValidation<TBody = any, TQuery = any>(
 
         validatedRequest.user = {
           id: user.id,
-          email: user.email!,
-          name: user.name || undefined,
+          email: user.email || '',
+          name: user.user_metadata?.name || undefined,
         };
       }
 
@@ -109,7 +109,7 @@ export function withValidation<TBody = any, TQuery = any>(
             );
           }
 
-          validatedRequest.validatedBody = bodyResult.data;
+          validatedRequest.validatedBody = bodyResult.data as TBody;
         } catch (error: unknown) {
           return createErrorResponse(
             'Invalid JSON in request body',
@@ -150,7 +150,7 @@ export function withValidation<TBody = any, TQuery = any>(
       if (error instanceof MealPlanningError) {
         return createErrorResponse(
           error.userMessage || error.message,
-          error.statusCode || 500,
+          500,
           error.code,
           error.context
         );
@@ -159,7 +159,7 @@ export function withValidation<TBody = any, TQuery = any>(
       return createErrorResponse(
         'Internal server error',
         500,
-        MealPlanningErrorCodes.INTERNAL_ERROR
+        MealPlanningErrorCodes.SERVICE_UNAVAILABLE
       );
     }
   };
@@ -242,23 +242,24 @@ export async function validateOwnership(
 
   try {
     const { prisma } = await import('@/lib/prisma');
+    const prismaClient = prisma as any;
 
     let resource;
     switch (resourceType) {
       case 'recipe':
-        resource = await prisma.recipe.findUnique({
+        resource = await prismaClient.recipe.findUnique({
           where: { id: resourceId },
           select: { userId: true }
         });
         break;
       case 'meal-plan':
-        resource = await prisma.mealPlan.findUnique({
+        resource = await prismaClient.mealPlan.findUnique({
           where: { id: resourceId },
           select: { userId: true }
         });
         break;
       case 'pantry-item':
-        resource = await prisma.pantryItem.findUnique({
+        resource = await prismaClient.pantryItem.findUnique({
           where: { id: resourceId },
           select: { userId: true }
         });
@@ -284,8 +285,8 @@ export async function validateOwnership(
 
     throw new MealPlanningError(
       'Failed to validate ownership',
-      MealPlanningErrorCodes.DATABASE_ERROR,
-      { resourceId, resourceType, error: error.message }
+      MealPlanningErrorCodes.DATABASE_CONNECTION_FAILED,
+      { resourceId, resourceType, error: error instanceof Error ? error.message : String(error) }
     );
   }
 }
@@ -356,7 +357,7 @@ async function checkRateLimit(
 function getClientIdentifier(request: NextRequest): string {
   // In production, you might want to use a combination of IP and user ID
   const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0] : request.ip || 'unknown';
+  const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || 'unknown';
   return ip;
 }
 

@@ -28,6 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Slider } from '@/components/ui/slider';
 import type { HouseholdMember, UserPreferences, DietaryRestriction, Allergy } from '@/types/profile';
+import { IOS26LiquidCard } from '@/components/ios26';
 
 interface HouseholdManagerProps {
   householdMembers: HouseholdMember[];
@@ -73,6 +74,8 @@ const HouseholdManagerSkeleton = () => (
     </div>
   </div>
 );
+
+const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
 export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
   householdMembers,
@@ -166,7 +169,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       });
     } catch (err) {
       setError(editingMember ? 'Error al actualizar miembro' : 'Error al agregar miembro');
-      logger.error(err, 'HouseholdManager');
+      logger.error(getErrorMessage(err), 'HouseholdManager', err);
     } finally {
       setIsLoading(false);
     }
@@ -181,7 +184,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       await removeHouseholdMember(memberId);
     } catch (err) {
       setError('Error al eliminar miembro');
-      logger.error(err, 'HouseholdManager');
+      logger.error(getErrorMessage(err), 'HouseholdManager', err);
     } finally {
       setIsDeleting(null);
     }
@@ -250,7 +253,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
       </AnimatePresence>
 
       {/* Household Overview */}
-      <iOS26LiquidCard variant="medium" glow shimmer>
+      <IOS26LiquidCard variant="medium" glow shimmer>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -292,12 +295,12 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
             </div>
           </div>
         </div>
-      </iOS26LiquidCard>
+      </IOS26LiquidCard>
 
       {/* Household Members Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Current User Card */}
-        <iOS26LiquidCard variant="subtle" morph>
+        <IOS26LiquidCard variant="subtle" morph>
           <div className="space-y-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -335,7 +338,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
               </div>
             )}
           </div>
-        </iOS26LiquidCard>
+        </IOS26LiquidCard>
 
         {/* Household Members */}
         <AnimatePresence mode="popLayout">
@@ -352,7 +355,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
               >
-                <iOS26LiquidCard variant="subtle" morph>
+                <IOS26LiquidCard variant="subtle" morph>
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -421,7 +424,7 @@ export const HouseholdManager: React.FC<HouseholdManagerProps> = ({
                       </div>
                     )}
                   </div>
-                </iOS26LiquidCard>
+                </IOS26LiquidCard>
               </motion.div>
             );
           })}

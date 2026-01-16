@@ -384,6 +384,3 @@ export const retryFileOperation = createRetryableFunction(
     retryableErrors: ['ENOENT', 'EACCES', 'EMFILE', 'ENFILE'],
   }
 );
-
-// Export types
-export type { RetryOptions, RetryResult };

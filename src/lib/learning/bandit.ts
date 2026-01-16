@@ -112,7 +112,7 @@ export class ThompsonSamplingBandit {
     samples.sort((a, b) => b.sample - a.sample);
     const selected = samples.slice(0, count).map(s => s.recipe);
     
-    logger.info('[Bandit] Recipe selection complete', {
+    logger.info('[Bandit] Recipe selection complete', 'Bandit', {
       userId: context.userId,
       candidateCount: candidates.length,
       selectedCount: selected.length,
@@ -141,7 +141,7 @@ export class ThompsonSamplingBandit {
     const arm = userArms.get(recipeId);
     
     if (!arm) {
-      logger.warn('[Bandit] Arm not found for feedback', { userId, recipeId });
+      logger.warn('[Bandit] Arm not found for feedback', 'Bandit', { userId, recipeId });
       return;
     }
     
@@ -169,7 +169,7 @@ export class ThompsonSamplingBandit {
     // Update global prior with decay
     this.updateGlobalPrior(arm, success);
     
-    logger.info('[Bandit] Feedback recorded', {
+    logger.info('[Bandit] Feedback recorded', 'Bandit', {
       userId,
       recipeId,
       recipeName: arm.recipeName,
@@ -257,13 +257,14 @@ export class ThompsonSamplingBandit {
     );
     
     // Estimate cooking time
-    const preparationTime = recipe.time?.prep && recipe.time?.cook
-      ? (recipe.time.prep + recipe.time.cook) / 60 // Convert to 0-1 scale (0-60 min)
+    const totalTime = recipe.prepTime + recipe.cookTime;
+    const preparationTime = totalTime
+      ? totalTime / 60 // Convert to 0-1 scale (0-60 min)
       : 0.5; // Default to medium
     
     // Estimate cost per serving
-    const costPerServing = recipe.estimatedCost 
-      ? recipe.estimatedCost / (recipe.servings || 2) / 500 // Normalize by 500 ARS
+    const costPerServing = recipe.cost?.perServing
+      ? recipe.cost.perServing / 500 // Normalize by 500 ARS
       : 0.5;
     
     // Health score based on nutrition
@@ -281,9 +282,9 @@ export class ThompsonSamplingBandit {
     
     return {
       mealType: context.mealType,
-      cuisine: recipe.cuisine || 'argentina',
+      cuisine: recipe.region || 'argentina',
       mainProtein,
-      cookingMethod: recipe.cookingMethod,
+      cookingMethod: recipe.techniques?.[0],
       preparationTime: Math.min(1, preparationTime),
       cost: Math.min(1, costPerServing),
       healthScore,
@@ -293,7 +294,7 @@ export class ThompsonSamplingBandit {
       isGlutenFree: recipe.tags?.includes('sin-gluten') || false,
       isDairyFree: recipe.tags?.includes('sin-lacteos') || false,
       isTraditional,
-      isQuick: (recipe.time?.total || 60) < 30,
+      isQuick: totalTime < 30,
       isBudget: costPerServing < 0.6, // < 300 ARS
     };
   }
@@ -441,9 +442,9 @@ export class ThompsonSamplingBandit {
    * Estimate recipe complexity
    */
   private estimateComplexity(recipe: Recipe): number {
-    const steps = recipe.instructions?.split('\n').length || 5;
+    const steps = recipe.instructions.length || 5;
     const ingredients = recipe.ingredients.length;
-    const time = recipe.time?.total || 45;
+    const time = recipe.prepTime + recipe.cookTime || 45;
     
     // Normalize and combine
     const stepsScore = Math.min(1, steps / 10);
@@ -479,15 +480,21 @@ export class ThompsonSamplingBandit {
       const saved = localStorage.getItem('thompson-bandit-state');
       if (saved) {
         try {
-          const state = JSON.parse(saved);
+          const state = JSON.parse(saved) as {
+            globalPrior?: { alpha: number; beta: number };
+            userArms?: Array<{
+              userId: string;
+              arms: [string, BanditArm][];
+            }>;
+          };
           this.globalPrior = state.globalPrior || { alpha: 1, beta: 1 };
           
           for (const userState of state.userArms || []) {
-            const arms = new Map(userState.arms);
+            const arms = new Map<string, BanditArm>(userState.arms);
             this.userArms.set(userState.userId, arms);
           }
         } catch (error) {
-          logger.error('[Bandit] Failed to load state', error);
+          logger.error('[Bandit] Failed to load state', 'Bandit', error);
         }
       }
     }

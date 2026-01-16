@@ -8,9 +8,12 @@ import {
 } from '@/services/analytics';
 
 import type { 
-  CommonEventName, 
-  TrackEventOptions 
+  CommonEventName 
 } from '../types';
+
+interface TrackEventOptions {
+  properties?: Record<string, any>;
+}
 
 // Re-export the unified analytics service for backward compatibility
 export function getAnalyticsService() {

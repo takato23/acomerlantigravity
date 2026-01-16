@@ -1,6 +1,6 @@
 'use client';
 
-import { IngredientCategory, INGREDIENT_CATEGORIES } from '@/types/pantry';
+import { IngredientCategory, INGREDIENT_CATEGORIES } from '../../types/pantry';
 
 interface CategoryBadgeProps {
   category: IngredientCategory | null | undefined;
@@ -11,7 +11,7 @@ interface CategoryBadgeProps {
 
 const sizeClasses = {
   sm: 'text-xs px-2 py-1',
-  md: 'text-sm px-3 py-1.5', 
+  md: 'text-sm px-3 py-1.5',
   lg: 'text-base px-4 py-2'
 };
 
@@ -26,11 +26,11 @@ const colorClasses: Record<string, string> = {
   purple: 'bg-purple-100 text-purple-800 border-purple-200'
 };
 
-export function CategoryBadge({ 
-  category, 
-  size = 'sm', 
-  showIcon = true, 
-  showLabel = false 
+export function CategoryBadge({
+  category,
+  size = 'sm',
+  showIcon = true,
+  showLabel = false
 }: CategoryBadgeProps) {
   if (!category) {
     return (
@@ -45,7 +45,7 @@ export function CategoryBadge({
   const colorClass = colorClasses[categoryInfo.color] || colorClasses.gray;
 
   return (
-    <span 
+    <span
       className={`inline-flex items-center gap-1 rounded-full border font-medium ${sizeClasses[size]} ${colorClass}`}
       title={categoryInfo.description}
     >

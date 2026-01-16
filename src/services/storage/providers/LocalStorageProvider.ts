@@ -210,12 +210,13 @@ export class LocalStorageProvider extends StorageProviderInterface {
 
   // File operations (store as base64)
   async uploadFile(file: File | Blob, options: any): Promise<any> {
-    const key = options.path || `file_${Date.now()}_${file.name || 'unnamed'}`;
+    const fileName = 'name' in file ? file.name : 'unnamed';
+    const key = options.path || `file_${Date.now()}_${fileName}`;
     const base64 = await this.fileToBase64(file);
     
     const fileInfo = {
       id: key,
-      name: file.name || 'unnamed',
+      name: fileName,
       size: file.size,
       type: file.type,
       url: `local://${key}`,

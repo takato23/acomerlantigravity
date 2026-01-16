@@ -9,7 +9,7 @@ interface iOS26BadgeProps {
   className?: string;
 }
 
-export const iOS26Badge: React.FC<iOS26BadgeProps> = ({
+export const IOS26Badge: React.FC<iOS26BadgeProps> = ({
   children,
   variant = 'default',
   size = 'md',
@@ -43,4 +43,5 @@ export const iOS26Badge: React.FC<iOS26BadgeProps> = ({
   );
 };
 
-export default iOS26Badge;
+export const iOS26Badge = IOS26Badge;
+export default IOS26Badge;

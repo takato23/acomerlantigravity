@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays, isSameDay, isAfter, isBefore, differenceInDays } from 'date-fns';
 
 // Import other stores for real data
-import { useMealPlanningStore } from '@/features/meal-planning/store/useMealPlanningStore';
+import { useAppStore } from '@/store';
 import { usePantryStore } from '@/features/pantry/store/pantryStore';
 
 interface DashboardMetrics {
@@ -109,15 +109,16 @@ export const useDashboardStore = create<DashboardState>()(
           const weekStartStr = format(weekStart, 'yyyy-MM-dd');
 
           // Get data from meal planning store
-          const mealPlanningState = useMealPlanningStore.getState();
+          const appState = useAppStore.getState();
+          const mealPlanningState = appState.mealPlan;
 
           // Ensure week plan is loaded
           if (!mealPlanningState.currentWeekPlan || mealPlanningState.currentWeekPlan.startDate !== weekStartStr) {
             console.log('[Dashboard] Loading week plan for:', weekStartStr);
-            await mealPlanningState.loadWeekPlan(weekStartStr);
+            await appState.loadWeekPlan(weekStartStr);
           }
 
-          const currentWeekPlan = useMealPlanningStore.getState().currentWeekPlan;
+          const currentWeekPlan = useAppStore.getState().mealPlan.currentWeekPlan;
 
           // Get data from pantry store
           const pantryState = usePantryStore.getState();

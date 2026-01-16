@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
     // In a real app, you would send this to your error tracking service
-    logger.error('ErrorBoundary caught an error:', 'ErrorBoundary', error, errorInfo);
+    logger.error('ErrorBoundary caught an error:', 'ErrorBoundary', { error, errorInfo });
     
     // Example: Send to error tracking service
     // errorTrackingService.logError({

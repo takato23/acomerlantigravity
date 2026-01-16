@@ -7,18 +7,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { logger } from '@/services/logger';
 
 import { SmartParser, ParsedIngredient } from '@/services/voice/smartParser';
-import { VoiceFeedback } from '@/services/voice/voiceFeedback';
-import { ConversationContext } from '@/services/voice/conversationContext';
-import { WakeWordDetector } from '@/services/voice/wakeWordDetector';
+import { VoiceFeedbackManager } from '@/services/voice/VoiceFeedbackManager';
+import { ConversationContextManager } from '@/services/voice/ConversationContextManager';
+import { WakeWordDetectionService } from '@/services/voice/WakeWordDetectionService';
+import type { VoiceServiceConfig } from '@/services/voice/types';
 
 // Extend Window interface for WebKit Speech Recognition
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-    webkitAudioContext: typeof AudioContext;
-  }
-}
 
 export interface VoiceCommand {
   type: 'add' | 'remove' | 'search' | 'help' | 'repeat' | 'cancel' | 'confirm' | 'list' | 'clear';
@@ -104,6 +98,21 @@ const SUPPORTED_LANGUAGES = {
 
 const DEFAULT_WAKE_WORDS = ['oye chef', 'hey chef', 'chef', 'asistente', 'ayuda'];
 
+const buildVoiceConfig = (
+  language: string,
+  enableFeedback: boolean,
+  enableWake: boolean
+): Required<VoiceServiceConfig> => ({
+  language,
+  continuous: true,
+  interimResults: true,
+  enableWakeWord: enableWake,
+  enableFeedback,
+  enableOffline: false,
+  maxAlternatives: 3,
+  confidenceThreshold: 0.7,
+});
+
 export const useAdvancedVoiceRecognition = ({
   language = 'es-MX',
   continuous = false,
@@ -141,9 +150,13 @@ export const useAdvancedVoiceRecognition = ({
   const streamRef = useRef<MediaStream | null>(null);
   
   const parserRef = useRef<SmartParser>(new SmartParser(currentLanguage.startsWith('es') ? 'es' : currentLanguage.startsWith('pt') ? 'pt' : 'en'));
-  const voiceFeedbackRef = useRef<VoiceFeedback>(new VoiceFeedback(currentLanguage, enableVoiceFeedback));
-  const contextRef = useRef<ConversationContext>(new ConversationContext());
-  const wakeWordDetectorRef = useRef<WakeWordDetector>(new WakeWordDetector(wakeWords));
+  const voiceFeedbackRef = useRef<VoiceFeedbackManager>(
+    new VoiceFeedbackManager(buildVoiceConfig(currentLanguage, enableVoiceFeedback, enableWakeWord))
+  );
+  const contextRef = useRef<ConversationContextManager>(new ConversationContextManager());
+  const wakeWordDetectorRef = useRef<WakeWordDetectionService>(
+    new WakeWordDetectionService(buildVoiceConfig(currentLanguage, enableVoiceFeedback, enableWakeWord))
+  );
   
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const continuousRestartTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -156,14 +169,24 @@ export const useAdvancedVoiceRecognition = ({
   // Update services when language changes
   useEffect(() => {
     parserRef.current = new SmartParser(currentLanguage.startsWith('es') ? 'es' : currentLanguage.startsWith('pt') ? 'pt' : 'en');
-    voiceFeedbackRef.current.setLanguage(currentLanguage);
-  }, [currentLanguage]);
+    voiceFeedbackRef.current = new VoiceFeedbackManager(
+      buildVoiceConfig(currentLanguage, enableVoiceFeedback, enableWakeWord)
+    );
+    wakeWordDetectorRef.current.updateConfig(
+      buildVoiceConfig(currentLanguage, enableVoiceFeedback, enableWakeWord)
+    );
+    wakeWordDetectorRef.current.updateWakeWords({
+      phrases: wakeWords,
+      language: currentLanguage,
+    });
+  }, [currentLanguage, enableVoiceFeedback, enableWakeWord, wakeWords]);
 
   // Initialize Speech Recognition
   const initializeRecognition = useCallback(() => {
     if (!isSupported) return null;
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition =
+      window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
     recognition.continuous = continuous || isContinuousMode;
@@ -181,7 +204,7 @@ export const useAdvancedVoiceRecognition = ({
       }
     };
     
-    recognition.onresult = async (event) => {
+    recognition.onresult = async (event: SpeechRecognitionEvent) => {
       const last = event.results.length - 1;
       const result = event.results[last];
       const transcriptText = result[0].transcript;
@@ -265,7 +288,7 @@ export const useAdvancedVoiceRecognition = ({
       }
     };
     
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       logger.error('Speech recognition error:', 'useAdvancedVoiceRecognition', event.error);
       
       if (event.error === 'no-speech' && isContinuousMode) {
@@ -395,7 +418,7 @@ export const useAdvancedVoiceRecognition = ({
 
   // Generate response based on command
   const generateResponse = (command: VoiceCommand, originalText: string): string => {
-    const responses: Record<string, string[]> = {
+    const responses: Record<string, Record<string, string[]>> = {
       'es-ES': {
         add: [
           'He agregado {items} a tu lista',
@@ -620,7 +643,7 @@ export const useAdvancedVoiceRecognition = ({
     
     try {
       await voiceFeedbackRef.current.speak(text, {
-        lang: language || currentLanguage,
+        language: language || currentLanguage,
         pitch: voiceProfile?.voiceSettings?.pitch,
         rate: voiceProfile?.voiceSettings?.rate
       });
@@ -644,7 +667,7 @@ export const useAdvancedVoiceRecognition = ({
       
       streamRef.current = stream;
       
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       audioContextRef.current = new AudioContext();
       analyserRef.current = audioContextRef.current.createAnalyser();
       
@@ -826,7 +849,7 @@ export const useAdvancedVoiceRecognition = ({
 
   // Language switching
   const switchLanguage = useCallback((lang: string) => {
-    if (!SUPPORTED_LANGUAGES[lang]) return;
+    if (!(lang in SUPPORTED_LANGUAGES)) return;
     
     setCurrentLanguage(lang);
     
@@ -841,8 +864,8 @@ export const useAdvancedVoiceRecognition = ({
         'pt': 'Mudado para português'
       };
       
-      const langGroup = lang.split('-')[0];
-      speak(messages[langGroup] || messages['es'], lang);
+      const langGroup = lang.split('-')[0] as keyof typeof messages;
+      speak(messages[langGroup] || messages.es, lang);
     }
   }, [enableVoiceFeedback, speak]);
 

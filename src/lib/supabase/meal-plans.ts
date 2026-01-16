@@ -5,8 +5,8 @@
 
 import { supabase } from './client';
 import type { Database } from './types';
-import type { WeekPlan, MealSlot, MealType, Recipe } from '@/features/meal-planning/types';
-import { logger } from '@/lib/logger';
+import type { WeekPlan, MealSlot, MealType, Recipe } from '../../features/meal-planning/types';
+import { logger } from '../logger';
 
 type MealPlanRow = Database['public']['Tables']['meal_plans']['Row'];
 type MealPlanInsert = Database['public']['Tables']['meal_plans']['Insert'];
@@ -15,6 +15,8 @@ type MealPlanUpdate = Database['public']['Tables']['meal_plans']['Update'];
 type PlannedMealRow = Database['public']['Tables']['planned_meals']['Row'];
 type PlannedMealInsert = Database['public']['Tables']['planned_meals']['Insert'];
 type PlannedMealUpdate = Database['public']['Tables']['planned_meals']['Update'];
+type RecipeRow = Database['public']['Tables']['recipes']['Row'];
+type PlannedMealWithRecipe = PlannedMealRow & { recipes?: RecipeRow | null };
 
 export class MealPlanService {
   /**
@@ -136,6 +138,7 @@ export class MealPlanService {
         .order('order_index', { ascending: true });
 
       if (mealsError) throw mealsError;
+      const plannedMealsWithRecipes = plannedMeals as PlannedMealWithRecipe[] | null;
 
       return {
         data: {
@@ -237,8 +240,8 @@ export class MealPlanService {
         .order('order_index', { ascending: false })
         .limit(1);
 
-      const orderIndex = existingMeals && existingMeals.length > 0 
-        ? existingMeals[0].order_index + 1 
+      const orderIndex = existingMeals && existingMeals.length > 0
+        ? existingMeals[0].order_index + 1
         : 0;
 
       const { data, error } = await supabase
@@ -406,10 +409,10 @@ export class MealPlanService {
 
       // Duplicate meals with adjusted dates
       if (sourceMeals && sourceMeals.length > 0) {
-        const newMeals = sourceMeals.map(meal => {
+        const newMeals = sourceMeals.map((meal: PlannedMealRow) => {
           const mealDate = new Date(meal.date);
           mealDate.setDate(mealDate.getDate() + dayOffset);
-          
+
           return {
             meal_plan_id: newPlan.id,
             date: mealDate.toISOString().split('T')[0],
@@ -431,11 +434,11 @@ export class MealPlanService {
         if (insertError) throw insertError;
       }
 
-      logger.info('Meal plan duplicated successfully', 'MealPlanService', { 
-        sourceMealPlanId, 
-        newMealPlanId: newPlan.id 
+      logger.info('Meal plan duplicated successfully', 'MealPlanService', {
+        sourceMealPlanId,
+        newMealPlanId: newPlan.id
       });
-      
+
       return { data: newPlan, error: null };
     } catch (error) {
       logger.error('Error duplicating meal plan', 'MealPlanService', error);
@@ -493,7 +496,7 @@ export class MealPlanService {
       if (mealsError) throw mealsError;
 
       if (sourceMeals && sourceMeals.length > 0) {
-        const templateMeals = sourceMeals.map(meal => ({
+        const templateMeals = sourceMeals.map((meal: PlannedMealRow) => ({
           meal_plan_id: template.id,
           date: meal.date,
           meal_type: meal.meal_type,
@@ -568,7 +571,7 @@ export class MealPlanService {
     try {
       // First, get or create meal plan
       let mealPlan: MealPlanRow | null = null;
-      
+
       const { data: existingPlans } = await supabase
         .from('meal_plans')
         .select('*')
@@ -576,7 +579,7 @@ export class MealPlanService {
         .eq('start_date', startDate)
         .eq('end_date', endDate)
         .limit(1);
-      
+
       if (existingPlans && existingPlans.length > 0) {
         mealPlan = existingPlans[0];
       } else {
@@ -590,11 +593,11 @@ export class MealPlanService {
         if (error) throw error;
         mealPlan = data;
       }
-      
+
       if (!mealPlan) {
         throw new Error('Failed to get or create meal plan');
       }
-      
+
       // Get planned meals
       const { data: plannedMeals, error: mealsError } = await supabase
         .from('planned_meals')
@@ -622,27 +625,28 @@ export class MealPlanService {
         .eq('meal_plan_id', mealPlan.id)
         .order('date', { ascending: true })
         .order('order_index', { ascending: true });
-      
+
       if (mealsError) throw mealsError;
-      
+      const plannedMealsWithRecipes = plannedMeals as PlannedMealWithRecipe[] | null;
+
       // Convert to WeekPlan format with MealSlots
       const slots: MealSlot[] = [];
-      
+
       // Create slots for each day and meal type
       for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
         const date = new Date(startDate);
         date.setDate(date.getDate() + dayOffset);
         const dateStr = date.toISOString().split('T')[0];
         const dayOfWeek = date.getDay();
-        
+
         const mealTypes: MealType[] = ['desayuno', 'almuerzo', 'merienda', 'cena'];
-        
+
         for (const mealType of mealTypes) {
           // Find planned meal for this slot
-          const plannedMeal = plannedMeals?.find(
+          const plannedMeal = plannedMealsWithRecipes?.find(
             pm => pm.date === dateStr && pm.meal_type === mealType
           );
-          
+
           const slot: MealSlot = {
             id: `${dateStr}-${mealType}`,
             dayOfWeek,
@@ -654,45 +658,59 @@ export class MealPlanService {
             createdAt: plannedMeal?.created_at || new Date().toISOString(),
             updatedAt: plannedMeal?.updated_at || new Date().toISOString()
           };
-          
+
           // Add recipe if exists
           if (plannedMeal?.recipes) {
-            slot.recipeId = plannedMeal.recipe_id;
+            const ingredients = Array.isArray(plannedMeal.recipes.ingredients)
+              ? (plannedMeal.recipes.ingredients as unknown as Recipe['ingredients'])
+              : [];
+            const instructions = Array.isArray(plannedMeal.recipes.instructions)
+              ? (plannedMeal.recipes.instructions as unknown as Recipe['instructions'])
+              : [];
+            const dietaryLabels = Array.isArray(plannedMeal.recipes.dietary_info)
+              ? (plannedMeal.recipes.dietary_info as unknown as Recipe['dietaryLabels'])
+              : [];
+            const nutrition = plannedMeal.recipes.nutrition_per_serving as Recipe['nutrition'] | null;
+
+            slot.recipeId = plannedMeal.recipe_id ?? undefined;
             slot.recipe = {
               id: plannedMeal.recipes.id,
               name: plannedMeal.recipes.name,
-              description: plannedMeal.recipes.description,
-              image: plannedMeal.recipes.image_url,
+              description: plannedMeal.recipes.description ?? undefined,
+              image: plannedMeal.recipes.image_url ?? undefined,
               prepTime: plannedMeal.recipes.prep_time || 0,
               cookTime: plannedMeal.recipes.cook_time || 0,
               servings: plannedMeal.recipes.servings || 1,
               difficulty: plannedMeal.recipes.difficulty || 'medium',
-              ingredients: plannedMeal.recipes.ingredients || [],
-              instructions: plannedMeal.recipes.instructions || [],
-              nutrition: plannedMeal.recipes.nutrition_per_serving,
-              dietaryLabels: plannedMeal.recipes.dietary_info || [],
+              ingredients,
+              instructions,
+              nutrition: nutrition ?? undefined,
+              dietaryLabels,
               cuisine: plannedMeal.recipes.cuisine_types?.[0],
               tags: plannedMeal.recipes.tags || [],
-              rating: plannedMeal.rating,
+              rating: plannedMeal.rating ?? undefined,
               isAiGenerated: false,
               isFavorite: false
             };
           }
-          
+
           // Add custom meal if exists
           if (plannedMeal?.custom_meal) {
-            slot.customMealName = plannedMeal.custom_meal.name;
+            const customMeal = plannedMeal.custom_meal as { name?: string } | null;
+            if (customMeal?.name) {
+              slot.customMealName = customMeal.name;
+            }
           }
-          
+
           // Add notes if exists
           if (plannedMeal?.notes) {
             slot.notes = plannedMeal.notes;
           }
-          
+
           slots.push(slot);
         }
       }
-      
+
       const weekPlan: WeekPlan = {
         id: mealPlan.id,
         userId: mealPlan.user_id,
@@ -703,14 +721,164 @@ export class MealPlanService {
         createdAt: mealPlan.created_at,
         updatedAt: mealPlan.updated_at
       };
-      
+
       return { data: weekPlan, error: null };
     } catch (error) {
       logger.error('Error getting week plan', 'MealPlanService', error);
       return { data: null, error: error as Error };
     }
   }
-  
+
+  /**
+   * Get week plan by meal plan ID in the unified format
+   */
+  static async getWeekPlanById(
+    mealPlanId: string,
+    userId?: string
+  ): Promise<{ data: WeekPlan | null; error: Error | null }> {
+    try {
+      let query = supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('id', mealPlanId);
+
+      if (userId) {
+        query = query.eq('user_id', userId);
+      }
+
+      const { data: mealPlan, error: planError } = await query.single();
+
+      if (planError || !mealPlan) {
+        throw planError || new Error('Meal plan not found');
+      }
+
+      const startDate = mealPlan.start_date;
+      const endDate = mealPlan.end_date;
+
+      const { data: plannedMeals, error: mealsError } = await supabase
+        .from('planned_meals')
+        .select(`
+          *,
+          recipes (
+            id,
+            name,
+            slug,
+            description,
+            image_url,
+            prep_time,
+            cook_time,
+            servings,
+            difficulty,
+            ingredients,
+            instructions,
+            nutrition_per_serving,
+            tags,
+            cuisine_types,
+            meal_types,
+            dietary_info
+          )
+        `)
+        .eq('meal_plan_id', mealPlan.id)
+        .order('date', { ascending: true })
+        .order('order_index', { ascending: true });
+
+      if (mealsError) throw mealsError;
+      const plannedMealsWithRecipes = plannedMeals as PlannedMealWithRecipe[] | null;
+
+      const slots: MealSlot[] = [];
+
+      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + dayOffset);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayOfWeek = date.getDay();
+
+        const mealTypes: MealType[] = ['desayuno', 'almuerzo', 'merienda', 'cena'];
+
+        for (const mealType of mealTypes) {
+          const plannedMeal = plannedMealsWithRecipes?.find(
+            pm => pm.date === dateStr && pm.meal_type === mealType
+          );
+
+          const slot: MealSlot = {
+            id: `${dateStr}-${mealType}`,
+            dayOfWeek,
+            mealType,
+            date: dateStr,
+            servings: plannedMeal?.servings || 2,
+            isLocked: false,
+            isCompleted: plannedMeal?.is_prepared || false,
+            createdAt: plannedMeal?.created_at || new Date().toISOString(),
+            updatedAt: plannedMeal?.updated_at || new Date().toISOString()
+          };
+
+          if (plannedMeal?.recipes) {
+            const ingredients = Array.isArray(plannedMeal.recipes.ingredients)
+              ? (plannedMeal.recipes.ingredients as unknown as Recipe['ingredients'])
+              : [];
+            const instructions = Array.isArray(plannedMeal.recipes.instructions)
+              ? (plannedMeal.recipes.instructions as unknown as Recipe['instructions'])
+              : [];
+            const dietaryLabels = Array.isArray(plannedMeal.recipes.dietary_info)
+              ? (plannedMeal.recipes.dietary_info as unknown as Recipe['dietaryLabels'])
+              : [];
+            const nutrition = plannedMeal.recipes.nutrition_per_serving as Recipe['nutrition'] | null;
+
+            slot.recipeId = plannedMeal.recipe_id ?? undefined;
+            slot.recipe = {
+              id: plannedMeal.recipes.id,
+              name: plannedMeal.recipes.name,
+              description: plannedMeal.recipes.description ?? undefined,
+              image: plannedMeal.recipes.image_url ?? undefined,
+              prepTime: plannedMeal.recipes.prep_time || 0,
+              cookTime: plannedMeal.recipes.cook_time || 0,
+              servings: plannedMeal.recipes.servings || 1,
+              difficulty: plannedMeal.recipes.difficulty || 'medium',
+              ingredients,
+              instructions,
+              nutrition: nutrition ?? undefined,
+              dietaryLabels,
+              cuisine: plannedMeal.recipes.cuisine_types?.[0],
+              tags: plannedMeal.recipes.tags || [],
+              rating: plannedMeal.rating ?? undefined,
+              isAiGenerated: false,
+              isFavorite: false
+            };
+          }
+
+          if (plannedMeal?.custom_meal) {
+            const customMeal = plannedMeal.custom_meal as { name?: string } | null;
+            if (customMeal?.name) {
+              slot.customMealName = customMeal.name;
+            }
+          }
+
+          if (plannedMeal?.notes) {
+            slot.notes = plannedMeal.notes;
+          }
+
+          slots.push(slot);
+        }
+      }
+
+      const weekPlan: WeekPlan = {
+        id: mealPlan.id,
+        userId: mealPlan.user_id,
+        startDate,
+        endDate,
+        slots,
+        isActive: true,
+        createdAt: mealPlan.created_at,
+        updatedAt: mealPlan.updated_at
+      };
+
+      return { data: weekPlan, error: null };
+    } catch (error) {
+      logger.error('Error getting week plan by id', 'MealPlanService', error);
+      return { data: null, error: error as Error };
+    }
+  }
+
   /**
    * Save week plan in the new unified format
    */
@@ -723,7 +891,7 @@ export class MealPlanService {
     try {
       // Get or create meal plan
       let mealPlan: MealPlanRow | null = null;
-      
+
       const { data: existingPlans } = await supabase
         .from('meal_plans')
         .select('*')
@@ -731,7 +899,7 @@ export class MealPlanService {
         .eq('start_date', startDate)
         .eq('end_date', endDate)
         .limit(1);
-      
+
       if (existingPlans && existingPlans.length > 0) {
         mealPlan = existingPlans[0];
       } else {
@@ -744,15 +912,15 @@ export class MealPlanService {
         if (error) throw error;
         mealPlan = data;
       }
-      
+
       if (!mealPlan) throw new Error('Failed to create or update meal plan');
-      
+
       // Delete existing planned meals
       await supabase
         .from('planned_meals')
         .delete()
         .eq('meal_plan_id', mealPlan.id);
-      
+
       // Add planned meals from slots
       for (const slot of weekPlan.slots) {
         if (slot.recipeId || slot.customMealName) {

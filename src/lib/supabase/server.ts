@@ -8,7 +8,9 @@ import { mockSupabaseClient } from './mock-client';
  * Creates a Supabase client for Server Components
  * Falls back to mock client if environment variables are not configured
  */
-export const createClient = (cookieStore: ReadonlyRequestCookies | Promise<ReadonlyRequestCookies> | ReturnType<typeof cookies>) => {
+export const createClient = (
+  cookieStore: Awaited<ReturnType<typeof cookies>> | ReturnType<typeof cookies>
+) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

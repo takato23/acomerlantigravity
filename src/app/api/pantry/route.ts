@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getUser } from '@/lib/auth/supabase-auth';
 import { logger } from '@/lib/logger';
 import { db } from '@/lib/supabase/database.service';
+import type { PantryItem } from '@/features/pantry/types';
 
 export async function GET(req: Request) {
   try {
@@ -15,34 +16,28 @@ export async function GET(req: Request) {
     const expiring = searchParams.get("expiring");
     const lowStock = searchParams.get("lowStock");
 
-    const where: any = {
-      userId: user.id,
-    };
-
-    if (location && location !== "all") {
-      where.location = location;
-    }
-
-    if (expiring === "true") {
-      const weekFromNow = new Date();
-      weekFromNow.setDate(weekFromNow.getDate() + 7);
-      where.expiryDate = {
-        lte: weekFromNow,
-        gte: new Date(),
-      };
-    }
-
-    const pantryItems = await db.getPantryItems(user.id, {
-      where,
-      orderBy: {
-        createdAt: "desc",
-      }
-    });
+    const pantryItems = await db.getPantryItems(user.id) as PantryItem[];
 
     let filteredItems = pantryItems;
 
+    if (location && location !== "all") {
+      filteredItems = filteredItems.filter((item: PantryItem) => item.location === location);
+    }
+
+    if (expiring === "true") {
+      const now = new Date();
+      const weekFromNow = new Date();
+      weekFromNow.setDate(weekFromNow.getDate() + 7);
+
+      filteredItems = filteredItems.filter((item: PantryItem) => {
+        if (!item.expiration_date) return false;
+        const expirationDate = new Date(item.expiration_date);
+        return expirationDate >= now && expirationDate <= weekFromNow;
+      });
+    }
+
     if (lowStock === "true") {
-      filteredItems = pantryItems.filter(item => item.quantity <= 1);
+      filteredItems = filteredItems.filter((item) => item.quantity <= 1);
     }
 
     return NextResponse.json(filteredItems);
@@ -70,22 +65,25 @@ export async function POST(req: Request) {
       location,
       expiryDate,
       notes,
-      purchasePrice,
-      purchaseDate,
-      barcode,
     } = data;
+
+    if (!ingredientName) {
+      return NextResponse.json(
+        { error: "Ingredient name is required" },
+        { status: 400 }
+      );
+    }
+
+    const ingredient = await db.findOrCreateIngredient(ingredientName);
 
     // Create new pantry item using Supabase service
     const newItem = await db.addPantryItem(user.id, {
-      name: ingredientName,
+      ingredientId: ingredient.id,
       quantity: quantity || 1,
       unit: unit || "un",
       location: location || "pantry",
-      expiryDate: expiryDate ? new Date(expiryDate) : null,
-      notes: notes || null,
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
-      purchasePrice: purchasePrice ? parseFloat(purchasePrice) : null,
-      barcode: barcode || null,
+      expirationDate: expiryDate ? new Date(expiryDate) : undefined,
+      notes: notes || undefined,
     });
 
     return NextResponse.json(newItem, { status: 201 });

@@ -141,7 +141,8 @@ export async function validateRequestBody<T>(
         {
           code: 'custom',
           message: 'Invalid JSON in request body',
-          path: []
+          path: [],
+          input: undefined
         }
       ])
     };

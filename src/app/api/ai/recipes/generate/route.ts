@@ -5,7 +5,16 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 import { createServerSupabaseClient } from '@/lib/supabase/client';
 
-// Interfaces for the response
+interface AIResponse {
+  content: Array<{
+    type: 'text';
+    text: string;
+  }>;
+  usage?: {
+    input_tokens?: number;
+    output_tokens?: number;
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,12 +111,13 @@ ESTRUCTURA JSON OBLIGATORIA:
     });
 
   } catch (error: unknown) {
-    logger.error('Recipe generation error:', 'API:route', error);
-    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Recipe generation error', 'API:route', error);
+
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to generate recipe',
-        details: error.message 
+        details: errorMessage
       },
       { status: 500 }
     );
@@ -290,7 +300,7 @@ function getMockRecipeResponse(prompt: string): any {
   };
 }
 
-async function parseAndValidateRecipeResponse(aiResponse: ClaudeResponse): Promise<any> {
+async function parseAndValidateRecipeResponse(aiResponse: AIResponse): Promise<any> {
   try {
     const responseText = aiResponse.content[0]?.text;
     if (!responseText) {
@@ -333,7 +343,8 @@ async function parseAndValidateRecipeResponse(aiResponse: ClaudeResponse): Promi
 
     return recipeData;
   } catch (error: unknown) {
-    throw new Error(`Failed to parse AI response: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to parse AI response: ${errorMessage}`);
   }
 }
 

@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import geminiConfig from '@/lib/config/gemini.config';
+import { defaultGeminiConfig, getGeminiApiKey, isMockMode } from '@/lib/config/gemini.config';
 import { logger } from '@/services/logger';
 
 export interface SmartParsedItem {
@@ -12,13 +12,13 @@ export interface SmartParsedItem {
 }
 
 class SmartParserService {
-    private genAI: GoogleGenerativeAI;
+    private genAI: GoogleGenerativeAI | null = null;
     private model: any;
 
     constructor() {
-        const apiKey = geminiConfig.getApiKey();
+        const apiKey = getGeminiApiKey();
         if (!apiKey) {
-            if (!geminiConfig.isMockMode()) {
+            if (!isMockMode()) {
                 console.warn('SmartParser: No API Key found, will use mock or fail.');
             }
         }
@@ -26,12 +26,12 @@ class SmartParserService {
         // Initialize even if mock mode might be active, but rely on checks inside methods
         if (apiKey) {
             this.genAI = new GoogleGenerativeAI(apiKey);
-            this.model = this.genAI.getGenerativeModel({ model: geminiConfig.default.model });
+            this.model = this.genAI.getGenerativeModel({ model: defaultGeminiConfig.model });
         }
     }
 
     async parseIngredient(text: string): Promise<SmartParsedItem | null> {
-        if (geminiConfig.isMockMode() || !this.model) {
+        if (isMockMode() || !this.model) {
             // Simple mock fallback for testing without API
             if (text.toLowerCase().includes('docena')) {
                 return { name: 'Huevos', quantity: 12, unit: 'un', confidence: 0.9, category: 'Lácteos y Huevos', estimatedExpiryDays: 21 };
@@ -79,7 +79,7 @@ class SmartParserService {
         }
     }
     async suggestRecipes(ingredients: string[]): Promise<any[]> {
-        if (geminiConfig.isMockMode() || !this.model) {
+        if (isMockMode() || !this.model) {
             return [
                 { title: 'Omelette de Queso', ingredients: ['Huevos', 'Queso'] },
                 { title: 'Ensalada César', ingredients: ['Pollo', 'Lechuga', 'Crutones'] }

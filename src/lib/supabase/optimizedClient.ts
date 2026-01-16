@@ -161,7 +161,7 @@ class OptimizedSupabaseClient {
    */
   async executeQuery<T>(
     operation: string,
-    queryFn: () => Promise<any>,
+    queryFn: () => PromiseLike<any>,
     options?: {
       useCache?: boolean;
       cacheTtl?: number;
@@ -192,7 +192,7 @@ class OptimizedSupabaseClient {
       if (this.config.enableMetrics && !options?.skipMetrics) {
         return await measureOperation(
           `supabase_${operation}`,
-          queryFn,
+          () => Promise.resolve(queryFn()),
           { operation, isServerSide: this.isServerSide }
         );
       } else {
@@ -201,11 +201,12 @@ class OptimizedSupabaseClient {
     };
 
     // Execute with retry logic
-    const result = await retryWithBackoff(executeWithMetrics, {
-      maxRetries: this.config.maxRetries || 3,
+    const retryResult = await retryWithBackoff(executeWithMetrics, {
+      maxAttempts: this.config.maxRetries ?? 3,
       initialDelayMs: 1000,
       retryableErrors: ['network error', 'timeout', 'connection error'],
     });
+    const result = retryResult.result;
 
     // Cache successful results
     if (this.config.cacheResults && options?.useCache !== false && result.data) {
@@ -503,22 +504,22 @@ export function getOptimizedServerClient(request?: NextRequest, response?: NextR
   
   const supabaseClient = createServerClient<Database>(url, anonKey, {
     cookies: {
-      get(name: string) {
-        const cookieStore = cookies();
+      async get(name: string) {
+        const cookieStore = await cookies();
         return cookieStore.get(name)?.value;
       },
-      set(name: string, value: string, options: any) {
+      async set(name: string, value: string, options: any) {
         try {
-          const cookieStore = cookies();
+          const cookieStore = await cookies();
           cookieStore.set({ name, value, ...options });
         } catch (error) {
           // Handle cookie setting errors gracefully
           logger.warn('Failed to set cookie', 'supabaseClient', { name, error });
         }
       },
-      remove(name: string, options: any) {
+      async remove(name: string, options: any) {
         try {
-          const cookieStore = cookies();
+          const cookieStore = await cookies();
           cookieStore.set({ name, value: '', ...options });
         } catch (error) {
           logger.warn('Failed to remove cookie', 'supabaseClient', { name, error });
@@ -606,9 +607,11 @@ export function warmupCache(client: OptimizedSupabaseClient, userId: string): Pr
 
   return Promise.all(
     warmupOperations.map(operation => 
-      operation().catch(error => 
-        logger.warn('Cache warmup failed', 'supabaseClient', { error })
-      )
+      operation()
+        .then(() => undefined)
+        .catch(error => 
+          logger.warn('Cache warmup failed', 'supabaseClient', { error })
+        )
     )
   );
 }

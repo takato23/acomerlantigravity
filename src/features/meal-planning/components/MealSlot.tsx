@@ -15,14 +15,15 @@ import {
   Users,
   ChefHat,
   Star,
-  AlertCircle
+  AlertCircle,
+  Flame
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/enhanced-loading';
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
 
 import type { MealSlot as MealSlotType, MealType, Recipe } from '../types';
 import { MEAL_CONFIG } from '../types';
@@ -122,7 +123,7 @@ export function MealSlot({
         whileTap={{ scale: 0.98 }}
         className="relative"
       >
-        <iOS26EnhancedCard
+        <IOS26EnhancedCard
           variant={isToday ? 'aurora' : 'glass'}
           elevation={isSelected ? 'high' : 'medium'}
           glowEffect={isToday}
@@ -388,7 +389,7 @@ export function MealSlot({
               </p>
             </motion.div>
           )}
-        </iOS26EnhancedCard>
+        </IOS26EnhancedCard>
 
         {/* Dropdown menu */}
         <AnimatePresence>

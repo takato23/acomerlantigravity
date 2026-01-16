@@ -114,7 +114,7 @@ export const BarcodeScanner = React.memo<BarcodeScannerProps>(({
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(bitmap, 0, 0);
-              const result = await codeReaderRef.current!.decodeFromCanvas(canvas);
+              const result = await (codeReaderRef.current as any).decodeFromCanvas(canvas);
               
               if (result && result.getText() !== lastScanned) {
                 const barcode = result.getText();

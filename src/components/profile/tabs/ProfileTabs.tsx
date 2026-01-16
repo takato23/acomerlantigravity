@@ -88,7 +88,7 @@ export function ProfileTabs({
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => navigateToTab(activeTabIndex + 1),
     onSwipedRight: () => navigateToTab(activeTabIndex - 1),
-    threshold: 50,
+    delta: 50,
     trackMouse: false,
   });
 

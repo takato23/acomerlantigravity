@@ -4,7 +4,7 @@
  */
 
 // Provider types
-export type AIProvider = 'openai' | 'anthropic' | 'gemini' | 'auto';
+export type AIProvider = 'openai' | 'anthropic' | 'gemini' | 'auto' | 'mock';
 
 // Model types
 export type AIModel =

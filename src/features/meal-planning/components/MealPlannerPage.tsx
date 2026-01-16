@@ -14,7 +14,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { format, startOfWeek, addWeeks } from 'date-fns';
+import { format, startOfWeek, addWeeks, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 
@@ -31,7 +31,7 @@ import MealPlannerGrid from './MealPlannerGrid';
 import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { UserPreferencesModal } from './UserPreferencesModal';
 import { ShoppingListModal } from './ShoppingListModal';
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
 import { generateMealPlanPDF } from './ExportPlanPDF';
 
 
@@ -39,13 +39,12 @@ import { generateMealPlanPDF } from './ExportPlanPDF';
 type ViewMode = 'calendar' | 'shopping' | 'nutrition';
 
 export default function MealPlannerPage() {
-  const { user } = useUser();
+  const { profile } = useUser();
   const { user: supabaseUser, session, loading: authLoading } = useAuth();
 
   const {
     currentDate,
     currentWeekPlan,
-    userPreferences,
     activeModal,
     isLoading,
     error,
@@ -65,36 +64,49 @@ export default function MealPlannerPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [hasCompletedWizard, setHasCompletedWizard] = useState(true); // Siempre true, wizard se maneja en /planificador
   const [selectedSlot, setSelectedSlot] = useState<{ dayOfWeek: number; mealType: MealType } | null>(null);
+  const currentDateValue = currentDate ? new Date(currentDate) : new Date();
+  const startOfCurrentWeek = startOfWeek(currentDateValue, { weekStartsOn: 1 });
+  const selectedSlotWithDate = selectedSlot
+    ? {
+        ...selectedSlot,
+        date: format(addDays(startOfCurrentWeek, selectedSlot.dayOfWeek), 'yyyy-MM-dd')
+      }
+    : {
+        dayOfWeek: 0,
+        mealType: 'almuerzo' as MealType,
+        date: format(startOfCurrentWeek, 'yyyy-MM-dd')
+      };
 
   // Initialize - always load the current week plan since wizard is handled in /planificador
   useEffect(() => {
-    if (supabaseUser || user) {
+    if (supabaseUser || profile) {
       // Load current week plan
       const startDate = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
       loadWeekPlan(startDate);
     }
-  }, [user, supabaseUser, loadWeekPlan]);
+  }, [profile, supabaseUser, loadWeekPlan]);
 
 
   const handleWeekNavigation = (direction: 'prev' | 'next' | 'today') => {
     let newDate: Date;
-
+    const baseDate = currentDate ? new Date(currentDate) : new Date();
+    
     if (direction === 'today') {
       newDate = new Date();
     } else if (direction === 'prev') {
-      newDate = addWeeks(currentDate, -1);
+      newDate = addWeeks(baseDate, -1);
     } else {
-      newDate = addWeeks(currentDate, 1);
+      newDate = addWeeks(baseDate, 1);
     }
 
-    setCurrentDate(newDate);
+    setCurrentDate(newDate.toISOString());
     const startDate = format(startOfWeek(newDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
     loadWeekPlan(startDate);
   };
 
   const handleRecipeSelect = (slot: { dayOfWeek: number; mealType: MealType }) => {
     setSelectedSlot(slot);
-    setActiveModal('recipe-select');
+    setActiveModal('add-recipe');
   };
 
   const handleShoppingList = () => {
@@ -103,7 +115,8 @@ export default function MealPlannerPage() {
 
   const handleExportWeek = async () => {
     logger.info('Exporting week to PDF', 'MealPlannerPage');
-    await generateMealPlanPDF(currentWeekPlan, currentDate);
+    const exportDate = currentDate ? new Date(currentDate) : new Date();
+    await generateMealPlanPDF(currentWeekPlan, exportDate);
   };
 
   const views = [
@@ -213,10 +226,10 @@ export default function MealPlannerPage() {
 
               <div className="text-center">
                 <h2 className="text-xl font-bold text-white">
-                  Semana del {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMM', { locale: es })}
+                  Semana del {format(startOfCurrentWeek, 'd MMM', { locale: es })}
                 </h2>
                 <p className="text-sm text-white/60">
-                  {format(currentDate, 'MMMM yyyy', { locale: es })}
+                  {format(currentDateValue, 'MMMM yyyy', { locale: es })}
                 </p>
               </div>
 
@@ -290,7 +303,7 @@ export default function MealPlannerPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
             >
-              <iOS26EnhancedCard
+              <IOS26EnhancedCard
                 variant="glass"
                 elevation="high"
                 className="p-8 text-center"
@@ -308,7 +321,7 @@ export default function MealPlannerPage() {
                 >
                   Open Shopping List
                 </button>
-              </iOS26EnhancedCard>
+              </IOS26EnhancedCard>
             </motion.div>
           )}
 
@@ -319,7 +332,7 @@ export default function MealPlannerPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
             >
-              <iOS26EnhancedCard
+              <IOS26EnhancedCard
                 variant="glass"
                 elevation="high"
                 className="p-8 text-center"
@@ -334,7 +347,7 @@ export default function MealPlannerPage() {
                 <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-medium rounded-xl hover:from-orange-600 hover:to-pink-600">
                   View Nutrition Stats
                 </button>
-              </iOS26EnhancedCard>
+              </IOS26EnhancedCard>
             </motion.div>
           )}
         </AnimatePresence>
@@ -344,7 +357,7 @@ export default function MealPlannerPage() {
       <AnimatePresence>
         {activeModal === 'recipe-select' && (
           <RecipeSelectionModal
-            slot={selectedSlot ?? { dayOfWeek: 0, mealType: 'almuerzo' }}
+            slot={selectedSlotWithDate}
             onClose={() => {
               setActiveModal(null);
               setSelectedSlot(null);

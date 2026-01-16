@@ -1,12 +1,12 @@
 // Auth Service with Supabase Integration
 
 import { createClient, SupabaseClient, Session as SupabaseSession, User } from '@supabase/supabase-js';
-import { logger } from '@/services/logger';
+import { logger } from '../../../services/logger';
 
-import { 
-  AuthUser, 
-  AuthError, 
-  SignInFormData, 
+import {
+  AuthUser,
+  AuthError,
+  SignInFormData,
   SignUpFormData,
   ResetPasswordFormData,
   UpdatePasswordFormData,
@@ -22,7 +22,7 @@ export class AuthService {
   private constructor() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    
+
     this.supabase = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: true,
@@ -83,7 +83,7 @@ export class AuthService {
       });
 
       if (error) throw new AuthError(error.message, error.code, error.status);
-      
+
       return data;
     } catch (error: unknown) {
       if (error instanceof AuthError) throw error;
@@ -115,7 +115,7 @@ export class AuthService {
         });
         throw new AuthError(error.message, error.code || 'SIGNUP_ERROR', error.status || 500);
       }
-      
+
       if (!data.user) {
         logger.error('No user in response data:', 'authService', data);
         throw new AuthError('No user returned from sign up', 'SIGNUP_ERROR', 500);
@@ -134,7 +134,7 @@ export class AuthService {
     try {
       const { error } = await this.supabase.auth.signOut();
       if (error) throw new AuthError(error.message, error.code, error.status);
-      
+
       // Clear secure session
       await this.clearSecureSession();
     } catch (error: unknown) {
@@ -174,11 +174,11 @@ export class AuthService {
   async getSession(): Promise<Session | null> {
     try {
       const { data: { session }, error } = await this.supabase.auth.getSession();
-      
+
       if (process.env.NODE_ENV === 'development') {
 
       }
-      
+
       return this.mapSession(session);
     } catch (error: unknown) {
       logger.error('Failed to get session:', 'authService', error);
@@ -190,15 +190,15 @@ export class AuthService {
     try {
       // Only return user if there's also a valid session
       const { data: { session } } = await this.supabase.auth.getSession();
-      
+
       if (process.env.NODE_ENV === 'development') {
 
       }
-      
+
       if (session?.user) {
         return this.mapUser(session.user);
       }
-      
+
       return null;
     } catch (error: unknown) {
       logger.error('Failed to get current user:', 'authService', error);
@@ -209,7 +209,7 @@ export class AuthService {
   async refreshSession(): Promise<Session | null> {
     try {
       const { data: { session }, error } = await this.supabase.auth.refreshSession();
-      
+
       if (error) throw new AuthError(error.message, error.code, error.status);
       if (!session) return null;
 
@@ -346,7 +346,7 @@ export class AuthService {
   // Private Methods
   private async setSecureSession(session: SupabaseSession | null): Promise<void> {
     if (!session) return;
-    
+
     // Skip secure session for now - using Supabase client-side session management
     if (process.env.NODE_ENV === 'development') {
 
@@ -379,7 +379,7 @@ export class AuthService {
 
   private mapSession(session: SupabaseSession | null): Session | null {
     if (!session) return null;
-    
+
     return {
       access_token: session.access_token,
       refresh_token: session.refresh_token,

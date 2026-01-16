@@ -117,7 +117,10 @@ export function useFormValidation<T extends Record<string, any>>({
 
   const validateField = useCallback(async (field: keyof T): Promise<boolean> => {
     try {
-      const fieldSchema = schema.shape[field];
+      if (!(schema instanceof z.ZodObject)) {
+        return true;
+      }
+      const fieldSchema = schema.shape[field as string];
       if (!fieldSchema) return true;
       
       fieldSchema.parse(data[field]);
@@ -243,12 +246,16 @@ export function useFormValidation<T extends Record<string, any>>({
 // SPECIFIC FORM VALIDATION HOOKS
 // =============================================================================
 
+type RecipeFormData =
+  | z.infer<typeof RecipeCreateSchema>
+  | z.infer<typeof RecipeUpdateSchema>;
+
 export function useRecipeFormValidation(
-  onSubmit: (data: z.infer<typeof RecipeCreateSchema>) => Promise<void>,
+  onSubmit: (data: RecipeFormData) => Promise<void>,
   isUpdate = false
 ) {
-  const schema = isUpdate ? RecipeUpdateSchema : RecipeCreateSchema;
-  return useFormValidation({
+  const schema: z.ZodSchema<RecipeFormData> = isUpdate ? RecipeUpdateSchema : RecipeCreateSchema;
+  return useFormValidation<RecipeFormData>({
     schema,
     onSubmit,
     validateOnChange: true,

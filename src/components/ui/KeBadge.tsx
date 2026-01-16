@@ -6,11 +6,11 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface KeBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
+interface KeBadgeProps extends HTMLMotionProps<'div'> {
   variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
   size?: 'sm' | 'md' | 'lg';
   rounded?: 'sm' | 'md' | 'lg' | 'full';

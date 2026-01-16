@@ -300,10 +300,10 @@ export function AppHero({
       description={description}
       cta={cta}
       stats={[
-        { label: 'Happy Users', value: '50K+' },
-        { label: 'Recipes Created', value: '1M+' },
-        { label: 'Time Saved', value: '2hrs', suffix: '/week' },
-        { label: 'Food Waste', value: '40%', suffix: ' less' }
+        { label: 'Happy Users', value: '50K+', gradient: 'from-orange-400 to-orange-600' },
+        { label: 'Recipes Created', value: '1M+', gradient: 'from-slate-200 to-slate-400' },
+        { label: 'Time Saved', value: '2hrs', suffix: '/week', gradient: 'from-sky-300 to-sky-500' },
+        { label: 'Food Waste', value: '40%', suffix: ' less', gradient: 'from-emerald-300 to-emerald-500' }
       ]}
       illustration={
         <HeroIllustration

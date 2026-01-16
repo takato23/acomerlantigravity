@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { logger } from '@/services/logger';
+import { logger } from '../../../services/logger';
 import {
   ShoppingCart,
   Plus,
@@ -16,12 +16,12 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-import { useToast } from '@/hooks/use-toast';
-import { INGREDIENT_CATEGORIES } from '@/types/pantry';
-import { ShoppingVoiceButton } from '@/components/shopping/ShoppingVoiceButton';
-import { SupermarketMode } from '@/components/shopping/SupermarketMode';
-import { CategoryBadge } from '@/components/shopping/CategoryBadge';
-import { useAppStore, useShoppingStore, usePantryStore } from '@/store';
+import { useToast } from '../../../hooks/use-toast';
+import { INGREDIENT_CATEGORIES } from '../../../types/pantry';
+import { ShoppingVoiceButton } from '../../../components/shopping/ShoppingVoiceButton';
+import { SupermarketMode } from '../../../components/shopping/SupermarketMode';
+import { CategoryBadge } from '../../../components/shopping/CategoryBadge';
+import { useAppStore, useShoppingStore, usePantryStore } from '../../../store';
 
 export default function ShoppingListPage() {
   const user = useAppStore((state) => state.user.profile);
@@ -75,14 +75,13 @@ export default function ShoppingListPage() {
     if (!activeList || !newItemName.trim()) return;
 
     await addItem(activeList.id, {
-      ingredient_id: null,
-      custom_name: newItemName,
+      name: newItemName,
       quantity: newItemQuantity,
       unit: newItemUnit,
       category: newItemCategory || undefined,
-      is_checked: false,
-      price: null,
-      notes: null
+      completed: false,
+      price: undefined,
+      notes: undefined
     });
 
     setNewItemName('');
@@ -118,13 +117,13 @@ export default function ShoppingListPage() {
 
     for (const item of lowStockItems) {
       await addItem(activeList.id, {
-        ingredient_id: item.ingredient_id,
-        custom_name: null,
-        quantity: (item.min_quantity || 1) - item.quantity,
+        name: item.name,
+        quantity: (item.minimumStock || 1) - item.currentStock,
         unit: item.unit,
-        is_checked: false,
-        price: null,
-        notes: null
+        completed: false,
+        price: undefined,
+        notes: undefined,
+        category: item.category
       });
     }
 
@@ -138,8 +137,8 @@ export default function ShoppingListPage() {
     if (!activeList) return;
 
     const itemsText = activeList.items
-      ?.filter(item => !item.is_checked)
-      .map(item => `• ${item.quantity} ${item.unit} de ${item.custom_name || item.ingredient?.name}`)
+      ?.filter(item => !item.completed)
+      .map(item => `• ${item.quantity} ${item.unit} de ${item.name}`)
       .join('\n');
 
     const message = `🛒 Lista de Compras\n\n${itemsText}\n\n---\nCreada con ¿Qué Carajo Comer?`;
@@ -167,13 +166,12 @@ export default function ShoppingListPage() {
     if (!activeList) return;
 
     await addItem(activeList.id, {
-      ingredient_id: null,
-      custom_name: item.name,
+      name: item.name,
       quantity: item.quantity,
       unit: item.unit,
-      is_checked: false,
-      price: null,
-      notes: null
+      completed: false,
+      price: undefined,
+      notes: undefined
     });
 
     toast({
@@ -187,7 +185,7 @@ export default function ShoppingListPage() {
 
     // Find item by name (fuzzy matching)
     const foundItem = activeList.items.find(item => {
-      const name = (item.custom_name || item.ingredient?.name || '').toLowerCase();
+      const name = (item.name || '').toLowerCase();
       return name.includes(itemName.toLowerCase()) || itemName.toLowerCase().includes(name);
     });
 
@@ -195,7 +193,7 @@ export default function ShoppingListPage() {
       handleToggleItem(foundItem.id);
       toast({
         title: '✅ Producto marcado por voz',
-        description: `${foundItem.custom_name || foundItem.ingredient?.name} completado`,
+        description: `${foundItem.name} completado`,
       });
     } else {
       toast({
@@ -209,7 +207,7 @@ export default function ShoppingListPage() {
     if (!activeList?.items) return;
 
     const foundItem = activeList.items.find(item => {
-      const name = (item.custom_name || item.ingredient?.name || '').toLowerCase();
+      const name = (item.name || '').toLowerCase();
       return name.includes(itemName.toLowerCase()) || itemName.toLowerCase().includes(name);
     });
 
@@ -224,15 +222,15 @@ export default function ShoppingListPage() {
 
   // Filter items
   const filteredItems = activeList?.items?.filter(item => {
-    const name = item.custom_name || item.ingredient?.name || '';
+    const name = item.name || '';
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase());
-    const itemCategory = item.category || item.ingredient?.category;
+    const itemCategory = item.category;
     const matchesCategory = !selectedCategory || itemCategory === selectedCategory;
     return matchesSearch && matchesCategory;
   }) || [];
 
-  const uncheckedCount = filteredItems.filter(item => !item.is_checked).length;
-  const checkedCount = filteredItems.filter(item => item.is_checked).length;
+  const uncheckedCount = filteredItems.filter(item => !item.completed).length;
+  const checkedCount = filteredItems.filter(item => item.completed).length;
   const progress = filteredItems.length > 0 ? (checkedCount / filteredItems.length) * 100 : 0;
 
   // Render supermarket mode if activated
@@ -363,8 +361,8 @@ export default function ShoppingListPage() {
             <button
               onClick={() => setSelectedCategory('')}
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${!selectedCategory
-                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
             >
               🏷️ Todas
@@ -491,7 +489,7 @@ export default function ShoppingListPage() {
             <>
               {/* Unchecked items */}
               {filteredItems
-                .filter(item => !item.is_checked)
+                .filter(item => !item.completed)
                 .map(item => (
                   <motion.div
                     key={item.id}
@@ -508,10 +506,10 @@ export default function ShoppingListPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-medium text-gray-900">
-                          {item.custom_name || item.ingredient?.name}
+                          {item.name}
                         </p>
                         <CategoryBadge
-                          category={item.category || item.ingredient?.category}
+                          category={item.category as any}
                           size="sm"
                           showIcon={true}
                           showLabel={false}
@@ -535,7 +533,7 @@ export default function ShoppingListPage() {
                 <div className="mt-6">
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Completados</h3>
                   {filteredItems
-                    .filter(item => item.is_checked)
+                    .filter(item => item.completed)
                     .map(item => (
                       <motion.div
                         key={item.id}
@@ -553,10 +551,10 @@ export default function ShoppingListPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <p className="text-gray-500 line-through">
-                              {item.custom_name || item.ingredient?.name}
+                              {item.name}
                             </p>
                             <CategoryBadge
-                              category={item.category || item.ingredient?.category}
+                              category={item.category as any}
                               size="sm"
                               showIcon={true}
                               showLabel={false}

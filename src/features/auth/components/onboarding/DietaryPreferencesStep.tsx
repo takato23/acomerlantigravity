@@ -89,7 +89,13 @@ const COMMON_ALLERGENS = [
 ];
 
 // Compatibilidad y advertencias
-const COMPATIBILITY_WARNINGS = {
+type CompatibilityWarning = {
+  incompatible?: DietaryRestriction[];
+  includes?: DietaryRestriction[];
+  message: string;
+};
+
+const COMPATIBILITY_WARNINGS: Partial<Record<DietaryRestriction, CompatibilityWarning>> = {
   [DietaryRestriction.VEGAN]: {
     incompatible: [DietaryRestriction.PESCATARIAN],
     includes: [DietaryRestriction.VEGETARIAN, DietaryRestriction.DAIRY_FREE],

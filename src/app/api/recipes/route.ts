@@ -1,8 +1,8 @@
-import { getServerSession } from "next-auth/next";
 import { logger } from '@/lib/logger';
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 // authOptions removed - using Supabase Auth;
-import { db } from '@/lib/supabase/database.service';
 import {
   validateQuery,
   validateAuthAndBody,
@@ -13,68 +13,103 @@ import {
   RecipeCreateSchema,
   RecipeQuerySchema
 } from "@/lib/validation/schemas";
-import { prisma } from '@/lib/prisma';
 import { getUser } from '@/lib/auth/supabase-auth';
 
 export const GET = validateQuery(RecipeQuerySchema, async (request) => {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const user = await getUser();
     const query = request.validatedQuery!;
 
     const skip = (query.page - 1) * query.limit;
     const tags = query.tags ? query.tags.split(",") : [];
 
-    const where: any = {
-      AND: [
-        {
-          OR: [
-            { isPublic: true },
-            ...(user?.id ? [{ authorId: user.id }] : [])
-          ]
-        },
-        ...(query.search ? [{
-          OR: [
-            { title: { contains: query.search, mode: "insensitive" } },
-            { description: { contains: query.search, mode: "insensitive" } }
-          ]
-        }] : []),
-        ...(query.cuisine ? [{ cuisine: { equals: query.cuisine, mode: "insensitive" } }] : []),
-        ...(query.difficulty ? [{ difficulty: query.difficulty }] : []),
-        ...(tags.length > 0 ? [{ tags: { hasSome: tags } }] : []),
-        ...(query.authorId ? [{ authorId: query.authorId }] : []),
-        ...(query.isPublic !== undefined ? [{ isPublic: query.isPublic }] : []),
-        ...(query.maxPrepTime ? [{ prepTimeMinutes: { lte: query.maxPrepTime } }] : []),
-        ...(query.maxCookTime ? [{ cookTimeMinutes: { lte: query.maxCookTime } }] : []),
-        ...(query.hasNutrition ? [{ nutritionInfo: { isNot: null } }] : [])
-      ]
-    };
+    let baseQuery = supabase.from('recipes').select('*');
 
-    const [recipes, total] = await Promise.all([
-      prisma.recipe.findMany({
-        where,
-        include: {
-          // includes handled by Supabase service
-          ingredients: {
-            // includes handled by Supabase service
-          },
-          nutritionInfo: true,
-          _count: {
-            select: {
-              favorites: true,
-              ratings: true
-            }
-          }
-        },
-        orderBy: {
-          [query.sortBy || 'createdAt']: query.sortOrder
-        },
-        skip,
-        take: query.limit
-      }),
-      prisma.recipe.count({ where })
-    ]);
+    if (user?.id) {
+      baseQuery = baseQuery.or(`is_public.eq.true,user_id.eq.${user.id}`);
+    } else {
+      baseQuery = baseQuery.eq('is_public', true);
+    }
 
-    return createPaginatedResponse(recipes, {
+    const { data: recipesData, error } = await baseQuery;
+    if (error) {
+      throw error;
+    }
+
+    let recipes = recipesData || [];
+
+    if (query.search) {
+      const searchLower = query.search.toLowerCase();
+      recipes = recipes.filter((recipe) => {
+        const name = (recipe.name || '').toLowerCase();
+        const description = (recipe.description || '').toLowerCase();
+        return name.includes(searchLower) || description.includes(searchLower);
+      });
+    }
+
+    if (query.cuisine) {
+      const cuisineLower = query.cuisine.toLowerCase();
+      recipes = recipes.filter((recipe) =>
+        (recipe.cuisine_type || '').toLowerCase() === cuisineLower
+      );
+    }
+
+    if (query.difficulty) {
+      recipes = recipes.filter((recipe) => recipe.difficulty_level === query.difficulty);
+    }
+
+    if (tags.length > 0) {
+      recipes = recipes.filter((recipe) =>
+        Array.isArray(recipe.tags) && recipe.tags.some((tag: string) => tags.includes(tag))
+      );
+    }
+
+    if (query.authorId) {
+      recipes = recipes.filter((recipe) => recipe.user_id === query.authorId);
+    }
+
+    if (query.isPublic !== undefined) {
+      recipes = recipes.filter((recipe) => recipe.is_public === query.isPublic);
+    }
+
+    const maxPrepTime = query.maxPrepTime;
+    if (maxPrepTime !== undefined) {
+      recipes = recipes.filter((recipe) =>
+        typeof recipe.preparation_time === 'number' && recipe.preparation_time <= maxPrepTime
+      );
+    }
+
+    const maxCookTime = query.maxCookTime;
+    if (maxCookTime !== undefined) {
+      recipes = recipes.filter((recipe) =>
+        typeof recipe.cooking_time === 'number' && recipe.cooking_time <= maxCookTime
+      );
+    }
+
+    if (query.hasNutrition) {
+      recipes = recipes.filter((recipe) => recipe.macronutrients != null);
+    }
+
+    const sortKey = query.sortBy === 'title' ? 'name' : (query.sortBy || 'created_at');
+    recipes.sort((a, b) => {
+      const dir = query.sortOrder === 'asc' ? 1 : -1;
+      const aValue = a[sortKey];
+      const bValue = b[sortKey];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return aValue.localeCompare(bValue) * dir;
+      }
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return (aValue - bValue) * dir;
+      }
+      return 0;
+    });
+
+    const total = recipes.length;
+    const paginatedRecipes = recipes.slice(skip, skip + query.limit);
+
+    return createPaginatedResponse(paginatedRecipes, {
       page: query.page,
       limit: query.limit,
       total
@@ -87,93 +122,39 @@ export const GET = validateQuery(RecipeQuerySchema, async (request) => {
 
 export const POST = validateAuthAndBody(RecipeCreateSchema, async (request) => {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const data = request.validatedBody!;
     const userId = request.user!.id;
 
-    // Process ingredients - create or find them
-    const ingredientPromises = data.ingredients.map(async (ing) => {
-      const ingredient = await prisma.ingredient.upsert({
-        where: { name: ing.name.toLowerCase() },
-        update: {},
-        create: {
-          name: ing.name.toLowerCase(),
-          category: 'other',
-          unit: ing.unit
-        }
-      });
-      return {
-        ingredientId: ingredient.id,
-        quantity: ing.quantity,
-        unit: ing.unit,
-        preparation: ing.preparation || null,
-        notes: ing.notes || null,
-        optional: ing.optional
-      };
-    });
+    const instructions = data.instructions
+      .sort((a, b) => (a.stepNumber || 0) - (b.stepNumber || 0))
+      .map((inst) => inst.instruction);
 
-    const ingredientData = await Promise.all(ingredientPromises);
-
-    // Process instructions - ensure proper ordering
-    const instructionData = data.instructions.map((inst, index) => ({
-      stepNumber: inst.stepNumber || index + 1,
-      instruction: inst.instruction,
-      duration: inst.duration || null,
-      temperature: inst.temperature || null,
-      notes: inst.notes || null
-    }));
-
-    // Create the recipe
-    const recipe = await prisma.recipe.create({
-      data: {
-        title: data.title,
+    const { data: recipe, error } = await supabase
+      .from('recipes')
+      .insert({
+        user_id: userId,
+        name: data.title,
         description: data.description || null,
-        prepTimeMinutes: data.prepTimeMinutes,
-        cookTimeMinutes: data.cookTimeMinutes,
+        preparation_time: data.prepTimeMinutes,
+        cooking_time: data.cookTimeMinutes,
         servings: data.servings,
-        difficulty: data.difficulty,
-        cuisine: data.cuisine || null,
+        difficulty_level: data.difficulty,
+        cuisine_type: data.cuisine || null,
+        image_url: data.imageUrl || null,
+        instructions,
+        ingredients: data.ingredients,
+        macronutrients: data.nutrition || null,
         tags: data.tags,
-        imageUrl: data.imageUrl || null,
-        isPublic: data.isPublic,
-        source: "user",
-        authorId: userId,
-        ingredients: {
-          create: ingredientData
-        },
-        instructions: {
-          create: instructionData
-        },
-        ...(data.nutrition ? {
-          nutritionInfo: {
-            create: {
-              calories: data.nutrition.calories,
-              protein: data.nutrition.protein,
-              carbs: data.nutrition.carbs,
-              fat: data.nutrition.fat,
-              fiber: data.nutrition.fiber || null,
-              sugar: data.nutrition.sugar || null,
-              sodium: data.nutrition.sodium || null,
-              cholesterol: data.nutrition.cholesterol || null
-            }
-          }
-        } : {})
-      },
-      include: {
-        ingredients: true,
-        instructions: {
-          orderBy: {
-            stepNumber: 'asc'
-          }
-        },
-        nutritionInfo: true,
-        author: {
-          select: {
-            name: true,
-            image: true
-          }
-        }
-      }
-    });
+        is_public: data.isPublic,
+        is_ai_generated: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
 
     return createSuccessResponse(recipe, 201);
   } catch (error: unknown) {

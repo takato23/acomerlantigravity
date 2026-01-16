@@ -188,10 +188,8 @@ export function useEnhancedShoppingList() {
             quantity: item.quantity || 1,
             unit: item.unit || 'unidades',
             category: item.category || 'other',
-            purchase_date: new Date().toISOString(),
-            purchase_price: item.price,
-            store: receipt.store || 'Desconocido',
-            notes: `Añadido desde ticket - ${receipt.date || new Date().toISOString()}`
+            cost: item.price,
+            notes: `Añadido desde ticket - ${receipt.storeName || 'Desconocido'} - ${receipt.date || new Date().toISOString()}`
           });
           matchedPantryItems++;
         }
@@ -200,7 +198,7 @@ export function useEnhancedShoppingList() {
       const result: ReceiptProcessingResult = {
         items: receipt.items,
         totalAmount: receipt.total || 0,
-        store: receipt.store,
+        store: receipt.storeName,
         date: receipt.date ? new Date(receipt.date) : new Date(),
         matchedPantryItems,
         addedToShoppingList

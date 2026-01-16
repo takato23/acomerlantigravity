@@ -261,7 +261,7 @@ export function safeJsonParseWithSchema<T>(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: `Schema validation failed: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+        error: `Schema validation failed: ${error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
         warnings: parseResult.warnings,
         originalText: parseResult.originalText,
         cleanedText: parseResult.cleanedText,
@@ -523,6 +523,3 @@ function extractJsonFromText(text: string): { success: boolean; json?: string; m
   
   return { success: false };
 }
-
-// Export types
-export type { SafeJsonOptions, ParseResult };

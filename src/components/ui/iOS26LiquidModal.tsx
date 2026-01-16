@@ -24,7 +24,7 @@ export interface iOS26LiquidModalProps {
 const FloatingParticle = ({ delay = 0 }: { delay?: number }) => {
   const randomX = Math.random() * 100;
   const randomDuration = 10 + Math.random() * 20;
-  
+
   return (
     <motion.div
       className="absolute w-1 h-1 bg-white/20 rounded-full"
@@ -43,7 +43,7 @@ const FloatingParticle = ({ delay = 0 }: { delay?: number }) => {
   );
 };
 
-export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
+export const IOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
   isOpen,
   onClose,
   children,
@@ -68,12 +68,12 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) onClose();
     };
-    
+
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
-    
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
@@ -140,8 +140,8 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
             key="backdrop"
             className={cn(
               'fixed inset-0 z-50',
-              variant === 'spotlight' 
-                ? 'bg-black/80' 
+              variant === 'spotlight'
+                ? 'bg-black/80'
                 : 'bg-black/60 backdrop-blur-sm',
               backdropClassName
             )}
@@ -167,8 +167,8 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
             ref={modalRef}
             className={cn(
               'fixed z-50',
-              variant === 'drawer' 
-                ? 'bottom-0 left-0 right-0' 
+              variant === 'drawer'
+                ? 'bottom-0 left-0 right-0'
                 : 'inset-0 flex items-center justify-center p-4',
             )}
             variants={modalVariants[animationType]}
@@ -270,3 +270,7 @@ export const iOS26LiquidModal: React.FC<iOS26LiquidModalProps> = ({
 
   return createPortal(modalContent, document.body);
 };
+
+
+export const iOS26LiquidModal = IOS26LiquidModal;
+export type IOS26LiquidModalProps = iOS26LiquidModalProps;

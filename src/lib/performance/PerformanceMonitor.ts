@@ -3,6 +3,7 @@
  * Monitorea Core Web Vitals, métricas de API, y performance de componentes
  */
 
+import * as React from 'react';
 import { logger } from '@/services/logger';
 
 export interface PerformanceMetric {
@@ -87,7 +88,9 @@ export class PerformanceMonitor {
     if (typeof window === 'undefined') return;
 
     try {
-      const { onFCP, onLCP, onFID, onCLS, onTTFB, onINP } = await import('web-vitals');
+      const webVitals = await import('web-vitals');
+      const { onFCP, onLCP, onCLS, onTTFB, onINP } = webVitals;
+      const onFID = (webVitals as typeof webVitals & { onFID?: (cb: any) => void }).onFID;
 
       const handleMetric = (metric: any) => {
         const webVitalMetric: WebVitalsMetric = {
@@ -111,7 +114,9 @@ export class PerformanceMonitor {
 
       onFCP(handleMetric);
       onLCP(handleMetric);
-      onFID(handleMetric);
+      if (onFID) {
+        onFID(handleMetric);
+      }
       onCLS(handleMetric);
       onTTFB(handleMetric);
       onINP(handleMetric);
@@ -132,7 +137,7 @@ export class PerformanceMonitor {
       if (navigation) {
         this.recordMetric('navigation.domContentLoaded', navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart);
         this.recordMetric('navigation.load', navigation.loadEventEnd - navigation.loadEventStart);
-        this.recordMetric('navigation.domComplete', navigation.domComplete - navigation.navigationStart);
+        this.recordMetric('navigation.domComplete', navigation.domComplete - navigation.startTime);
         this.recordMetric('navigation.firstByte', navigation.responseStart - navigation.requestStart);
       }
     });

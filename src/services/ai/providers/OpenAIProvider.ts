@@ -10,6 +10,8 @@ import {
   AIImageRequest,
   AITextResponse,
   AIStreamResponse,
+  AIImageGenerationRequest,
+  AIImageGenerationResponse,
   AIServiceError,
 } from '../types';
 
@@ -248,14 +250,14 @@ export class OpenAIProvider extends AIProviderInterface {
 
       if (typeof request.image === 'string') {
         imageUrl = request.image;
-      } else if (request.image instanceof Buffer) {
+      } else if (Buffer.isBuffer(request.image)) {
         const base64 = request.image.toString('base64');
         imageUrl = `data:${request.mimeType || 'image/jpeg'};base64,${base64}`;
       } else {
         // Blob
-        const buffer = await request.image.arrayBuffer();
+        const buffer = await (request.image as Blob).arrayBuffer();
         const base64 = Buffer.from(buffer).toString('base64');
-        imageUrl = `data:${request.image.type};base64,${base64}`;
+        imageUrl = `data:${(request.image as Blob).type};base64,${base64}`;
       }
 
       const messages = [

@@ -33,6 +33,7 @@ const COOKING_PERSONAS_MAP = {
   foodie: { label: 'Foodie Aventurero', icon: ChefHat },
   health_conscious: { label: 'Saludable y Consciente', icon: Heart },
 };
+type CookingPersonaKey = keyof typeof COOKING_PERSONAS_MAP;
 
 export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps) {
   const { data } = useOnboardingStore();
@@ -58,7 +59,8 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
 
       const aiService = getAIService();
 
-      const persona = COOKING_PERSONAS_MAP[data.profile?.cooking_persona || 'beginner'];
+      const personaKey = (data.profile as { cooking_persona?: CookingPersonaKey } | undefined)?.cooking_persona || 'beginner';
+      const persona = COOKING_PERSONAS_MAP[personaKey] || COOKING_PERSONAS_MAP.beginner;
       const dietaryRestrictions = data.preferences?.dietary_restrictions || [];
       const allergies = data.preferences?.allergies || [];
       const pantryItems = data.pantryItems || [];
@@ -94,9 +96,8 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
       
       5 días en total, sin markdown ni explicaciones adicionales.`;
 
-      const result = await aiService.generateText({ prompt: prompt });
-      const response = await result.response;
-      let text = response.text().trim();
+      const result = await aiService.generateText({ prompt });
+      let text = result.data.trim();
 
       // Clean markdown if present
       if (text.startsWith('```json')) text = text.slice(7);
@@ -186,7 +187,8 @@ export function MealPlanPreviewStep({ onNext, onBack }: MealPlanPreviewStepProps
 
   const preferences = data.preferences;
   const profile = data.profile;
-  const persona = COOKING_PERSONAS_MAP[profile?.cooking_persona || 'beginner'];
+  const personaKey = (profile as { cooking_persona?: CookingPersonaKey } | undefined)?.cooking_persona || 'beginner';
+  const persona = COOKING_PERSONAS_MAP[personaKey] || COOKING_PERSONAS_MAP.beginner;
   const PersonaIcon = persona.icon;
 
   return (

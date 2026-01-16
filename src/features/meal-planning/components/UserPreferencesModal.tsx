@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { iOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
-import { iOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
+import { IOS26EnhancedCard } from '@/components/ios26/iOS26EnhancedCard';
+import { IOS26LiquidButton } from '@/components/ios26/iOS26LiquidButton';
 
 interface UserPreferencesModalProps {
   onClose: () => void;
@@ -34,7 +34,7 @@ export function UserPreferencesModal({ onClose }: UserPreferencesModalProps) {
           onClick={(e) => e.stopPropagation()}
           className="w-full max-w-md"
         >
-          <iOS26EnhancedCard
+          <IOS26EnhancedCard
             variant="aurora"
             elevation="floating"
           >
@@ -67,13 +67,13 @@ export function UserPreferencesModal({ onClose }: UserPreferencesModalProps) {
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-white/10 flex justify-end gap-3">
-              <iOS26LiquidButton
-                variant="glass"
+              <IOS26LiquidButton
+                variant="ghost"
                 onClick={onClose}
               >
                 Cancelar
-              </iOS26LiquidButton>
-              <iOS26LiquidButton
+              </IOS26LiquidButton>
+              <IOS26LiquidButton
                 variant="primary"
                 icon={<Save className="w-4 h-4" />}
                 iconPosition="left"
@@ -81,9 +81,9 @@ export function UserPreferencesModal({ onClose }: UserPreferencesModalProps) {
                 className="bg-orange-500"
               >
                 Guardar
-              </iOS26LiquidButton>
+              </IOS26LiquidButton>
             </div>
-          </iOS26EnhancedCard>
+          </IOS26EnhancedCard>
         </motion.div>
       </motion.div>
     </AnimatePresence>

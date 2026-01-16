@@ -3,7 +3,7 @@
  */
 
 import { StateCreator } from 'zustand';
-import { logger } from '@/services/logger';
+import { logger } from '../../services/logger';
 
 export interface AppSettings {
   version: number;
@@ -119,7 +119,7 @@ export interface SettingsSlice {
   // Actions
   updateSettings: (path: string, value: any) => void;
   resetSettings: () => void;
-  resetSection: (section: keyof AppSettings) => void;
+  resetSection: (section: Exclude<keyof AppSettings, 'version'>) => void;
   exportData: () => Promise<string>;
   importData: (data: string) => Promise<boolean>;
   validateSettings: () => boolean;
@@ -237,7 +237,7 @@ const defaultSettings: AppSettings = {
 export const createSettingsSlice: StateCreator<any, [], [], SettingsSlice> = (set, get) => ({
   settings: defaultSettings,
 
-  updateSettings: (path, value) => set((state) => {
+  updateSettings: (path, value) => set((state: any) => {
     const keys = path.split('.');
     let current: any = state.settings;
 
@@ -257,11 +257,11 @@ export const createSettingsSlice: StateCreator<any, [], [], SettingsSlice> = (se
     get().validateSettings();
   }),
 
-  resetSettings: () => set((state) => {
+  resetSettings: () => set((state: any) => {
     state.settings = { ...defaultSettings };
   }),
 
-  resetSection: (section) => set((state) => {
+  resetSection: (section) => set((state: any) => {
     state.settings[section] = { ...defaultSettings[section] };
   }),
 
@@ -290,7 +290,7 @@ export const createSettingsSlice: StateCreator<any, [], [], SettingsSlice> = (se
         throw new Error('Data from newer version not supported');
       }
 
-      set((state) => {
+      set((state: SettingsSlice) => {
         // Merge imported settings with defaults to ensure all fields exist
         state.settings = { ...defaultSettings, ...importedData.settings };
 
@@ -313,42 +313,42 @@ export const createSettingsSlice: StateCreator<any, [], [], SettingsSlice> = (se
 
     // Validate ranges and constraints
     if (settings.general.syncInterval < 1 || settings.general.syncInterval > 1440) {
-      set((state) => { state.settings.general.syncInterval = 15; });
+      set((state: SettingsSlice) => { state.settings.general.syncInterval = 15; });
       isValid = false;
     }
 
     if (settings.general.maxCacheSize < 10 || settings.general.maxCacheSize > 1000) {
-      set((state) => { state.settings.general.maxCacheSize = 100; });
+      set((state: SettingsSlice) => { state.settings.general.maxCacheSize = 100; });
       isValid = false;
     }
 
     if (settings.security.lockTimeout < 1 || settings.security.lockTimeout > 60) {
-      set((state) => { state.settings.security.lockTimeout = 5; });
+      set((state: SettingsSlice) => { state.settings.security.lockTimeout = 5; });
       isValid = false;
     }
 
     if (settings.security.sessionTimeout < 1 || settings.security.sessionTimeout > 168) {
-      set((state) => { state.settings.security.sessionTimeout = 24; });
+      set((state: SettingsSlice) => { state.settings.security.sessionTimeout = 24; });
       isValid = false;
     }
 
     if (settings.voice.confidenceThreshold < 0 || settings.voice.confidenceThreshold > 1) {
-      set((state) => { state.settings.voice.confidenceThreshold = 0.7; });
+      set((state: SettingsSlice) => { state.settings.voice.confidenceThreshold = 0.7; });
       isValid = false;
     }
 
     if (settings.ai.creativity < 0 || settings.ai.creativity > 1) {
-      set((state) => { state.settings.ai.creativity = 0.7; });
+      set((state: SettingsSlice) => { state.settings.ai.creativity = 0.7; });
       isValid = false;
     }
 
     if (settings.ai.maxSuggestions < 1 || settings.ai.maxSuggestions > 20) {
-      set((state) => { state.settings.ai.maxSuggestions = 5; });
+      set((state: SettingsSlice) => { state.settings.ai.maxSuggestions = 5; });
       isValid = false;
     }
 
     if (settings.storage.retentionPeriod < 7 || settings.storage.retentionPeriod > 365) {
-      set((state) => { state.settings.storage.retentionPeriod = 90; });
+      set((state: SettingsSlice) => { state.settings.storage.retentionPeriod = 90; });
       isValid = false;
     }
 
@@ -361,7 +361,7 @@ export const createSettingsSlice: StateCreator<any, [], [], SettingsSlice> = (se
     // Migration logic for different versions
     if (fromVersion < 1 && toVersion >= 1) {
       // Add new fields that didn't exist in version 0
-      set((state) => {
+      set((state: any) => {
         // Example migration: add new accessibility settings
         if (!state.settings.accessibility) {
           state.settings.accessibility = defaultSettings.accessibility;

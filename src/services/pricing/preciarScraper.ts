@@ -154,15 +154,15 @@ export async function scrapeProductoPreciar(producto: string): Promise<ProductoP
         });
 
         if (!response.ok) {
-            logger.warn('[PreciarScraper] Failed to fetch:', response.status);
+            logger.warn('[PreciarScraper] Failed to fetch:', 'PreciarScraper', { status: response.status });
             return null;
         }
 
         const html = await response.text();
         return parseProductoHtml(html, producto, slug);
 
-    } catch (error) {
-        logger.error('[PreciarScraper] Error scraping:', error);
+    } catch (error: unknown) {
+        logger.error('[PreciarScraper] Error scraping:', 'PreciarScraper', error);
         return null;
     }
 }

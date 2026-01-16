@@ -40,7 +40,9 @@ interface ProfileDataContextValue {
 // Household Members Context (moderate changes)
 interface HouseholdContextValue {
   householdMembers: HouseholdMember[];
-  addHouseholdMember: (member: Omit<HouseholdMember, 'id' | 'userId'>) => Promise<void>;
+  addHouseholdMember: (
+    member: Omit<HouseholdMember, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ) => Promise<void>;
   updateHouseholdMember: (id: string, updates: Partial<HouseholdMember>) => Promise<void>;
   removeHouseholdMember: (id: string) => Promise<void>;
 }
@@ -112,24 +114,26 @@ function createMemoizedFunction<T, Args extends any[]>(
 const ProfileDataProvider = memo<{ children: React.ReactNode }>(({ children }) => {
   const user = useUser();
   const userActions = useUserActions();
+  const userProfile = user?.profile ?? null;
+  const userId = userProfile?.id;
   
   // Memoize store mappings to prevent re-renders
   const storeData = useMemo(() => ({
-    profile: user as UserProfile | null,
-    preferences: user?.preferences as UserPreferences | null,
+    profile: userProfile ? (userProfile as unknown as UserProfile) : null,
+    preferences: user?.preferences ? (user.preferences as unknown as UserPreferences) : null,
     updateProfile: userActions?.updateProfile,
     setPreferences: userActions?.setPreferences
-  }), [user, userActions?.updateProfile, userActions?.setPreferences]);
+  }), [userProfile, user?.preferences, userActions?.updateProfile, userActions?.setPreferences]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   // Initialize profile when user changes
   useEffect(() => {
-    if (user?.id) {
+    if (userId) {
       const initializeProfile = async () => {
         try {
-          await ensureUserProfile(user);
+          await ensureUserProfile(userProfile as unknown as import('@supabase/supabase-js').User);
           logger.info('Profile initialized');
         } catch (error: unknown) {
           logger.error('Error initializing profile', 'ProfileContext', error);
@@ -139,7 +143,7 @@ const ProfileDataProvider = memo<{ children: React.ReactNode }>(({ children }) =
       
       initializeProfile();
     }
-  }, [user?.id]);
+  }, [userId, userProfile]);
 
   // Memoized context value
   const value = useMemo<ProfileDataContextValue>(() => ({
@@ -162,17 +166,19 @@ ProfileDataProvider.displayName = 'ProfileDataProvider';
 
 const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => {
   const user = useUser();
+  const userProfile = user?.profile ?? null;
+  const userId = userProfile?.id;
   const [householdMembers, setHouseholdMembers] = useState<HouseholdMember[]>([]);
 
   // Memoized load function
   const loadHouseholdMembers = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
     
     try {
       const { data, error } = await supabase
         .from('household_members')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -180,23 +186,25 @@ const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => 
     } catch (err: unknown) {
       logger.error('Error loading household members', 'ProfileContext', err);
     }
-  }, [user?.id]);
+  }, [userId]);
 
   // Load household members on user change
   useEffect(() => {
-    if (user?.id) {
+    if (userId) {
       loadHouseholdMembers();
     }
-  }, [user?.id, loadHouseholdMembers]);
+  }, [userId, loadHouseholdMembers]);
 
   // Memoized action functions
-  const addHouseholdMember = useCallback(async (member: Omit<HouseholdMember, 'id' | 'userId'>) => {
-    if (!user?.id) return;
+  const addHouseholdMember = useCallback(async (
+    member: Omit<HouseholdMember, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ) => {
+    if (!userId) return;
 
     try {
       const { data, error } = await supabase
         .from('household_members')
-        .insert({ ...member, user_id: user.id })
+        .insert({ ...member, user_id: userId })
         .select()
         .single();
 
@@ -208,7 +216,7 @@ const HouseholdProvider = memo<{ children: React.ReactNode }>(({ children }) => 
       logger.error('Error al agregar miembro del hogar', 'ProfileContext');
       throw err;
     }
-  }, [user?.id]);
+  }, [userId]);
 
   const updateHouseholdMember = useCallback(async (id: string, updates: Partial<HouseholdMember>) => {
     try {
@@ -267,6 +275,8 @@ HouseholdProvider.displayName = 'HouseholdProvider';
 
 const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }) => {
   const user = useUser();
+  const userProfile = user?.profile ?? null;
+  const userId = userProfile?.id;
   const userActions = useUserActions();
   const { profile } = useProfileData();
   
@@ -276,7 +286,7 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
 
   // Memoized action functions
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    if (!user?.id || !profile || !updateStoreProfile) return;
+    if (!userId || !profile || !updateStoreProfile) return;
 
     try {
       await updateStoreProfile(updates);
@@ -285,10 +295,10 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al actualizar el perfil', 'ProfileContext');
       throw err;
     }
-  }, [user?.id, profile, updateStoreProfile]);
+  }, [userId, profile, updateStoreProfile]);
 
   const updatePreferences = useCallback(async (updates: Partial<UserPreferences>) => {
-    if (!user?.id || !updateStorePreferences) return;
+    if (!userId || !updateStorePreferences) return;
 
     try {
       await updateStorePreferences(updates);
@@ -297,14 +307,14 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al actualizar las preferencias', 'ProfileContext');
       throw err;
     }
-  }, [user?.id, updateStorePreferences]);
+  }, [userId, updateStorePreferences]);
 
   const uploadAvatar = useCallback(async (file: File): Promise<string> => {
-    if (!user?.id) throw new Error('Usuario no autenticado');
+    if (!userId) throw new Error('Usuario no autenticado');
 
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${userId}/avatar.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       // Upload to Supabase Storage
@@ -327,10 +337,10 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al subir la imagen', 'ProfileContext');
       throw err;
     }
-  }, [user?.id, updateProfile]);
+  }, [userId, updateProfile]);
 
   const refreshProfile = useCallback(async () => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     try {
       // Clear cache
@@ -340,7 +350,7 @@ const ProfileActionsProvider = memo<{ children: React.ReactNode }>(({ children }
       logger.error('Error al actualizar el perfil', 'ProfileContext');
       throw err;
     }
-  }, [user?.id]);
+  }, [userId]);
 
   const syncToCloud = useCallback(async () => {
     await refreshProfile();
@@ -382,11 +392,13 @@ const ProfileComputedProvider = memo<{ children: React.ReactNode }>(({ children 
   // Create dependency key for memoization
   const createDepsKey = useCallback(() => {
     return JSON.stringify({
-      preferencesVersion: preferences?.version || 0,
+      preferencesVersion: preferences?.updatedAt ? new Date(preferences.updatedAt).getTime() : 0,
       householdMembersCount: householdMembers.length,
-      householdMembersHash: householdMembers.map(m => `${m.id}:${m.version || 0}`).join(',')
+      householdMembersHash: householdMembers
+        .map(m => `${m.id}:${m.updatedAt ? new Date(m.updatedAt).getTime() : 0}`)
+        .join(',')
     });
-  }, [preferences?.version, householdMembers]);
+  }, [preferences?.updatedAt, householdMembers]);
 
   // Memoized helper functions
   const getDietaryRestrictions = useMemo(() => 

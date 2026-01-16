@@ -138,7 +138,7 @@ const initialState: GrowthState = {
   
   // Engagement
   userEngagement: null,
-  engagementMetrics: {},
+  engagementMetrics: {} as Record<TimePeriod, any>,
   userSegments: {} as Record<UserSegment, number>,
   funnelAnalyses: [],
   cohortAnalyses: [],
@@ -472,10 +472,26 @@ export const useGrowthStore = create<GrowthStore>()(
           try {
             const engagementService = getEngagementService();
             const insights = await engagementService.getEngagementInsights();
+            const mappedInsights: GrowthInsight[] = insights.map((insight, index) => {
+              const impactScore = insight.impact === 'high' ? 80 : insight.impact === 'medium' ? 50 : 20;
+              return {
+                id: `engagement_${Date.now()}_${index}`,
+                type: insight.type,
+                title: insight.title,
+                description: insight.description,
+                impact_score: impactScore,
+                confidence_score: 50,
+                recommendations: insight.recommendation ? [insight.recommendation] : [],
+                data_points: insight.data,
+                created_at: new Date().toISOString(),
+                priority: insight.impact === 'high' ? 'high' : insight.impact === 'medium' ? 'medium' : 'low',
+                category: 'engagement'
+              };
+            });
             
             set((state) => ({
               ...state,
-              growthInsights: insights
+              growthInsights: mappedInsights
             }));
           } catch (error: unknown) {
             logger.error('Failed to load growth insights:', 'growth-stack:growthStore', error);

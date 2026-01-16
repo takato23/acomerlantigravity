@@ -25,7 +25,7 @@ const nextConfig = {
   },
 
   // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config, { dev, isServer, nextRuntime }) => {
     // Production optimizations
     if (!dev) {
       // Bundle splitting for better caching - Modified for Next.js 15 compatibility

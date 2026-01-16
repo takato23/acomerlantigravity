@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
         // Cargar despensa del usuario para calcular faltantes
         const pantryItems = await db.getPantryItems(user.id);
         const pantryMap = new Map<string, { quantity: number; unit: string }>();
-        pantryItems.forEach((item) => {
+        pantryItems.forEach((item: any) => {
           const ingredientName = item.ingredient?.name?.toLowerCase();
           if (ingredientName) {
             const ex = pantryMap.get(ingredientName);
@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
 
     // Create a map of available pantry ingredients
     const pantryMap = new Map<string, { quantity: number; unit: string }>();
-    pantryItems.forEach(item => {
+    pantryItems.forEach((item: any) => {
       const ingredientName = item.ingredient?.name?.toLowerCase();
       if (ingredientName) {
         const existing = pantryMap.get(ingredientName);
@@ -328,7 +328,7 @@ export async function POST(request: NextRequest) {
         // Determine priority based on recipe frequency and shortage amount
         const recipeCount = required.recipes.length;
         let priority: 'high' | 'medium' | 'low' = 'medium';
-        
+
         if (recipeCount >= 3 || shortage >= required.total_quantity) {
           priority = 'high';
         } else if (recipeCount === 1 && shortage < required.total_quantity * 0.5) {
@@ -363,8 +363,8 @@ export async function POST(request: NextRequest) {
         total_items: shoppingList.length,
         high_priority_items: shoppingList.filter(item => item.priority === 'high').length,
         estimated_total_cost: 0, // Could be calculated with price data
-        pantry_coverage_percentage: totalRequiredItems > 0 
-          ? Math.round((totalPantryCoverage / totalRequiredItems) * 100) 
+        pantry_coverage_percentage: totalRequiredItems > 0
+          ? Math.round((totalPantryCoverage / totalRequiredItems) * 100)
           : 0
       },
       meal_plan_dates: {
@@ -381,7 +381,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error generating shopping list:', 'meal-planning/shopping-list', error);
     return NextResponse.json(
       { error: 'Failed to generate shopping list' },
@@ -399,7 +399,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const days = parseInt(searchParams.get('days') || '7');
-    
+
     // Generate shopping list for next N days
     const startDate = new Date();
     const endDate = new Date();

@@ -6,12 +6,12 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
-interface KeInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface KeInputProps extends HTMLMotionProps<'input'> {
   label?: string;
   error?: string;
   success?: string;

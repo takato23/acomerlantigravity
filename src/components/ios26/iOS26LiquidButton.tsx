@@ -14,7 +14,7 @@ import { iOS26Tokens } from '@/styles/ios26/tokens';
 
 import { useIOS26 } from './iOS26Provider';
 
-export interface iOS26LiquidButtonProps extends Omit<HTMLMotionProps<"button">, 'children'> {
+export interface IOS26LiquidButtonProps extends Omit<HTMLMotionProps<"button">, 'children'> {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -28,7 +28,7 @@ export interface iOS26LiquidButtonProps extends Omit<HTMLMotionProps<"button">, 
   className?: string;
 }
 
-export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButtonProps>((props, ref) => {
+export const IOS26LiquidButton = forwardRef<HTMLButtonElement, IOS26LiquidButtonProps>((props, ref) => {
   const {
     children,
     variant = 'primary',
@@ -47,37 +47,37 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
   const { theme, reduceMotion } = useIOS26();
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: string }>>([]);
   const [isPressed, setIsPressed] = useState(false);
-  
+
   const isDisabled = disabled || loading;
   const themeConfig = iOS26Tokens.themes[theme];
-  
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (isDisabled || reduceMotion) {
       onClick?.(e);
       return;
     }
-    
+
     // Create ripple effect
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const id = Date.now().toString();
-    
+
     setRipples(prev => [...prev, { x, y, id }]);
     setTimeout(() => {
       setRipples(prev => prev.filter(r => r.id !== id));
     }, 600);
-    
+
     onClick?.(e);
   };
-  
+
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm gap-1.5',
     md: 'px-4 py-2 text-base gap-2',
     lg: 'px-6 py-3 text-lg gap-2.5',
     xl: 'px-8 py-4 text-xl gap-3'
   };
-  
+
   const getVariantStyles = () => {
     switch (variant) {
       case 'primary':
@@ -112,20 +112,20 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
         };
     }
   };
-  
+
   const variantStyles = getVariantStyles();
-  
+
   const buttonVariants = {
     initial: { scale: 1 },
     hover: !isDisabled && !reduceMotion ? { scale: 1.05 } : {},
     tap: !isDisabled && !reduceMotion ? { scale: 0.95 } : {}
   };
-  
+
   const pulseAnimation = pulse && !reduceMotion && !isDisabled ? {
     scale: [1, 1.05, 1],
     opacity: [1, 0.8, 1]
   } : {};
-  
+
   const glowAnimation = glow && !reduceMotion && !isDisabled ? {
     boxShadow: [
       '0 4px 24px rgba(0, 0, 0, 0.08)',
@@ -133,8 +133,8 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
       '0 4px 24px rgba(0, 0, 0, 0.08)'
     ]
   } : {};
-  
-  
+
+
   return (
     <motion.button
       ref={ref}
@@ -180,7 +180,7 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
           transition={{ duration: 0.2 }}
         />
       )}
-      
+
       {/* Loading overlay */}
       <AnimatePresence>
         {loading && (
@@ -194,7 +194,7 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Content */}
       <motion.div
         className={cn(
@@ -210,7 +210,7 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
           <span className="flex-shrink-0">{icon}</span>
         )}
       </motion.div>
-      
+
       {/* Ripple effects */}
       <AnimatePresence>
         {ripples.map(ripple => (
@@ -231,4 +231,7 @@ export const iOS26LiquidButton = forwardRef<HTMLButtonElement, iOS26LiquidButton
   );
 });
 
-iOS26LiquidButton.displayName = 'iOS26LiquidButton';
+IOS26LiquidButton.displayName = 'IOS26LiquidButton';
+
+// Alias for backward compatibility
+export const iOS26LiquidButton = IOS26LiquidButton;

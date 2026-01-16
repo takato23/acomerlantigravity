@@ -163,6 +163,73 @@ export const useSettingsActions = () => useAppStore((state) => ({
   importData: state.importData
 }));
 
+// Compatibility Hooks for legacy/enhanced components
+export const useShoppingStore = () => {
+  const state = useAppStore();
+  const shopping = state.shopping;
+  const activeList = shopping.lists.find(l => l.id === shopping.activeListId) || shopping.lists[0];
+
+  return {
+    activeList,
+    isLoading: shopping.isLoading,
+    fetchActiveList: async (userId: string) => {
+      // Logic for fetching from API could go here
+      console.log('Fetching active list for', userId);
+    },
+    createList: async (userId: string, name: string) => {
+      const newList = {
+        name,
+        items: [],
+        shared: false,
+        archived: false,
+      };
+      state.addShoppingList(newList);
+      return newList;
+    },
+    addItem: (listId: string, item: any) => {
+      state.addShoppingItem(listId, {
+        name: item.custom_name || item.name || 'Nuevo item',
+        quantity: item.quantity || 1,
+        unit: item.unit || 'uds',
+        category: item.category || 'otros',
+        priority: 'medium',
+        completed: false,
+        notes: item.notes || ''
+      });
+    },
+    toggleItemChecked: (listId: string, itemId: string) => {
+      state.toggleShoppingItem(listId, itemId);
+    },
+    deleteItem: (listId: string, itemId: string) => {
+      state.deleteShoppingItem(listId, itemId);
+    },
+    updateItem: (listId: string, itemId: string, updates: any) => {
+      state.updateShoppingItem(listId, itemId, updates);
+    }
+  };
+};
+
+export const usePantryStore = () => {
+  const state = useAppStore();
+  const pantry = state.pantry;
+
+  return {
+    items: pantry.items,
+    isLoading: pantry.isLoading,
+    checkLowStock: () => {
+      state.checkAlerts();
+    },
+    suggestRestocking: () => {
+      return pantry.items.filter(item =>
+        item.currentStock <= (item.minimumStock || 1)
+      ).map(item => ({
+        ...item,
+        ingredient_id: item.id // Compatibility
+      }));
+    }
+  };
+};
+
 // Computed selectors
 export const useComputed = () => {
   const pantry = usePantry();

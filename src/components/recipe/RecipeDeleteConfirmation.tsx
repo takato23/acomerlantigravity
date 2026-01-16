@@ -119,7 +119,7 @@ export function RecipeDeleteConfirmation({
         const errorData = await response.json();
         throw new MealPlanningError(
           'Failed to delete recipe',
-          MealPlanningErrorCodes.DATABASE_ERROR,
+          MealPlanningErrorCodes.DATABASE_CONNECTION_FAILED,
           { response: errorData },
           errorData.message || 'Error al eliminar la receta'
         );

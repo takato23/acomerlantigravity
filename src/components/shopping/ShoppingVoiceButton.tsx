@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, ShoppingCart, Check, X, Plus } from 'lucide-react';
 
-import { useShoppingVoice } from '@/hooks/useShoppingVoice';
+import { useShoppingVoice } from '../../hooks/useShoppingVoice';
 
 interface ShoppingVoiceButtonProps {
   onAddItem: (item: { name: string; quantity: number; unit: string }) => void;
@@ -99,7 +99,7 @@ export function ShoppingVoiceButton({
       >
         {getStatusIcon()}
         <span className="hidden sm:inline">{getStatusText()}</span>
-        
+
         {/* Listening pulse effect */}
         {isListening && (
           <motion.div
@@ -149,7 +149,7 @@ export function ShoppingVoiceButton({
                   {isProcessing ? 'Procesando comando' : 'Escuchando...'}
                 </span>
               </div>
-              
+
               {transcript && (
                 <div className="mb-3">
                   <div className="text-sm text-gray-600 mb-1">Escuchado:</div>
@@ -170,7 +170,7 @@ export function ShoppingVoiceButton({
               )}
 
               <div className="text-xs text-gray-500">
-                {isListening ? 
+                {isListening ?
                   'Habla claramente. Se detendrá automáticamente después de 3 segundos de silencio.' :
                   'Procesando tu comando...'
                 }

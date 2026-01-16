@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { logger } from '@/lib/logger';
+import { getUser } from '@/lib/auth/supabase-auth';
 
 // authOptions removed - using Supabase Auth;
 import { db } from '@/lib/supabase/database.service';
@@ -16,7 +16,7 @@ export async function GET(
   try {
     const user = await getUser();
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -30,21 +30,14 @@ export async function GET(
     }
 
     // Fetch recipe with ingredients and instructions
-    const recipe = await db.getRecipeById(id, {
-      // includes handled by Supabase service
-      instructions: {
-        orderBy: {
-          stepNumber: 'asc'
-        }
-      }
-    });
+    const recipe = await db.getRecipeById(id, user.id);
 
     if (!recipe) {
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
     }
 
     // Check access permissions
-    if (!recipe.isPublic && recipe.userId !== user.id) {
+    if (!recipe.is_public && recipe.user_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -76,21 +69,19 @@ export async function PUT(
   try {
     const user = await getUser();
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check ownership
     const { id } = await params;
-    const existingRecipe = await db.getRecipeById(id, {
-      select: { userId: true }
-    });
+    const existingRecipe = await db.getRecipeById(id, user.id);
 
     if (!existingRecipe) {
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
     }
 
-    if (existingRecipe.userId !== user.id) {
+    if (existingRecipe.user_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -206,21 +197,19 @@ export async function DELETE(
   try {
     const user = await getUser();
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check ownership
     const { id } = await params;
-    const recipe = await db.getRecipeById(id, {
-      select: { userId: true, title: true }
-    });
+    const recipe = await db.getRecipeById(id, user.id);
 
     if (!recipe) {
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
     }
 
-    if (recipe.userId !== user.id) {
+    if (recipe.user_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -247,10 +236,10 @@ export async function DELETE(
     }); */
 
     // Placeholder - implement Supabase version
-    await db.deleteRecipe(id);
+    await db.deleteRecipe(id, user.id);
 
     // Invalidate cache
-    await enhancedCache.invalidatePattern(`recipe:${params.id}:*`);
+    await enhancedCache.invalidatePattern(`recipe:${id}:*`);
     await enhancedCache.invalidatePattern(`recipe:list:*`);
 
     return NextResponse.json({

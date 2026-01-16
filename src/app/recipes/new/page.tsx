@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { logger } from '@/services/logger';
@@ -22,11 +23,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const DIFFICULTY_OPTIONS = ["easy", "medium", "hard"];
 const COMMON_TAGS = ["vegetarian", "vegan", "gluten-free", "dairy-free", "quick", "healthy", "budget-friendly"];
 
+type IngredientForm = {
+  name: string;
+  quantity: string;
+  unit: string;
+  notes: string;
+};
+
+type RecipeFormState = {
+  title: string;
+  description: string;
+  prepTimeMinutes: number;
+  cookTimeMinutes: number;
+  servings: number;
+  difficulty: string;
+  cuisine: string;
+  imageUrl: string;
+  ingredients: IngredientForm[];
+  instructions: string[];
+  tags: string[];
+  isPublic: boolean;
+};
+
 export default function NewRecipePage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RecipeFormState>({
     title: "",
     description: "",
     prepTimeMinutes: 15,
@@ -41,7 +64,7 @@ export default function NewRecipePage() {
     isPublic: true,
   });
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = <K extends keyof RecipeFormState>(field: K, value: RecipeFormState[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -52,13 +75,13 @@ export default function NewRecipePage() {
     }));
   };
 
-  const updateIngredient = (index, field, value) => {
+  const updateIngredient = (index: number, field: keyof IngredientForm, value: string) => {
     const newIngredients = [...formData.ingredients];
     newIngredients[index][field] = value;
     setFormData(prev => ({ ...prev, ingredients: newIngredients }));
   };
 
-  const removeIngredient = (index) => {
+  const removeIngredient = (index: number) => {
     setFormData(prev => ({
       ...prev,
       ingredients: prev.ingredients.filter((_, i) => i !== index)
@@ -72,20 +95,20 @@ export default function NewRecipePage() {
     }));
   };
 
-  const updateInstruction = (index, value) => {
+  const updateInstruction = (index: number, value: string) => {
     const newInstructions = [...formData.instructions];
     newInstructions[index] = value;
     setFormData(prev => ({ ...prev, instructions: newInstructions }));
   };
 
-  const removeInstruction = (index) => {
+  const removeInstruction = (index: number) => {
     setFormData(prev => ({
       ...prev,
       instructions: prev.instructions.filter((_, i) => i !== index)
     }));
   };
 
-  const toggleTag = (tag) => {
+  const toggleTag = (tag: string) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags.includes(tag)
@@ -94,7 +117,7 @@ export default function NewRecipePage() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     if (!user) return;
 

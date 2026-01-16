@@ -22,7 +22,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useProfileContext } from '@/contexts/ProfileContext';
-import { dietaryRestrictionsSchema, cuisinePreferencesSchema } from '@/lib/schemas/profile';
+import type { DietaryRestriction } from '@/types/profile';
+import {
+  dietaryRestrictionsSchema,
+  cuisinePreferencesSchema,
+  type DietaryRestrictionsFormData,
+  type CuisinePreferencesFormData
+} from '@/lib/schemas/profile';
 
 
 const commonRestrictions = [
@@ -78,6 +84,10 @@ export function PreferencesSection() {
   const { profile, updateProfile } = useProfileContext();
   const [isEditingRestrictions, setIsEditingRestrictions] = useState(false);
   const [isEditingCuisines, setIsEditingCuisines] = useState(false);
+  const cuisineSkillLevel =
+    profile?.cookingSkillLevel === 'expert'
+      ? 'advanced'
+      : profile?.cookingSkillLevel;
 
   const restrictionsForm = useForm<DietaryRestrictionsFormData>({
     resolver: zodResolver(dietaryRestrictionsSchema),
@@ -90,17 +100,19 @@ export function PreferencesSection() {
   const cuisinesForm = useForm<CuisinePreferencesFormData>({
     resolver: zodResolver(cuisinePreferencesSchema),
     defaultValues: {
-      cuisines: profile?.cuisinePreferences || [],
-      cookingSkillLevel: profile?.cookingSkillLevel || 'intermediate',
-      cookingTime: profile?.preferredCookingTime || 'balanced',
-      equipment: profile?.availableEquipment || [],
+      cuisines: profile?.preferredCuisines || [],
+      cookingSkillLevel: cuisineSkillLevel || 'intermediate',
+      cookingTime: 'balanced',
+      equipment: [],
     },
   });
+  const selectedCookingTime = cuisinesForm.watch('cookingTime');
+  const selectedEquipment = cuisinesForm.watch('equipment') || [];
 
   const handleSaveRestrictions = async (data: DietaryRestrictionsFormData) => {
     try {
       await updateProfile({
-        dietaryRestrictions: data.restrictions,
+        dietaryRestrictions: data.restrictions as DietaryRestriction[],
         allergies: data.allergies,
       });
       setIsEditingRestrictions(false);
@@ -113,10 +125,8 @@ export function PreferencesSection() {
   const handleSaveCuisines = async (data: CuisinePreferencesFormData) => {
     try {
       await updateProfile({
-        cuisinePreferences: data.cuisines,
+        preferredCuisines: data.cuisines,
         cookingSkillLevel: data.cookingSkillLevel,
-        preferredCookingTime: data.cookingTime,
-        availableEquipment: data.equipment,
       });
       setIsEditingCuisines(false);
       toast.success('Cuisine preferences updated');
@@ -126,7 +136,7 @@ export function PreferencesSection() {
   };
 
   // Calculate cuisine preference percentages (mock data)
-  const cuisineStats = profile?.cuisinePreferences?.map(cuisine => ({
+  const cuisineStats = profile?.preferredCuisines?.map(cuisine => ({
     id: cuisine,
     name: cuisineOptions.find(c => c.id === cuisine)?.name || cuisine,
     flag: cuisineOptions.find(c => c.id === cuisine)?.flag || '🍽️',
@@ -415,10 +425,10 @@ export function PreferencesSection() {
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-glass-medium" />
                 <span className="text-sm text-glass-strong">
-                  {profile?.preferredCookingTime === 'quick' && 'Quick & Easy (< 30 min)'}
-                  {profile?.preferredCookingTime === 'balanced' && 'Balanced (30-60 min)'}
-                  {profile?.preferredCookingTime === 'gourmet' && 'Gourmet (> 60 min)'}
-                  {!profile?.preferredCookingTime && 'Not set'}
+                  {selectedCookingTime === 'quick' && 'Quick & Easy (< 30 min)'}
+                  {selectedCookingTime === 'balanced' && 'Balanced (30-60 min)'}
+                  {selectedCookingTime === 'gourmet' && 'Gourmet (> 60 min)'}
+                  {!selectedCookingTime && 'Not set'}
                 </span>
               </div>
             </div>
@@ -430,7 +440,7 @@ export function PreferencesSection() {
               </h3>
               <div className="flex flex-wrap gap-2">
                 {cookingEquipment.map(equipment => {
-                  const isAvailable = profile?.availableEquipment?.includes(equipment);
+                  const isAvailable = selectedEquipment.includes(equipment);
                   return (
                     <Badge
                       key={equipment}

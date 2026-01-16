@@ -112,12 +112,13 @@ export default function EnhancedShoppingList({ userId, className }: EnhancedShop
     }
   };
 
-  const handleExport = (format: 'pdf' | 'txt' | 'json') => {
+  const handleExport = async (format: 'pdf' | 'txt' | 'json') => {
     try {
-      const content = exportShoppingList(format);
+      const content = await exportShoppingList(format);
+      const resolvedContent = content ?? '';
 
       // Create download
-      const blob = new Blob([content || ''], {
+      const blob = new Blob([resolvedContent], {
         type: format === 'json' ? 'application/json' : 'text/plain'
       });
       const url = URL.createObjectURL(blob);

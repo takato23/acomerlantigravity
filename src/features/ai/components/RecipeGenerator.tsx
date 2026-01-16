@@ -100,7 +100,7 @@ export function RecipeGenerator({ isOpen, onClose, initialIngredients = [] }: Re
       router.push(`/app/recipes/${data.recipe.id}`);
       onClose();
     } catch (err: unknown) {
-      setError(err.message || 'Failed to generate recipe');
+      setError(err instanceof Error ? err.message : 'Failed to generate recipe');
       setIsGenerating(false);
     }
   };
