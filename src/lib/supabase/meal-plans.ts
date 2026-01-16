@@ -670,7 +670,7 @@ export class MealPlanService {
             const dietaryLabels = Array.isArray(plannedMeal.recipes.dietary_info)
               ? (plannedMeal.recipes.dietary_info as unknown as Recipe['dietaryLabels'])
               : [];
-            const nutrition = plannedMeal.recipes.nutrition_per_serving as Recipe['nutrition'] | null;
+            const nutrition = plannedMeal.recipes.nutrition_per_serving as unknown as Recipe['nutrition'] | null;
 
             slot.recipeId = plannedMeal.recipe_id ?? undefined;
             slot.recipe = {
@@ -822,7 +822,7 @@ export class MealPlanService {
             const dietaryLabels = Array.isArray(plannedMeal.recipes.dietary_info)
               ? (plannedMeal.recipes.dietary_info as unknown as Recipe['dietaryLabels'])
               : [];
-            const nutrition = plannedMeal.recipes.nutrition_per_serving as Recipe['nutrition'] | null;
+            const nutrition = plannedMeal.recipes.nutrition_per_serving as unknown as Recipe['nutrition'] | null;
 
             slot.recipeId = plannedMeal.recipe_id ?? undefined;
             slot.recipe = {
