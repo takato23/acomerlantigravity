@@ -1,7 +1,7 @@
-import { Decimal } from '@prisma/client/runtime/library';
+import { createServerSupabaseClient } from '@/lib/supabase/client';
 import { logger } from '@/services/logger';
-
-import { db } from '@/lib/supabase/database.service';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '@/types/database';
 
 export interface PriceInfo {
   productId: string;
@@ -29,8 +29,11 @@ export interface ProductWithLowestPrice {
 
 export class PriceTracker {
   private static instance: PriceTracker;
+  private supabase: SupabaseClient<Database>;
 
-  private constructor() { }
+  private constructor() {
+    this.supabase = createServerSupabaseClient();
+  }
 
   static getInstance(): PriceTracker {
     if (!PriceTracker.instance) {
@@ -46,18 +49,16 @@ export class PriceTracker {
     source: 'scraper' | 'manual' | 'receipt' = 'scraper'
   ): Promise<void> {
     try {
-      const priceHistory = (db as any).priceHistory;
-      if (!priceHistory?.create) {
-        return;
-      }
-      await priceHistory.create({
-        data: {
-          productId,
-          storeId,
-          price: new Decimal(price),
-          source
-        }
-      });
+      const { error } = await this.supabase
+        .from('price_history')
+        .insert({
+          product_id: productId,
+          store_id: storeId,
+          price: price,
+          recorded_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
     } catch (error: unknown) {
       logger.error('Error tracking price:', 'priceTracker', error);
       throw error;
@@ -71,18 +72,18 @@ export class PriceTracker {
     source?: 'scraper' | 'manual' | 'receipt';
   }>): Promise<void> {
     try {
-      const priceHistory = (db as any).priceHistory;
-      if (!priceHistory?.createMany) {
-        return;
-      }
-      await priceHistory.createMany({
-        data: prices.map(p => ({
-          productId: p.productId,
-          storeId: p.storeId,
-          price: new Decimal(p.price),
-          source: p.source || 'scraper'
-        }))
-      });
+      const { error } = await this.supabase
+        .from('price_history')
+        .insert(
+          prices.map(p => ({
+            product_id: p.productId,
+            store_id: p.storeId,
+            price: p.price,
+            recorded_at: new Date().toISOString()
+          }))
+        );
+
+      if (error) throw error;
     } catch (error: unknown) {
       logger.error('Error tracking multiple prices:', 'priceTracker', error);
       throw error;
@@ -94,22 +95,24 @@ export class PriceTracker {
     since.setDate(since.getDate() - days);
 
     try {
-      const priceHistory = (db as any).priceHistory;
-      const history = await priceHistory?.findMany?.({
-        where: {
-          productId,
-          recordedAt: { gte: since }
-        },
-        orderBy: { recordedAt: 'desc' },
-        include: { store: true }
-      }) ?? [];
+      const { data: history, error } = await this.supabase
+        .from('price_history')
+        .select(`
+          *,
+          store:stores(name)
+        `)
+        .eq('product_id', productId)
+        .gte('recorded_at', since.toISOString())
+        .order('recorded_at', { ascending: false });
 
-      return history.map((h: any) => ({
-        productId: h.productId,
-        storeId: h.storeId,
+      if (error) throw error;
+
+      return (history || []).map((h) => ({
+        productId: h.product_id,
+        storeId: h.store_id,
         storeName: h.store?.name,
-        price: Number(h.price),
-        recordedAt: h.recordedAt
+        price: h.price,
+        recordedAt: new Date(h.recorded_at)
       }));
     } catch (error: unknown) {
       logger.error('Error fetching price history:', 'priceTracker', error);
@@ -135,26 +138,28 @@ export class PriceTracker {
     since.setDate(since.getDate() - 7);
 
     try {
-      const priceHistory = (db as any).priceHistory;
-      const history = await priceHistory?.findMany?.({
-        where: {
-          productId: { in: productIds },
-          recordedAt: { gte: since }
-        },
-        include: { store: true },
-        orderBy: { price: 'asc' }
-      }) ?? [];
+      const { data: history, error } = await this.supabase
+        .from('price_history')
+        .select(`
+          *,
+          store:stores(name)
+        `)
+        .in('product_id', productIds)
+        .gte('recorded_at', since.toISOString())
+        .order('price', { ascending: true });
+
+      if (error) throw error;
 
       // Group by product and get lowest for each
-      history.forEach((h: any) => {
-        const productId = h.productId;
+      (history || []).forEach((h) => {
+        const productId = h.product_id;
         if (!lowestPrices.has(productId)) {
           lowestPrices.set(productId, {
-            productId: h.productId,
-            storeId: h.storeId,
+            productId: h.product_id,
+            storeId: h.store_id,
             storeName: h.store?.name,
-            price: Number(h.price),
-            recordedAt: h.recordedAt
+            price: h.price,
+            recordedAt: new Date(h.recorded_at)
           });
         }
       });
